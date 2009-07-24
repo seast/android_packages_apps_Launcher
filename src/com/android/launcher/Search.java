@@ -294,6 +294,7 @@ public class Search extends LinearLayout
         mSearchText = (TextView) findViewById(R.id.search_src_text);
         mVoiceButton = (ImageButton) findViewById(R.id.search_voice_btn);
 
+        mSearchText.setFocusable(true);
         mSearchText.setOnKeyListener(this);
 
         mSearchText.setOnClickListener(this);
