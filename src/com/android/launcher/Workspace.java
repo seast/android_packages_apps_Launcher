@@ -106,6 +106,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
     private boolean mLocked;
 
     private int mTouchSlop;
+    private int mMaximumVelocity;
 
     final Rect mDrawerBounds = new Rect();
     final Rect mClipBounds = new Rect();
@@ -150,7 +151,9 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         mPaint = new Paint();
         mPaint.setDither(false);
 
-        mTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
+        final ViewConfiguration configuration = ViewConfiguration.get(getContext());
+        mTouchSlop = configuration.getScaledTouchSlop();
+        mMaximumVelocity = configuration.getScaledMaximumFlingVelocity();
     }
 
     /**
@@ -635,7 +638,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
     }
 
     @Override
-    public void addFocusables(ArrayList<View> views, int direction) {
+    public void addFocusables(ArrayList<View> views, int direction, int focusableMode) {
         if (mLauncher.isDrawerDown()) {
             final Folder openFolder = getOpenFolder();
             if (openFolder == null) {
@@ -813,7 +816,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         case MotionEvent.ACTION_UP:
             if (mTouchState == TOUCH_STATE_SCROLLING) {
                 final VelocityTracker velocityTracker = mVelocityTracker;
-                velocityTracker.computeCurrentVelocity(1000);
+                velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
                 int velocityX = (int) velocityTracker.getXVelocity();
 
                 if (velocityX > SNAP_VELOCITY && mCurrentScreen > 0) {
@@ -1222,32 +1225,64 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         final ArrayList<View> childrenToRemove = new ArrayList<View>();
         final LauncherModel model = Launcher.getModel();
         final int count = getChildCount();
+
         for (int i = 0; i < count; i++) {
             final CellLayout layout = (CellLayout) getChildAt(i);
             int childCount = layout.getChildCount();
+
             childrenToRemove.clear();
+
             for (int j = 0; j < childCount; j++) {
                 final View view = layout.getChildAt(j);
                 Object tag = view.getTag();
+
                 if (tag instanceof ApplicationInfo) {
-                    ApplicationInfo info = (ApplicationInfo) tag;
+                    final ApplicationInfo info = (ApplicationInfo) tag;
                     // We need to check for ACTION_MAIN otherwise getComponent() might
                     // return null for some shortcuts (for instance, for shortcuts to
                     // web pages.)
                     final Intent intent = info.intent;
                     final ComponentName name = intent.getComponent();
+
                     if (Intent.ACTION_MAIN.equals(intent.getAction()) &&
                             name != null && packageName.equals(name.getPackageName())) {
                         model.removeDesktopItem(info);
                         LauncherModel.deleteItemFromDatabase(mLauncher, info);
                         childrenToRemove.add(view);
                     }
+                } else if (tag instanceof UserFolderInfo) {
+                    final UserFolderInfo info = (UserFolderInfo) tag;
+                    final ArrayList<ApplicationInfo> contents = info.contents;
+                    final ArrayList<ApplicationInfo> toRemove = new ArrayList<ApplicationInfo>(1);
+                    final int contentsCount = contents.size();
+                    boolean removedFromFolder = false;
+
+                    for (int k = 0; k < contentsCount; k++) {
+                        final ApplicationInfo appInfo = contents.get(k);
+                        final Intent intent = appInfo.intent;
+                        final ComponentName name = intent.getComponent();
+
+                        if (Intent.ACTION_MAIN.equals(intent.getAction()) &&
+                                name != null && packageName.equals(name.getPackageName())) {
+                            toRemove.add(appInfo);
+                            LauncherModel.deleteItemFromDatabase(mLauncher, appInfo);
+                            removedFromFolder = true;
+                        }
+                    }
+
+                    contents.removeAll(toRemove);
+                    if (removedFromFolder) {
+                        final Folder folder = getOpenFolder();
+                        if (folder != null) folder.notifyDataSetChanged();
+                    }
                 }
             }
+
             childCount = childrenToRemove.size();
             for (int j = 0; j < childCount; j++) {
                 layout.removeViewInLayout(childrenToRemove.get(j));
             }
+
             if (childCount > 0) {
                 layout.requestLayout();
                 layout.invalidate();
