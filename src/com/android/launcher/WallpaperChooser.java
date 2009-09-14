@@ -18,6 +18,7 @@ package com.android.launcher;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,7 +27,6 @@ import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.Gallery;
 import android.widget.ImageView;
 import android.graphics.BitmapFactory;
@@ -118,6 +118,7 @@ public class WallpaperChooser extends Activity implements AdapterView.OnItemSele
 
     private ArrayList<Integer> mThumbs;
     private ArrayList<Integer> mImages;
+    private AsyncTask<Integer,Void,Bitmap> mLoader;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -137,8 +138,7 @@ public class WallpaperChooser extends Activity implements AdapterView.OnItemSele
         mGallery.setOnItemSelectedListener(this);
         mGallery.setCallbackDuringFling(false);
 
-        Button b = (Button) findViewById(R.id.set);
-        b.setOnClickListener(this);
+        findViewById(R.id.set).setOnClickListener(this);
 
         mImageView = (ImageView) findViewById(R.id.wallpaper);
     }
@@ -175,19 +175,10 @@ public class WallpaperChooser extends Activity implements AdapterView.OnItemSele
     }
 
     public void onItemSelected(AdapterView parent, View v, int position, long id) {
-        final ImageView view = mImageView;
-        Bitmap b = BitmapFactory.decodeResource(getResources(), mImages.get(position), mOptions);
-        view.setImageBitmap(b);
-
-        // Help the GC
-        if (mBitmap != null) {
-            mBitmap.recycle();
+        if (mLoader != null && mLoader.getStatus() != WallpaperLoader.Status.FINISHED) {
+            mLoader.cancel(true);
         }
-        mBitmap = b;
-
-        final Drawable drawable = view.getDrawable();
-        drawable.setFilterBitmap(true);
-        drawable.setDither(true);
+        mLoader = new WallpaperLoader().execute(position);
     }
 
     /*
@@ -250,5 +241,35 @@ public class WallpaperChooser extends Activity implements AdapterView.OnItemSele
 
     public void onClick(View v) {
         selectWallpaper(mGallery.getSelectedItemPosition());
+    }
+
+    class WallpaperLoader extends AsyncTask<Integer, Void, Bitmap> {
+        protected Bitmap doInBackground(Integer... params) {
+            if (isCancelled()) return null;
+            return BitmapFactory.decodeResource(getResources(), mImages.get(params[0]), mOptions);
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap b) {
+            if (b == null) return;
+
+            if (!isCancelled()) {
+                // Help the GC
+                if (mBitmap != null) {
+                    mBitmap.recycle();
+                }
+    
+                final ImageView view = mImageView;
+                view.setImageBitmap(b);
+    
+                mBitmap = b;
+    
+                final Drawable drawable = view.getDrawable();
+                drawable.setFilterBitmap(true);
+                drawable.setDither(true);
+
+                view.postInvalidate();
+            }
+        }
     }
 }
