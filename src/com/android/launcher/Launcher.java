@@ -167,6 +167,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
     private final BroadcastReceiver mApplicationsReceiver = new ApplicationsIntentReceiver();
     private final ContentObserver mObserver = new FavoritesChangeObserver();
+    private final ContentObserver mWidgetObserver = new AppWidgetResetObserver();
 
     private LayoutInflater mInflater;
 
@@ -969,6 +970,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         sModel.abortLoaders();
 
         getContentResolver().unregisterContentObserver(mObserver);
+        getContentResolver().unregisterContentObserver(mWidgetObserver);
         unregisterReceiver(mApplicationsReceiver);
     }
 
@@ -1083,6 +1085,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         // We can't trust the view state here since views we may not be done binding.
         // Get the vacancy state from the model instead.
         mMenuAddInfo = mWorkspace.findAllVacantCellsFromModel();
+        mMenuAddInfo = mWorkspace.findAllVacantCells(null);
         menu.setGroupEnabled(MENU_GROUP_ADD, mMenuAddInfo != null && mMenuAddInfo.valid);
 
         return true;
@@ -1363,6 +1366,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private void registerContentObservers() {
         ContentResolver resolver = getContentResolver();
         resolver.registerContentObserver(LauncherSettings.Favorites.CONTENT_URI, true, mObserver);
+        resolver.registerContentObserver(LauncherProvider.CONTENT_APPWIDGET_RESET_URI,
+                true, mWidgetObserver);
     }
 
     @Override
@@ -1426,6 +1431,13 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         mDesktopLocked = true;
         mDrawer.lock();
         sModel.loadUserItems(false, this, false, false);
+    }
+
+    /**
+     * Re-listen when widgets are reset.
+     */
+    private void onAppWidgetReset() {
+        mAppWidgetHost.startListening();
     }
 
     void onDesktopItemsLoaded(ArrayList<ItemInfo> shortcuts,
@@ -2152,6 +2164,20 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                     launcher.loadWallpaper();
                 }
             }
+        }
+    }
+
+    /**
+     * Receives notifications whenever the appwidgets are reset.
+     */
+    private class AppWidgetResetObserver extends ContentObserver {
+        public AppWidgetResetObserver() {
+            super(new Handler());
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            onAppWidgetReset();
         }
     }
 
