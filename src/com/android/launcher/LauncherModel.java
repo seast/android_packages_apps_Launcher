@@ -723,6 +723,7 @@ public class LauncherModel {
     }
 
     private class DesktopItemsLoader implements Runnable {
+        private final Object stopLock = new Object();
         private volatile boolean mStopped;
         private volatile boolean mRunning;
 
@@ -742,7 +743,9 @@ public class LauncherModel {
         }
 
         void stop() {
-            mStopped = true;
+            synchronized (stopLock) {
+                mStopped = true;
+            }
         }
 
         boolean isRunning() {
@@ -987,7 +990,11 @@ public class LauncherModel {
                     startApplicationsLoader(launcher, mIsLaunching);
                 }
 
-                mDesktopItemsLoaded = true;
+                synchronized (stopLock) {
+                   if (!mStopped) {
+                       mDesktopItemsLoaded = true;
+                   }
+                }
             } else {
                 if (DEBUG_LOADERS) d(LOG_TAG, "  ----> worskpace loader was stopped");
             }
