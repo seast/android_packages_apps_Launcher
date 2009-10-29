@@ -297,6 +297,12 @@ public class Search extends LinearLayout
         mSearchText = (TextView) findViewById(R.id.search_src_text);
         mVoiceButton = (ImageButton) findViewById(R.id.search_voice_btn);
         
+        // mGooglePlaceholder = getContext().getResources().getDrawable(R.drawable.placeholder_google);
+        //mContext.registerReceiver(mBroadcastReceiver,
+        //        new IntentFilter(SearchManager.INTENT_ACTION_SEARCH_SETTINGS_CHANGED));
+
+        mSearchText.setFocusable(true);
+
         mSearchText.setOnKeyListener(this);
 
         mSearchText.setOnClickListener(this);

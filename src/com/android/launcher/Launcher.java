@@ -227,9 +227,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         registerIntentReceivers();
         registerContentObservers();
 
-        mSavedState = savedInstanceState;
-        restoreState(mSavedState);
-
         if (PROFILE_STARTUP) {
             android.os.Debug.stopMethodTracing();
         }
@@ -237,6 +234,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         if (!mRestoring) {
             startLoaders();
         }
+
+        mSavedState = savedInstanceState;
+        restoreState(mSavedState);
 
         // For handling default keys
         mDefaultKeySsb = new SpannableStringBuilder();
