@@ -54,6 +54,7 @@ import android.os.Parcelable;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.provider.LiveFolders;
+import android.provider.Settings;
 import android.text.Selection;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
@@ -241,6 +242,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         // For handling default keys
         mDefaultKeySsb = new SpannableStringBuilder();
         Selection.setSelection(mDefaultKeySsb, 0);
+        
     }
 
     private void checkForLocaleChange() {
@@ -404,6 +406,10 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     protected void onResume() {
         super.onResume();
 
+        this.setRequestedOrientation(
+        		Settings.System.getInt(this.getContentResolver(), "launcher_orientation", 1) == 0 ?
+        				ActivityInfo.SCREEN_ORIENTATION_NOSENSOR : ActivityInfo.SCREEN_ORIENTATION_USER);
+        
         if (mRestoring) {
             startLoaders();
         }
