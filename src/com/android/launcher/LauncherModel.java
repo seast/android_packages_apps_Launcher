@@ -483,7 +483,6 @@ public class LauncherModel {
     private class ApplicationsLoader implements Runnable {
         private final WeakReference<Launcher> mLauncher;
 
-        private final Object stopLock = new Object();
         private volatile boolean mStopped;
         private volatile boolean mRunning;
         private final boolean mIsLaunching;
@@ -497,9 +496,7 @@ public class LauncherModel {
         }
 
         void stop() {
-            synchronized (stopLock) {
-               mStopped = true;
-            }
+            mStopped = true;
         }
 
         boolean isRunning() {
@@ -544,12 +541,10 @@ public class LauncherModel {
                 launcher.runOnUiThread(action);
             }
 
-            synchronized (stopLock) {
-                if (!mStopped) {
-                    mApplicationsLoaded = true;
-                } else {
-                    if (DEBUG_LOADERS) d(LOG_TAG, "  ----> applications loader stopped (" + mId + ")");                                
-                }
+            if (!mStopped) {
+                mApplicationsLoaded = true;
+            } else {
+                if (DEBUG_LOADERS) d(LOG_TAG, "  ----> applications loader stopped (" + mId + ")");                                
             }
             mRunning = false;
         }
@@ -723,7 +718,6 @@ public class LauncherModel {
     }
 
     private class DesktopItemsLoader implements Runnable {
-        private final Object stopLock = new Object();
         private volatile boolean mStopped;
         private volatile boolean mRunning;
 
@@ -743,9 +737,7 @@ public class LauncherModel {
         }
 
         void stop() {
-            synchronized (stopLock) {
-                mStopped = true;
-            }
+            mStopped = true;
         }
 
         boolean isRunning() {
@@ -990,11 +982,7 @@ public class LauncherModel {
                     startApplicationsLoader(launcher, mIsLaunching);
                 }
 
-                synchronized (stopLock) {
-                   if (!mStopped) {
-                       mDesktopItemsLoaded = true;
-                   }
-                }
+                mDesktopItemsLoaded = true;
             } else {
                 if (DEBUG_LOADERS) d(LOG_TAG, "  ----> worskpace loader was stopped");
             }
