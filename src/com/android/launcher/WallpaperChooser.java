@@ -51,7 +51,22 @@ public class WallpaperChooser extends Activity implements AdapterView.OnItemSele
 	    R.drawable.wallpaper_hazey_small,
 	    R.drawable.wallpaper_frog_small,
 	    R.drawable.wallpaper_turtle_small,
-	    R.drawable.wallpaper_brick_small
+	    R.drawable.wallpaper_0008_small,
+	    R.drawable.wallpaper_0013_small,
+	    R.drawable.wallpaper_bossa_small,
+	    R.drawable.wallpaper_clone_small,
+	    R.drawable.wallpaper_curves_small,
+	    R.drawable.wallpaper_deep_small,
+	    R.drawable.wallpaper_linked_small,
+	    R.drawable.wallpaper_pacific_small,
+	    R.drawable.wallpaper_reactive_small,
+	    R.drawable.wallpaper_resonance_small,
+	    R.drawable.wallpaper_siren_small,
+	    R.drawable.wallpaper_stack_small,
+	    R.drawable.wallpaper_swell_small,
+	    R.drawable.wallpaper_tangy_small,
+	    R.drawable.wallpaper_track_small,
+	    R.drawable.wallpaper_vibe_small
     };
 
     private static final Integer[] IMAGE_IDS = {
@@ -63,7 +78,22 @@ public class WallpaperChooser extends Activity implements AdapterView.OnItemSele
 	    R.drawable.wallpaper_hazey,
 	    R.drawable.wallpaper_frog,
 	    R.drawable.wallpaper_turtle,
-	    R.drawable.wallpaper_brick
+	    R.drawable.wallpaper_0008,
+	    R.drawable.wallpaper_0013,
+	    R.drawable.wallpaper_bossa,
+	    R.drawable.wallpaper_clone,
+	    R.drawable.wallpaper_curves,
+	    R.drawable.wallpaper_deep,
+	    R.drawable.wallpaper_linked,
+	    R.drawable.wallpaper_pacific,
+	    R.drawable.wallpaper_reactive,
+	    R.drawable.wallpaper_resonance,
+	    R.drawable.wallpaper_siren,
+	    R.drawable.wallpaper_stack,
+	    R.drawable.wallpaper_swell,
+	    R.drawable.wallpaper_tangy,
+	    R.drawable.wallpaper_track,
+	    R.drawable.wallpaper_vibe
     };
 
     private Gallery mGallery;
