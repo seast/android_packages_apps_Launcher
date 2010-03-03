@@ -1052,7 +1052,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
     /**
      * {@inheritDoc}
      */
-    public Rect estimateDropLocation(int x, int y, int xOffset, int yOffset, Rect recycle) {
+    public Rect estimateDropLocation(DragSource source, int x, int y, int xOffset, int yOffset, Object dragInfo, Rect recycle) {
         final CellLayout layout = getCurrentDropLayout();
         
         final CellLayout.CellInfo cellInfo = mDragInfo;
