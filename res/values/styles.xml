@@ -23,6 +23,11 @@
         <item name="android:windowNoTitle">true</item>
     </style>
 
+    <style name="AnimationPreview">
+        <item name="android:windowEnterAnimation">@anim/popup</item>
+        <item name="android:windowExitAnimation">@anim/fade_out_fast</item>
+    </style>
+
     <style name="WorkspaceIcon">
         <item name="android:textSize">13dip</item>
         <item name="android:singleLine">true</item>

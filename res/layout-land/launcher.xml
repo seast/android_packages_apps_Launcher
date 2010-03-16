@@ -37,20 +37,19 @@
         <include android:id="@+id/cell5" layout="@layout/workspace_screen" />
 
     </com.android.launcher.Workspace>
-
     <SlidingDrawer
         android:id="@+id/drawer"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
 
         android:orientation="horizontal"
-        android:bottomOffset="8dip"
+        android:bottomOffset="10dip"
         android:handle="@+id/all_apps"
         android:content="@+id/content">
         
         <com.android.launcher.HandleView
             android:id="@id/all_apps"
-            android:layout_width="56dip"
+            android:layout_width="wrap_content"
             android:layout_height="fill_parent"
 
             android:background="@drawable/handle"
@@ -63,24 +62,23 @@
 
             launcher:direction="vertical" />
 
-        <com.android.launcher.AllAppsGridView
-            android:id="@id/content"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+	<com.android.launcher.AllAppsGridView
+	    android:id="@id/content"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
 
-            launcher:texture="@drawable/pattern_carbon_fiber_dark"
+	    launcher:texture="@drawable/pattern_carbon_fiber_dark"
+	    android:scrollbarStyle="outsideInset"
+	    android:drawSelectorOnTop="false"
+	    android:listSelector="@drawable/grid_selector"
 
-            android:scrollbarStyle="outsideInset"
-            android:drawSelectorOnTop="false"
-            android:listSelector="@drawable/grid_selector"
+	    android:nextFocusLeft="@id/all_apps"
+	    android:nextFocusDown="@id/content"
+	    android:nextFocusUp="@id/content"
+	    android:nextFocusRight="@id/content"
 
-            android:nextFocusLeft="@id/all_apps"
-            android:nextFocusDown="@id/content"
-            android:nextFocusUp="@id/content"
-            android:nextFocusRight="@id/content"
-
-            android:verticalSpacing="10dip"
-            android:numColumns="6" />
+	    android:verticalSpacing="10dip"
+	    android:numColumns="6" />
 
     </SlidingDrawer>
 
@@ -98,5 +96,28 @@
         android:visibility="invisible"
 
         launcher:direction="vertical" />
+    <!-- Le meto la ñapa del siglo a ver si chuta? -->
+    <RelativeLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent">
+		<ImageView
+			android:src="@drawable/home_arrows_left"
+			android:layout_marginBottom="10dip"
+			android:layout_height="50dip"
+			android:id="@+id/btn_scroll_left"
+			android:layout_width="50dip" 
+			android:layout_alignParentRight="true"
+			android:layout_alignParentBottom="true"/>
+		<ImageView
+			android:src="@drawable/home_arrows_right"
+			android:layout_marginTop="10dip"
+			android:layout_height="50dip"
+			android:id="@+id/btn_scroll_right"
+			android:layout_width="50dip" 
+			android:layout_alignParentRight="true"
+			android:layout_alignParentTop="true"/>
+	    
+    </RelativeLayout>
 
 </com.android.launcher.DragLayer>

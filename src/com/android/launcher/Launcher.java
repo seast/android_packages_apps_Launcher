@@ -75,6 +75,12 @@ import android.widget.GridView;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageView;
+import android.widget.PopupWindow;
+import android.widget.LinearLayout;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.Canvas;
+import android.view.HapticFeedbackConstants;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
 
@@ -206,6 +212,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
     private DesktopBinder mBinder;
 
+    private ImageView mPreviousView;
+    private ImageView mNextView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -441,6 +449,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     @Override
     protected void onPause() {
         super.onPause();
+        dismissPreview(mPreviousView);
+        dismissPreview(mNextView);
         closeDrawer(false);
     }
 
@@ -547,6 +557,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         final SlidingDrawer drawer = mDrawer;
 
         mAllAppsGrid = (AllAppsGridView) drawer.getContent();
+        //mAllAppsGrid = (AllAppsGridView) drawer.findViewById(R.id.content);
         final AllAppsGridView grid = mAllAppsGrid;
 
         final DeleteZone deleteZone = (DeleteZone) dragLayer.findViewById(R.id.delete_zone);
@@ -578,6 +589,30 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         dragLayer.setIgnoredDropTarget(grid);
         dragLayer.setDragScoller(workspace);
         dragLayer.setDragListener(deleteZone);
+
+	//ADDED BY ADW -2010-03-11
+	    
+	mPreviousView = (ImageView)findViewById(R.id.btn_scroll_left);
+	// Register the onClick listener with the implementation above
+	mPreviousView.setOnClickListener(new android.widget.Button.OnClickListener() {
+	public void onClick(View v) {
+	    mWorkspace.scrollLeft();
+	}
+	});
+	mNextView = (ImageView)findViewById(R.id.btn_scroll_right);
+	// Register the onClick listener with the implementation above
+	mNextView.setOnClickListener(new android.widget.Button.OnClickListener() {
+	public void onClick(View v) {
+	    mWorkspace.scrollRight();
+	}
+	});
+        mPreviousView.setOnLongClickListener(this);
+        mNextView.setOnLongClickListener(this);
+
+	Drawable previous = mPreviousView.getDrawable();
+	Drawable next = mNextView.getDrawable();
+	mWorkspace.setIndicators(previous, next);
+	
     }
 
     /**
@@ -971,6 +1006,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         getContentResolver().unregisterContentObserver(mObserver);
         getContentResolver().unregisterContentObserver(mWidgetObserver);
+
+        dismissPreview(mPreviousView);
+        dismissPreview(mNextView);
         unregisterReceiver(mApplicationsReceiver);
     }
 
@@ -1380,6 +1418,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                     } else {
                         closeFolder();
                     }
+		    dismissPreview(mPreviousView);
+		    dismissPreview(mNextView);
                     return true;
                 case KeyEvent.KEYCODE_HOME:
                     return true;
@@ -1742,6 +1782,20 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
 
     public boolean onLongClick(View v) {
+	// BY ADW //        
+	switch (v.getId()) {
+            case R.id.btn_scroll_left:
+		mWorkspace.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
+		    HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+		showPreviousPreview(v);
+                return true;
+            case R.id.btn_scroll_right:
+		mWorkspace.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
+		    HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+		showNextPreview(v);
+                return true;
+        }
+	// EOF ADW
         if (mDesktopLocked) {
             return false;
         }
@@ -1773,7 +1827,157 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         }
         return true;
     }
+//BY ADW
+    @SuppressWarnings({"unchecked"})
+    private void dismissPreview(final View v) {
+        final PopupWindow window = (PopupWindow) v.getTag();
+        if (window != null) {
+            window.setOnDismissListener(new PopupWindow.OnDismissListener() {
+                public void onDismiss() {
+                    ViewGroup group = (ViewGroup) v.getTag(R.id.workspace);
+                    int count = group.getChildCount();
+                    for (int i = 0; i < count; i++) {
+                        ((ImageView) group.getChildAt(i)).setImageDrawable(null);
+                    }
+                    ArrayList<Bitmap> bitmaps = (ArrayList<Bitmap>) v.getTag(R.id.icon);
+                    for (Bitmap bitmap : bitmaps) bitmap.recycle();
 
+                    v.setTag(R.id.workspace, null);
+                    v.setTag(R.id.icon, null);
+                    window.setOnDismissListener(null);
+                }
+            });
+            window.dismiss();
+        }
+        v.setTag(null);
+    }
+
+    private void showPreviousPreview(View anchor) {
+        int current = mWorkspace.getCurrentScreen();
+        if (current <= 0) return;
+
+        showPreviews(anchor, 0, mWorkspace.getChildCount());
+    }
+
+    private void showNextPreview(View anchor) {
+        int current = mWorkspace.getCurrentScreen();
+        if (current >= mWorkspace.getChildCount() - 1) return;
+
+        showPreviews(anchor, 0, mWorkspace.getChildCount());        
+    }
+
+    private void showPreviews(final View anchor, int start, int end) {
+        Resources resources = getResources();
+
+        Workspace workspace = mWorkspace;
+        CellLayout cell = ((CellLayout) workspace.getChildAt(start));
+        
+        float max = workspace.getChildCount();
+        
+        Rect r = new Rect();
+        resources.getDrawable(R.drawable.preview_background).getPadding(r);
+        int extraW = (int) ((r.left + r.right) * max);
+        int extraH = r.top + r.bottom;
+
+        int aW = cell.getWidth() - extraW;
+        float w = aW / max;
+
+        int width = cell.getWidth();
+        int height = cell.getHeight();
+        int x = cell.getLeftPadding();
+        int y = cell.getTopPadding();
+        width -= (x + cell.getRightPadding());
+        height -= (y + cell.getBottomPadding());
+
+        float scale = w / width;
+
+        int count = end - start;
+
+        final float sWidth = width * scale;
+        float sHeight = height * scale;
+
+        LinearLayout preview = new LinearLayout(this);
+
+        PreviewTouchHandler handler = new PreviewTouchHandler(anchor);
+        ArrayList<Bitmap> bitmaps = new ArrayList<Bitmap>(count);
+
+        for (int i = start; i < end; i++) {
+            ImageView image = new ImageView(this);
+            cell = (CellLayout) workspace.getChildAt(i);
+
+            Bitmap bitmap = Bitmap.createBitmap((int) sWidth, (int) sHeight,
+                    Bitmap.Config.ARGB_8888);
+            
+            Canvas c = new Canvas(bitmap);
+            c.scale(scale, scale);
+            c.translate(-cell.getLeftPadding(), -cell.getTopPadding());
+            cell.dispatchDraw(c);
+
+            image.setBackgroundDrawable(resources.getDrawable(R.drawable.preview_background));
+            image.setImageBitmap(bitmap);
+            image.setTag(i);
+            image.setOnClickListener(handler);
+            image.setOnFocusChangeListener(handler);
+            image.setFocusable(true);
+            if (i == mWorkspace.getCurrentScreen()) image.requestFocus();
+
+            preview.addView(image,
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+            bitmaps.add(bitmap);            
+        }
+        
+        PopupWindow p = new PopupWindow(this);
+        p.setContentView(preview);
+        p.setWidth((int) (sWidth * count + extraW));
+        p.setHeight((int) (sHeight + extraH));
+        p.setAnimationStyle(R.style.AnimationPreview);
+        p.setOutsideTouchable(true);
+        p.setFocusable(true);
+        p.setBackgroundDrawable(new ColorDrawable(0));
+        p.showAsDropDown(anchor, 0, 0);
+        p.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            public void onDismiss() {
+                dismissPreview(anchor);
+            }
+        });
+
+        anchor.setTag(p);
+        anchor.setTag(R.id.workspace, preview);
+        anchor.setTag(R.id.icon, bitmaps);        
+    }
+
+    class PreviewTouchHandler implements View.OnClickListener, Runnable, View.OnFocusChangeListener {
+        private final View mAnchor;
+
+        public PreviewTouchHandler(View anchor) {
+            mAnchor = anchor;
+        }
+
+        public void onClick(View v) {
+            mWorkspace.snapToScreen((Integer) v.getTag());
+            v.post(this);
+        }
+
+        public void run() {
+            dismissPreview(mAnchor);            
+        }
+
+        public void onFocusChange(View v, boolean hasFocus) {
+            if (hasFocus) {
+                mWorkspace.snapToScreen((Integer) v.getTag());
+            }
+        }
+    }
+    boolean isAllAppsVisible() {
+        return mAllAppsGrid.isOpaque();
+    }
+
+    boolean isAllAppsOpaque() {
+        return mAllAppsGrid.isOpaque();
+    }
+
+//EOF ADW
     static LauncherModel getModel() {
         return sModel;
     }
@@ -2192,7 +2396,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                 offsetBoundsToDragLayer(bounds, mAllAppsGrid);
 
                 mOpen = true;
-            }
+	    }
+	    //BY ADW
+	    mPreviousView.setVisibility(View.GONE);
+	    mNextView.setVisibility(View.GONE);
+	    //EOF ADW
         }
 
         private void offsetBoundsToDragLayer(Rect bounds, View view) {
@@ -2213,6 +2421,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
             mAllAppsGrid.setSelection(0);
             mAllAppsGrid.clearTextFilter();
+	    //BY ADW
+	    mPreviousView.setVisibility(View.VISIBLE);
+ 	    mNextView.setVisibility(View.VISIBLE);
+	    //EOF ADW
+
         }
 
         public void onScrollStarted() {
@@ -2222,12 +2435,22 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
             mWorkspace.mDrawerContentWidth = mAllAppsGrid.getWidth();
             mWorkspace.mDrawerContentHeight = mAllAppsGrid.getHeight();
+	    //BY ADW
+	    mPreviousView.setVisibility(View.GONE);
+	    mNextView.setVisibility(View.GONE);
+	    //EOF ADW
+	
+
         }
 
         public void onScrollEnded() {
             if (PROFILE_DRAWER) {
                 android.os.Debug.stopMethodTracing();
             }
+	    //BY ADW
+	    mPreviousView.setVisibility(View.VISIBLE);
+ 	    mNextView.setVisibility(View.VISIBLE);
+	    //EOF ADW
         }
     }
 

@@ -57,6 +57,9 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
 
     private int mDefaultScreen;
 
+    private Drawable mPreviousIndicator;
+    private Drawable mNextIndicator;
+
     private Paint mPaint;
     private Bitmap mWallpaper;
 
@@ -279,6 +282,10 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         clearVacantCache();
         mCurrentScreen = Math.max(0, Math.min(currentScreen, getChildCount() - 1));
         scrollTo(mCurrentScreen * getWidth(), 0);
+	//BY ADW 
+	mPreviousIndicator.setLevel(mCurrentScreen);
+	mNextIndicator.setLevel(mCurrentScreen);
+	//EOF ADW
         invalidate();
     }
 
@@ -476,6 +483,10 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
             postInvalidate();
         } else if (mNextScreen != INVALID_SCREEN) {
             mCurrentScreen = Math.max(0, Math.min(mNextScreen, getChildCount() - 1));
+            //BY ADW 
+            mPreviousIndicator.setLevel(mCurrentScreen);
+            mNextIndicator.setLevel(mCurrentScreen);
+	    //EOF ADW
             Launcher.setScreen(mCurrentScreen);
             mNextScreen = INVALID_SCREEN;
             clearChildrenCache();
@@ -1350,7 +1361,13 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         snapToScreen(mDefaultScreen);
         getChildAt(mDefaultScreen).requestFocus();
     }
-
+    
+    void setIndicators(Drawable previous, Drawable next) {
+        mPreviousIndicator = previous;
+        mNextIndicator = next;
+        previous.setLevel(mCurrentScreen);
+        next.setLevel(mCurrentScreen);
+    }
     public static class SavedState extends BaseSavedState {
         int currentScreen = -1;
 
