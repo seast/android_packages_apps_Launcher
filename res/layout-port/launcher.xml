@@ -36,16 +36,27 @@
         <include android:id="@+id/cell5" layout="@layout/workspace_screen" />
 
     </com.android.launcher.Workspace>
-    <SlidingDrawer
-        android:id="@+id/drawer"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-
-        android:topOffset="0dip"
-        android:bottomOffset="10dip"
-        android:handle="@+id/all_apps"
-        android:content="@+id/content">
-
+	<LinearLayout android:id="@+id/AppsContainer"
+		android:layout_width="fill_parent" android:layout_height="fill_parent"
+		xmlns:android="http://schemas.android.com/apk/res/android"
+		android:background="#DD000000" android:visibility="gone" android:paddingBottom="50dip"> 
+		<com.android.launcher.AllAppsGridView
+	        android:id="@+id/all_apps_view"
+		    android:layout_width="fill_parent"
+		    android:layout_height="fill_parent"	    
+	
+		    android:scrollbarStyle="outsideInset"
+		    android:drawSelectorOnTop="false"
+		    android:listSelector="@drawable/grid_selector"
+	
+		    android:nextFocusLeft="@id/all_apps_view"
+		    android:nextFocusUp="@id/all_apps_view"
+		    android:nextFocusDown="@+id/all_apps"
+		    android:nextFocusRight="@id/all_apps_view"
+			android:visibility="gone"
+		    android:verticalSpacing="10dip"
+		    android:numColumns="4" />
+	</LinearLayout>
 	<com.android.launcher.HandleView
 	    android:id="@id/all_apps"
 	    android:layout_width="fill_parent"
@@ -58,29 +69,8 @@
 
 	    android:scaleType="center"
 	    android:src="@drawable/handle_icon"
-
+		android:layout_gravity="bottom|center_horizontal"
 	    launcher:direction="horizontal" />
-
-	<com.android.launcher.AllAppsGridView
-            android:id="@id/content"
-	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent"
-
-	    launcher:texture="@drawable/pattern_carbon_fiber_dark"
-
-	    android:scrollbarStyle="outsideInset"
-	    android:drawSelectorOnTop="false"
-	    android:listSelector="@drawable/grid_selector"
-
-	    android:nextFocusLeft="@id/content"
-	    android:nextFocusDown="@id/content"
-	    android:nextFocusUp="@id/all_apps"
-	    android:nextFocusRight="@id/content"
-
-	    android:verticalSpacing="10dip"
-	    android:numColumns="5" />
-    </SlidingDrawer>
-
     <com.android.launcher.DeleteZone
         android:id="@+id/delete_zone"
         android:layout_width="wrap_content"
@@ -95,28 +85,20 @@
         
         launcher:direction="horizontal" />
 
-    <!-- Le meto la ñapa del siglo a ver si chuta? -->
-    <RelativeLayout 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent" 
-    android:layout_height="fill_parent">
-		<ImageView
-			android:src="@drawable/home_arrows_left"
-			android:layout_marginLeft="10dip"
-			android:layout_height="50dip"
-			android:id="@+id/btn_scroll_left"
-			android:layout_width="50dip" 
-			android:layout_alignParentLeft="true"
-			android:layout_alignParentBottom="true"/>
-		<ImageView
-			android:src="@drawable/home_arrows_right"
-			android:layout_marginRight="10dip"
-			android:layout_height="50dip"
-			android:id="@+id/btn_scroll_right"
-			android:layout_width="50dip" 
-			android:layout_alignParentRight="true"
-			android:layout_alignParentBottom="true"/>
-	    
-    </RelativeLayout>
-
+	<ImageView
+		android:src="@drawable/home_arrows_left"
+		android:layout_marginLeft="10dip"
+		android:layout_height="50dip"
+		android:id="@+id/btn_scroll_left"
+		android:layout_width="50dip"
+		android:layout_gravity="bottom|left"
+		android:onClick="previousScreen"/>
+	<ImageView
+		android:src="@drawable/home_arrows_right"
+		android:layout_marginRight="10dip"
+		android:layout_height="50dip"
+		android:id="@+id/btn_scroll_right"
+		android:layout_width="50dip" 
+		android:layout_gravity="bottom|right"
+		android:onClick="nextScreen"/>	    
 </com.android.launcher.DragLayer>

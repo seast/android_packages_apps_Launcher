@@ -69,6 +69,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnLongClickListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -190,7 +192,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private final int[] mCellCoordinates = new int[2];
     private FolderInfo mFolderInfo;
 
-    private SlidingDrawer mDrawer;
+    //private SlidingDrawer mDrawer;
+    private ViewGroup allApps;
     private TransitionDrawable mHandleIcon;
     private HandleView mHandleView;
     private AllAppsGridView mAllAppsGrid;
@@ -214,6 +217,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
     private ImageView mPreviousView;
     private ImageView mNextView;
+    private boolean allAppsOpen=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -553,25 +557,27 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         mWorkspace = (Workspace) dragLayer.findViewById(R.id.workspace);
         final Workspace workspace = mWorkspace;
 
-        mDrawer = (SlidingDrawer) dragLayer.findViewById(R.id.drawer);
-        final SlidingDrawer drawer = mDrawer;
+        //mDrawer = (SlidingDrawer) dragLayer.findViewById(R.id.drawer);
+        allApps =(ViewGroup) dragLayer.findViewById(R.id.AppsContainer);
+        //final SlidingDrawer drawer = mDrawer;
 
-        mAllAppsGrid = (AllAppsGridView) drawer.getContent();
-        //mAllAppsGrid = (AllAppsGridView) drawer.findViewById(R.id.content);
+        mAllAppsGrid = (AllAppsGridView) dragLayer.findViewById(R.id.all_apps_view);
         final AllAppsGridView grid = mAllAppsGrid;
 
         final DeleteZone deleteZone = (DeleteZone) dragLayer.findViewById(R.id.delete_zone);
 
-        mHandleView = (HandleView) drawer.findViewById(R.id.all_apps);
+        mHandleView = (HandleView) dragLayer.findViewById(R.id.all_apps);
         mHandleView.setLauncher(this);
+        //BY ADW
+        mHandleView.setOnClickListener(this);
         mHandleIcon = (TransitionDrawable) mHandleView.getDrawable();
         mHandleIcon.setCrossFadeEnabled(true);
 
-        drawer.lock();
+        //drawer.lock();
         final DrawerManager drawerManager = new DrawerManager();
-        drawer.setOnDrawerOpenListener(drawerManager);
-        drawer.setOnDrawerCloseListener(drawerManager);
-        drawer.setOnDrawerScrollListener(drawerManager);
+        //drawer.setOnDrawerOpenListener(drawerManager);
+        //drawer.setOnDrawerCloseListener(drawerManager);
+        //drawer.setOnDrawerScrollListener(drawerManager);
 
         grid.setTextFilterEnabled(false);
         grid.setDragger(dragLayer);
@@ -594,20 +600,20 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	    
 	mPreviousView = (ImageView)findViewById(R.id.btn_scroll_left);
 	// Register the onClick listener with the implementation above
-	mPreviousView.setOnClickListener(new android.widget.Button.OnClickListener() {
+	/*mPreviousView.setOnClickListener(new android.widget.Button.OnClickListener() {
 	public void onClick(View v) {
 	    mWorkspace.scrollLeft();
 	}
-	});
+	});*/
 	mNextView = (ImageView)findViewById(R.id.btn_scroll_right);
 	// Register the onClick listener with the implementation above
-	mNextView.setOnClickListener(new android.widget.Button.OnClickListener() {
+	/*mNextView.setOnClickListener(new android.widget.Button.OnClickListener() {
 	public void onClick(View v) {
 	    mWorkspace.scrollRight();
 	}
-	});
-        mPreviousView.setOnLongClickListener(this);
-        mNextView.setOnLongClickListener(this);
+	});*/
+    mPreviousView.setOnLongClickListener(this);
+    mNextView.setOnLongClickListener(this);
 
 	Drawable previous = mPreviousView.getDrawable();
 	Drawable next = mNextView.getDrawable();
@@ -960,7 +966,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         // When the drawer is opened and we are saving the state because of a
         // configuration change
-        if (mDrawer.isOpened() && isConfigurationChange) {
+        if (allAppsOpen && isConfigurationChange) {
             outState.putBoolean(RUNTIME_STATE_ALL_APPS_FOLDER, true);
         }
 
@@ -1413,7 +1419,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             switch (event.getKeyCode()) {
                 case KeyEvent.KEYCODE_BACK:
                     mWorkspace.dispatchKeyEvent(event);
-                    if (mDrawer.isOpened()) {
+                    if (allAppsOpen) {
                         closeDrawer();
                     } else {
                         closeFolder();
@@ -1434,13 +1440,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
 
     private void closeDrawer(boolean animated) {
-        if (mDrawer.isOpened()) {
+    	if (allAppsOpen) {
             if (animated) {
-                mDrawer.animateClose();
+                closeAllApps(true);
             } else {
-                mDrawer.close();
+                closeAllApps(false);
             }
-            if (mDrawer.hasFocus()) {
+            //TODO: ADW-check if this is working
+            if (allApps.hasFocus()) {
                 mWorkspace.getChildAt(mWorkspace.getCurrentScreen()).requestFocus();
             }
         }
@@ -1468,7 +1475,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
      */
     private void onFavoritesChanged() {
         mDesktopLocked = true;
-        mDrawer.lock();
+        //BY ADW
+        //mDrawer.lock();
         sModel.loadUserItems(false, this, false, false);
     }
 
@@ -1610,7 +1618,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
             final boolean allApps = mSavedState.getBoolean(RUNTIME_STATE_ALL_APPS_FOLDER, false);
             if (allApps) {
-                mDrawer.open();
+            	showAllApps(true);
             }
 
             mSavedState = null;
@@ -1621,12 +1629,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             mSavedInstanceState = null;
         }
 
-        if (mDrawer.isOpened() && !mDrawer.hasFocus()) {
-            mDrawer.requestFocus();
+        //TODO: ADW-check if this works
+        if (allAppsOpen && !allApps.hasFocus()) {
+            allApps.requestFocus();
         }
 
         mDesktopLocked = false;
-        mDrawer.unlock();
+        //BY ADW
+        //mDrawer.unlock();
     }
 
     private void bindDrawer(Launcher.DesktopBinder binder,
@@ -1688,6 +1698,12 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             startActivitySafely(intent);
         } else if (tag instanceof FolderInfo) {
             handleFolderClick((FolderInfo) tag);
+        }else if (v == mHandleView) {
+            if (isAllAppsVisible()) {
+                closeAllApps(true);
+            } else {
+                showAllApps(true);
+            }
         }
     }
 
@@ -1827,8 +1843,82 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         }
         return true;
     }
-//BY ADW
+//BY ADW    
     @SuppressWarnings({"unchecked"})
+    
+    public void previousScreen(View v) {
+	    mWorkspace.scrollLeft();
+	}
+    public void nextScreen(View v) {
+	    mWorkspace.scrollRight();
+	}
+    private void showAllApps(boolean animated){
+		if(!allAppsOpen){
+			allApps.setVisibility(View.VISIBLE);
+			mAllAppsGrid.setVisibility(View.VISIBLE);
+			if(animated){
+				Animation animation = AnimationUtils.loadAnimation(this,R.anim.apps_fade_in);
+				animation.setAnimationListener(new android.view.animation.Animation.AnimationListener() {
+					public void onAnimationStart(Animation animation) {
+						// TODO Auto-generated method stub
+					}
+					public void onAnimationRepeat(Animation animation) {
+						// TODO Auto-generated method stub
+					}
+					public void onAnimationEnd(Animation animation) {
+						// TODO Auto-generated method stub
+						allAppsOpen=true;
+					}
+				});
+				mAllAppsGrid.startAnimation(animation);
+			}else{
+				allAppsOpen=true;
+			}
+			mHandleIcon.reverseTransition(150);
+    	    mPreviousView.setVisibility(View.GONE);
+    	    mNextView.setVisibility(View.GONE);			
+		}
+
+    }
+    private void closeAllApps(boolean animated){		
+		if(allAppsOpen){
+			if(animated){
+				Animation animation = AnimationUtils.loadAnimation(this,R.anim.apps_fade_out);
+				animation.setAnimationListener(new android.view.animation.Animation.AnimationListener() {
+					
+					
+					public void onAnimationStart(Animation animation) {
+						// TODO Auto-generated method stub
+					}
+					
+					
+					public void onAnimationRepeat(Animation animation) {
+						// TODO Auto-generated method stub
+					}
+					
+					
+					public void onAnimationEnd(Animation animation) {
+						// TODO Auto-generated method stub
+						allApps.setVisibility(View.GONE);
+						mAllAppsGrid.setVisibility(View.GONE);
+						allAppsOpen=false;
+					}
+				});
+				mAllAppsGrid.startAnimation(animation);
+			}else{
+				allApps.setVisibility(View.GONE);
+				mAllAppsGrid.setVisibility(View.GONE);
+				allAppsOpen=false;
+	            mWorkspace.mDrawerBounds.setEmpty();
+			}
+			mHandleIcon.reverseTransition(150);
+            mAllAppsGrid.setSelection(0);
+            mAllAppsGrid.clearTextFilter();	
+    	    mPreviousView.setVisibility(View.VISIBLE);
+    	    mNextView.setVisibility(View.VISIBLE);            
+		}    	
+    }
+   
     private void dismissPreview(final View v) {
         final PopupWindow window = (PopupWindow) v.getTag();
         if (window != null) {
@@ -1970,11 +2060,13 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         }
     }
     boolean isAllAppsVisible() {
-        return mAllAppsGrid.isOpaque();
+        //return mAllAppsGrid.isOpaque();
+    	return allAppsOpen;
     }
 
     boolean isAllAppsOpaque() {
-        return mAllAppsGrid.isOpaque();
+        return true;
+    	//return mAllAppsGrid.isOpaque();
     }
 
 //EOF ADW
@@ -1983,7 +2075,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
 
     void closeAllApplications() {
-        mDrawer.close();
+    	closeAllApps(true);
     }
 
     View getDrawerHandle() {
@@ -1991,15 +2083,18 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
 
     boolean isDrawerDown() {
-        return !mDrawer.isMoving() && !mDrawer.isOpened();
+    	return !allAppsOpen;
+        //return !mDrawer.isMoving() && !mDrawer.isOpened();
     }
 
     boolean isDrawerUp() {
-        return mDrawer.isOpened() && !mDrawer.isMoving();
+    	return allAppsOpen;
+        //return mDrawer.isOpened() && !mDrawer.isMoving();
     }
 
     boolean isDrawerMoving() {
-        return mDrawer.isMoving();
+    	return false;
+        //return mDrawer.isMoving();
     }
 
     Workspace getWorkspace() {
@@ -2122,7 +2217,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                 LauncherModel.updateItemInDatabase(Launcher.this, mFolderInfo);
 
                 if (mDesktopLocked) {
-                    mDrawer.lock();
+                    //BY ADW
+                	//mDrawer.lock();
                     sModel.loadUserItems(false, Launcher.this, false, false);
                 } else {
                     final FolderIcon folderIcon = (FolderIcon)
@@ -2132,7 +2228,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                         getWorkspace().requestLayout();
                     } else {
                         mDesktopLocked = true;
-                        mDrawer.lock();
+                        //BY ADW
+                        //mDrawer.lock();
                         sModel.loadUserItems(false, Launcher.this, false, false);
                     }
                 }
@@ -2384,8 +2481,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         }
     }
 
-    private class DrawerManager implements SlidingDrawer.OnDrawerOpenListener,
-            SlidingDrawer.OnDrawerCloseListener, SlidingDrawer.OnDrawerScrollListener {
+    //private class DrawerManager implements SlidingDrawer.OnDrawerOpenListener,
+            //SlidingDrawer.OnDrawerCloseListener, SlidingDrawer.OnDrawerScrollListener {
+    private class DrawerManager {
         private boolean mOpen;
 
         public void onDrawerOpened() {

@@ -284,7 +284,8 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         scrollTo(mCurrentScreen * getWidth(), 0);
 	//BY ADW 
 	indicatorLevels(mCurrentScreen);
-	//EOF ADW        invalidate();
+	//EOF ADW
+        invalidate();
     }
 
     /**
@@ -481,8 +482,8 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
             postInvalidate();
         } else if (mNextScreen != INVALID_SCREEN) {
             mCurrentScreen = Math.max(0, Math.min(mNextScreen, getChildCount() - 1));
-	    //BY ADW 
-	    indicatorLevels(mCurrentScreen);
+            //BY ADW 
+        	indicatorLevels(mCurrentScreen);
 	    //EOF ADW
             Launcher.setScreen(mCurrentScreen);
             mNextScreen = INVALID_SCREEN;
@@ -502,7 +503,8 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         // If the all apps drawer is open and the drawing region for the workspace
         // is contained within the drawer's bounds, we skip the drawing. This requires
         // the drawer to be fully opaque.
-        if (mLauncher.isDrawerUp()) {
+        //TODO: ADW-little hack to force redrawing
+        /*if (mLauncher.isDrawerUp()) {
             final Rect clipBounds = mClipBounds;
             canvas.getClipBounds(clipBounds);
             clipBounds.offset(-mScrollX, -mScrollY);
@@ -518,7 +520,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
 
             canvas.clipRect(mScrollX, top, mScrollX + mDrawerContentWidth,
                     top + mDrawerContentHeight, Region.Op.DIFFERENCE);
-        }
+        }*/
 
         float x = mScrollX * mWallpaperOffset;
         if (x + mWallpaperWidth < mRight - mLeft) {
@@ -1358,11 +1360,11 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         snapToScreen(mDefaultScreen);
         getChildAt(mDefaultScreen).requestFocus();
     }
-    
+    //TODO: ADW-indicators for screen pager
     void setIndicators(Drawable previous, Drawable next) {
         mPreviousIndicator = previous;
         mNextIndicator = next;
-	indicatorLevels(mCurrentScreen);
+    	indicatorLevels(mCurrentScreen);
     }
     void indicatorLevels(int mCurrent){
     	int numScreens=getChildCount();
