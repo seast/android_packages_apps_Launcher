@@ -1854,14 +1854,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
     private void showPreviousPreview(View anchor) {
         int current = mWorkspace.getCurrentScreen();
-        if (current <= 0) return;
+        //if (current <= 0) return;
 
         showPreviews(anchor, 0, mWorkspace.getChildCount());
     }
 
     private void showNextPreview(View anchor) {
         int current = mWorkspace.getCurrentScreen();
-        if (current >= mWorkspace.getChildCount() - 1) return;
+        //if (current >= mWorkspace.getChildCount() - 1) return;
 
         showPreviews(anchor, 0, mWorkspace.getChildCount());        
     }
