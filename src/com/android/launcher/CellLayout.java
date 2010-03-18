@@ -26,7 +26,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewDebug;
 import android.view.ViewGroup;
-
+import android.graphics.Canvas;
 import java.util.ArrayList;
 
 public class CellLayout extends ViewGroup {
@@ -117,7 +117,35 @@ public class CellLayout extends ViewGroup {
     int getCountY() {
         return mPortrait ? mLongAxisCells : mShortAxisCells;
     }
+//BY ADW
+    int getCellWidth() {
+        return mCellWidth;
+    }
 
+    int getCellHeight() {
+        return mCellHeight;
+    }
+
+    int getLeftPadding() {
+        return mPortrait ? mShortAxisStartPadding : mLongAxisStartPadding;
+    }
+
+    int getTopPadding() {
+        return mPortrait ? mLongAxisStartPadding : mShortAxisStartPadding;        
+    }
+
+    int getRightPadding() {
+        return mPortrait ? mShortAxisEndPadding : mLongAxisEndPadding;
+    }
+
+    int getBottomPadding() {
+        return mPortrait ? mLongAxisEndPadding : mShortAxisEndPadding;        
+    }
+    @Override
+    public void dispatchDraw(Canvas canvas) {
+        super.dispatchDraw(canvas);
+    }
+//EOF ADW
     @Override
     public void addView(View child, int index, ViewGroup.LayoutParams params) {
         // Generate an id for each view, this assumes we have at most 256x256 cells
