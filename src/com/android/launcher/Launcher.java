@@ -1424,8 +1424,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                     } else {
                         closeFolder();
                     }
-		    dismissPreview(mPreviousView);
-		    dismissPreview(mNextView);
+                    dismissPreview(mPreviousView);
+                    dismissPreview(mNextView);
                     return true;
                 case KeyEvent.KEYCODE_HOME:
                     return true;
@@ -1854,6 +1854,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	}
     private void showAllApps(boolean animated){
 		if(!allAppsOpen){
+			allAppsOpen=true;
 			allApps.setVisibility(View.VISIBLE);
 			mAllAppsGrid.setVisibility(View.VISIBLE);
 			if(animated){
@@ -1867,14 +1868,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 					}
 					public void onAnimationEnd(Animation animation) {
 						// TODO Auto-generated method stub
-						allAppsOpen=true;
+						
 					}
 				});
 				mAllAppsGrid.startAnimation(animation);
 			}else{
-				allAppsOpen=true;
+
 			}
-			mHandleIcon.reverseTransition(150);
+			mHandleIcon.startTransition(150);
     	    mPreviousView.setVisibility(View.GONE);
     	    mNextView.setVisibility(View.GONE);			
 		}
@@ -1882,6 +1883,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
     private void closeAllApps(boolean animated){		
 		if(allAppsOpen){
+			allAppsOpen=false;
 			if(animated){
 				Animation animation = AnimationUtils.loadAnimation(this,R.anim.apps_fade_out);
 				animation.setAnimationListener(new android.view.animation.Animation.AnimationListener() {
@@ -1901,17 +1903,15 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 						// TODO Auto-generated method stub
 						allApps.setVisibility(View.GONE);
 						mAllAppsGrid.setVisibility(View.GONE);
-						allAppsOpen=false;
 					}
 				});
 				mAllAppsGrid.startAnimation(animation);
 			}else{
 				allApps.setVisibility(View.GONE);
 				mAllAppsGrid.setVisibility(View.GONE);
-				allAppsOpen=false;
 	            mWorkspace.mDrawerBounds.setEmpty();
 			}
-			mHandleIcon.reverseTransition(150);
+			mHandleIcon.resetTransition();
             mAllAppsGrid.setSelection(0);
             mAllAppsGrid.clearTextFilter();	
     	    mPreviousView.setVisibility(View.VISIBLE);
