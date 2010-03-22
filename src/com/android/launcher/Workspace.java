@@ -504,6 +504,9 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         // is contained within the drawer's bounds, we skip the drawing. This requires
         // the drawer to be fully opaque.
         //TODO: ADW-little hack to force redrawing
+        if(mLauncher.isDrawerUp() && mLauncher.isAllAppsOpaque()){
+        	return;
+        }
         /*if (mLauncher.isDrawerUp()) {
             final Rect clipBounds = mClipBounds;
             canvas.getClipBounds(clipBounds);

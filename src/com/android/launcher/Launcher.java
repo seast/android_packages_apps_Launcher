@@ -193,7 +193,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private FolderInfo mFolderInfo;
 
     //private SlidingDrawer mDrawer;
-    private ViewGroup allApps;
+    //private ViewGroup allApps;
     private TransitionDrawable mHandleIcon;
     private HandleView mHandleView;
     private AllAppsGridView mAllAppsGrid;
@@ -218,6 +218,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private ImageView mPreviousView;
     private ImageView mNextView;
     private boolean allAppsOpen=false;
+    private boolean allAppsAnimating=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -558,7 +559,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         final Workspace workspace = mWorkspace;
 
         //mDrawer = (SlidingDrawer) dragLayer.findViewById(R.id.drawer);
-        allApps =(ViewGroup) dragLayer.findViewById(R.id.AppsContainer);
+        //allApps =(ViewGroup) dragLayer.findViewById(R.id.AppsContainer);
         //final SlidingDrawer drawer = mDrawer;
 
         mAllAppsGrid = (AllAppsGridView) dragLayer.findViewById(R.id.all_apps_view);
@@ -1447,7 +1448,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                 closeAllApps(false);
             }
             //TODO: ADW-check if this is working
-            if (allApps.hasFocus()) {
+            if (mAllAppsGrid.hasFocus()) {
                 mWorkspace.getChildAt(mWorkspace.getCurrentScreen()).requestFocus();
             }
         }
@@ -1630,8 +1631,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         }
 
         //TODO: ADW-check if this works
-        if (allAppsOpen && !allApps.hasFocus()) {
-            allApps.requestFocus();
+        if (allAppsOpen && !mAllAppsGrid.hasFocus()) {
+            mAllAppsGrid.requestFocus();
         }
 
         mDesktopLocked = false;
@@ -1640,7 +1641,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
 
     private void bindDrawer(Launcher.DesktopBinder binder,
-            ApplicationsAdapter drawerAdapter) {
+        ApplicationsAdapter drawerAdapter) {
         mAllAppsGrid.setAdapter(drawerAdapter);
         binder.startBindingAppWidgetsWhenIdle();
     }
@@ -1855,7 +1856,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private void showAllApps(boolean animated){
 		if(!allAppsOpen){
 			allAppsOpen=true;
-			allApps.setVisibility(View.VISIBLE);
+			//allApps.setVisibility(View.VISIBLE);
 			mAllAppsGrid.setVisibility(View.VISIBLE);
 			if(animated){
 				Animation animation = AnimationUtils.loadAnimation(this,R.anim.apps_fade_in);
@@ -1868,9 +1869,10 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 					}
 					public void onAnimationEnd(Animation animation) {
 						// TODO Auto-generated method stub
-						
+						allAppsAnimating=false;
 					}
 				});
+				allAppsAnimating=true;
 				mAllAppsGrid.startAnimation(animation);
 			}else{
 
@@ -1901,19 +1903,21 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 					
 					public void onAnimationEnd(Animation animation) {
 						// TODO Auto-generated method stub
-						allApps.setVisibility(View.GONE);
+						//allApps.setVisibility(View.GONE);
 						mAllAppsGrid.setVisibility(View.GONE);
+						allAppsAnimating=false;
+			            mAllAppsGrid.setSelection(0);
+			            mAllAppsGrid.clearTextFilter();	
 					}
 				});
+				allAppsAnimating=true;
 				mAllAppsGrid.startAnimation(animation);
 			}else{
-				allApps.setVisibility(View.GONE);
+				//allApps.setVisibility(View.GONE);
 				mAllAppsGrid.setVisibility(View.GONE);
-	            mWorkspace.mDrawerBounds.setEmpty();
+	            //mWorkspace.mDrawerBounds.setEmpty();
 			}
 			mHandleIcon.resetTransition();
-            mAllAppsGrid.setSelection(0);
-            mAllAppsGrid.clearTextFilter();	
     	    mPreviousView.setVisibility(View.VISIBLE);
     	    mNextView.setVisibility(View.VISIBLE);            
 		}    	
@@ -2065,8 +2069,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
 
     boolean isAllAppsOpaque() {
-        return true;
-    	//return mAllAppsGrid.isOpaque();
+        //return true;
+    	return mAllAppsGrid.isOpaque() && !allAppsAnimating;
     }
 
 //EOF ADW

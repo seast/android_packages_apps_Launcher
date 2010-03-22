@@ -17,7 +17,6 @@
 <com.android.launcher.DragLayer
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:launcher="http://schemas.android.com/apk/res/com.android.launcher"
-
     android:id="@+id/drag_layer"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
@@ -36,35 +35,30 @@
         <include android:id="@+id/cell5" layout="@layout/workspace_screen" />
 
     </com.android.launcher.Workspace>
-	<LinearLayout android:id="@+id/AppsContainer"
-		android:layout_width="fill_parent" android:layout_height="fill_parent"
-		xmlns:android="http://schemas.android.com/apk/res/android"
-		android:background="#DD000000" android:visibility="gone" android:paddingBottom="50dip"> 
-		<com.android.launcher.AllAppsGridView
-	        android:id="@+id/all_apps_view"
-		    android:layout_width="fill_parent"
-		    android:layout_height="fill_parent"
-		    android:scrollbarStyle="outsideInset"
-		    android:drawSelectorOnTop="false"
-		    android:listSelector="@drawable/grid_selector"
-		    android:nextFocusLeft="@id/all_apps_view"
-		    android:nextFocusUp="@id/all_apps_view"
-		    android:nextFocusDown="@+id/all_apps"
-		    android:nextFocusRight="@id/all_apps_view"
-		    android:visibility="gone"
-		    android:verticalSpacing="10dip"
-		    android:numColumns="4" />
-	</LinearLayout>
+	<com.android.launcher.AllAppsGridView
+        android:id="@+id/all_apps_view"
+        launcher:texture="@drawable/pattern_carbon_fiber_dark"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:scrollbarStyle="insideInset"
+	    android:drawSelectorOnTop="false"
+	    android:listSelector="@drawable/grid_selector"
+	    android:nextFocusLeft="@id/all_apps_view"
+	    android:nextFocusUp="@id/all_apps_view"
+	    android:nextFocusDown="@+id/all_apps"
+	    android:nextFocusRight="@id/all_apps_view"
+	    android:visibility="gone"
+	    android:paddingBottom="50dip"
+	    android:verticalSpacing="10dip"
+	    android:numColumns="4" />
 	<com.android.launcher.HandleView
 	    android:id="@id/all_apps"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
-
+	    android:nextFocusUp="@id/all_apps_view"
 	    android:background="@drawable/handle"
-
 	    android:focusable="true"
 	    android:clickable="true"
-
 	    android:scaleType="center"
 	    android:src="@drawable/handle_icon"
 		android:layout_gravity="bottom|center_horizontal"

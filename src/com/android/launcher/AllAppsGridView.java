@@ -32,10 +32,10 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 
     private DragController mDragger;
     private Launcher mLauncher;
-    //private Bitmap mTexture;
+    private Bitmap mTexture;
     private Paint mPaint;
-    //private int mTextureWidth;
-    //private int mTextureHeight;
+    private int mTextureWidth;
+    private int mTextureHeight;
 
     public AllAppsGridView(Context context) {
         super(context);
@@ -50,7 +50,7 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.AllAppsGridView, defStyle, 0);
         //TODO: ADW-Check if it's necessary
-        /*final int textureId = a.getResourceId(R.styleable.AllAppsGridView_texture, 0);
+        final int textureId = a.getResourceId(R.styleable.AllAppsGridView_texture, 0);
         if (textureId != 0) {
             mTexture = BitmapFactory.decodeResource(getResources(), textureId);
             mTextureWidth = mTexture.getWidth();
@@ -58,14 +58,13 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 
             mPaint = new Paint();
             mPaint.setDither(false);
-        }*/
+        }
         a.recycle();
     }
 
     @Override
     public boolean isOpaque() {
-        //return !mTexture.hasAlpha();
-    	return true;
+        return !mTexture.hasAlpha();
     }
 
     @Override
@@ -77,7 +76,7 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
     @Override
     public void draw(Canvas canvas) {
         //TODO: ADW-Check if this is necessary
-    	/*final Bitmap texture = mTexture;
+    	final Bitmap texture = mTexture;
         final Paint paint = mPaint;
 
         final int width = getWidth();
@@ -97,7 +96,6 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
             }
             x += textureWidth;
         }
-		*/
         super.draw(canvas);
     }
 
