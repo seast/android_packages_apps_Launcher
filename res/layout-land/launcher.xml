@@ -77,7 +77,7 @@
         launcher:direction="vertical" />
 	<ImageView
 		android:src="@drawable/home_arrows_left"
-		android:layout_marginLeft="10dip"
+		android:layout_marginBottom="10dip"
 		android:layout_height="wrap_content"
 		android:id="@+id/btn_scroll_left"
 		android:layout_width="wrap_content"
@@ -85,7 +85,7 @@
 		android:onClick="previousScreen"/>
 	<ImageView
 		android:src="@drawable/home_arrows_right"
-		android:layout_marginRight="10dip"
+		android:layout_marginTop="10dip"
 		android:layout_height="wrap_content"
 		android:id="@+id/btn_scroll_right"
 		android:layout_width="wrap_content" 
