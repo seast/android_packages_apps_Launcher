@@ -66,8 +66,10 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.View.OnLongClickListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -112,6 +114,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private static final int MENU_SEARCH = MENU_WALLPAPER_SETTINGS + 1;
     private static final int MENU_NOTIFICATIONS = MENU_SEARCH + 1;
     private static final int MENU_SETTINGS = MENU_NOTIFICATIONS + 1;
+    private static final int MENU_ALMOSTNEXUS = MENU_SETTINGS + 1;
 
     private static final int REQUEST_CREATE_SHORTCUT = 1;
     private static final int REQUEST_CREATE_LIVE_FOLDER = 4;
@@ -120,6 +123,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private static final int REQUEST_PICK_SHORTCUT = 7;
     private static final int REQUEST_PICK_LIVE_FOLDER = 8;
     private static final int REQUEST_PICK_APPWIDGET = 9;
+    private static final int REQUEST_UPDATE_ALMOSTNEXUS = 10;
 
     static final String EXTRA_SHORTCUT_DUPLICATE = "duplicate";
 
@@ -127,8 +131,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     static final String SEARCH_WIDGET = "search_widget";
 
     static final int WALLPAPER_SCREENS_SPAN = 2;
-    static final int SCREEN_COUNT = 3;
-    static final int DEFAULT_SCREN = 1;
+    static int SCREEN_COUNT = 3;
+    static int DEFAULT_SCREN = 1;
     static final int NUMBER_CELLS_X = 4;
     static final int NUMBER_CELLS_Y = 4;
 
@@ -136,6 +140,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     static final int DIALOG_RENAME_FOLDER = 2;
 
     private static final String PREFERENCES = "launcher.preferences";
+    private static final String ALMOSTNEXUS_PREFERENCES = "launcher.preferences.almostnexus";
 
     // Type: int
     private static final String RUNTIME_STATE_CURRENT_SCREEN = "launcher.current_screen";
@@ -219,6 +224,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private ImageView mNextView;
     private boolean allAppsOpen=false;
     private boolean allAppsAnimating=false;
+    private boolean allowDrawerAnimations=true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -405,6 +411,10 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                 case REQUEST_CREATE_APPWIDGET:
                     completeAddAppWidget(data, mAddItemCellInfo, !mDesktopLocked);
                     break;
+                //ADW: update custom settings
+                case REQUEST_UPDATE_ALMOSTNEXUS:
+                	updateAlmostNexusSettings();
+                	break;
             }
         } else if ((requestCode == REQUEST_PICK_APPWIDGET ||
                 requestCode == REQUEST_CREATE_APPWIDGET) && resultCode == RESULT_CANCELED &&
@@ -420,7 +430,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     @Override
     protected void onResume() {
         super.onResume();
-
         this.setRequestedOrientation(
         		Settings.System.getInt(this.getContentResolver(), "launcher_orientation", 1) == 0 ?
         				ActivityInfo.SCREEN_ORIENTATION_NOSENSOR : ActivityInfo.SCREEN_ORIENTATION_USER);
@@ -449,6 +458,15 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         }
         
         mIsNewIntent = false;
+        //TODO:ADW Change columns after rotating phone
+        int ori = getResources().getConfiguration().orientation;
+		if(ori==Configuration.ORIENTATION_PORTRAIT){
+			mAllAppsGrid.setNumColumns(AlmostNexusSettingsHelper.getColumnsPortrait(Launcher.this));
+		}else {
+			mAllAppsGrid.setNumColumns(AlmostNexusSettingsHelper.getColumnsLandscape(Launcher.this));
+		}
+		allowDrawerAnimations=AlmostNexusSettingsHelper.getDrawerAnimated(Launcher.this);
+		mAllAppsGrid.setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
     }
 
     @Override
@@ -619,7 +637,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	Drawable previous = mPreviousView.getDrawable();
 	Drawable next = mNextView.getDrawable();
 	mWorkspace.setIndicators(previous, next);
-	
     }
 
     /**
@@ -844,6 +861,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+		d("NExusthings","NEW INTENT");
 
         // Close the menu
         if (Intent.ACTION_MAIN.equals(intent.getAction())) {
@@ -923,6 +941,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         //
         // The source code of these various methods shows what states should be kept to
         // achieve what we want here.
+		d("NExusthings","RESTOREINSTANCE");
 
         Bundle windowState = savedInstanceState.getBundle("android:viewHierarchyState");
         SparseArray<Parcelable> savedStates = null;
@@ -1119,7 +1138,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         menu.add(0, MENU_SETTINGS, 0, R.string.menu_settings)
                 .setIcon(android.R.drawable.ic_menu_preferences).setAlphabeticShortcut('P')
                 .setIntent(settings);
-
+        //ADW: add custom settings
+        menu.add(0, MENU_ALMOSTNEXUS, 0, "ADWSettings")
+        .setIcon(com.android.internal.R.drawable.ic_menu_preferences)
+        .setAlphabeticShortcut('X');
+        
         return true;
     }
 
@@ -1149,6 +1172,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                 return true;
             case MENU_NOTIFICATIONS:
                 showNotifications();
+                return true;
+            case MENU_ALMOSTNEXUS:
+                showCustomConfig();
                 return true;
         }
 
@@ -1505,7 +1531,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private void bindDesktopItems(ArrayList<ItemInfo> shortcuts,
             ArrayList<LauncherAppWidgetInfo> appWidgets) {
 
-        final ApplicationsAdapter drawerAdapter = sModel.getApplicationsAdapter();
+		d("NExusthings","BIND DESKTOP ITEMS");
+        
+    	final ApplicationsAdapter drawerAdapter = sModel.getApplicationsAdapter();
         if (shortcuts == null || appWidgets == null || drawerAdapter == null) {
             if (LauncherModel.DEBUG_LOADERS) d(LauncherModel.LOG_TAG, "  ------> a source is null");            
             return;
@@ -1858,7 +1886,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 			allAppsOpen=true;
 			//allApps.setVisibility(View.VISIBLE);
 			mAllAppsGrid.setVisibility(View.VISIBLE);
-			if(animated){
+			if(animated && allowDrawerAnimations){
 				Animation animation = AnimationUtils.loadAnimation(this,R.anim.apps_fade_in);
 				animation.setAnimationListener(new android.view.animation.Animation.AnimationListener() {
 					public void onAnimationStart(Animation animation) {
@@ -1886,7 +1914,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private void closeAllApps(boolean animated){		
 		if(allAppsOpen){
 			allAppsOpen=false;
-			if(animated){
+			if(animated && allowDrawerAnimations){
 				Animation animation = AnimationUtils.loadAnimation(this,R.anim.apps_fade_out);
 				animation.setAnimationListener(new android.view.animation.Animation.AnimationListener() {
 					
@@ -2072,7 +2100,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         //return true;
     	return mAllAppsGrid.isOpaque() && !allAppsAnimating;
     }
-
+    
+    private void showCustomConfig(){
+    	Intent launchPreferencesIntent = new Intent().setClass(this, MyLauncherSettings.class);
+        startActivityForResult(launchPreferencesIntent,MENU_ALMOSTNEXUS);    	   	
+    }
+    private void updateAlmostNexusSettings(){
+    	//TODO: ADW-Here is where i update mAllAppsGrid columns/background and mWorkspace screens
+    }
 //EOF ADW
     static LauncherModel getModel() {
         return sModel;

@@ -24,6 +24,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.graphics.BitmapFactory;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Canvas;
 
@@ -36,7 +37,8 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
     private Paint mPaint;
     private int mTextureWidth;
     private int mTextureHeight;
-
+    //ADW:Hack the texture thing to make scrolling faster
+    private boolean forceOpaque=false;
     public AllAppsGridView(Context context) {
         super(context);
     }
@@ -64,7 +66,8 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 
     @Override
     public boolean isOpaque() {
-        return !mTexture.hasAlpha();
+        if(forceOpaque) return true;
+        else return !mTexture.hasAlpha();
     }
 
     @Override
@@ -76,26 +79,28 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
     @Override
     public void draw(Canvas canvas) {
         //TODO: ADW-Check if this is necessary
-    	final Bitmap texture = mTexture;
-        final Paint paint = mPaint;
-
-        final int width = getWidth();
-        final int height = getHeight();
-
-        final int textureWidth = mTextureWidth;
-        final int textureHeight = mTextureHeight;
-
-        int x = 0;
-        int y;
-
-        while (x < width) {
-            y = 0;
-            while (y < height) {
-                canvas.drawBitmap(texture, x, y, paint);
-                y += textureHeight;
-            }
-            x += textureWidth;
-        }
+    	if(!forceOpaque){
+	    	final Bitmap texture = mTexture;
+	        final Paint paint = mPaint;
+	
+	        final int width = getWidth();
+	        final int height = getHeight();
+	
+	        final int textureWidth = mTextureWidth;
+	        final int textureHeight = mTextureHeight;
+	
+	        int x = 0;
+	        int y;
+	
+	        while (x < width) {
+	            y = 0;
+	            while (y < height) {
+	                canvas.drawBitmap(texture, x, y, paint);
+	                y += textureHeight;
+	            }
+	            x += textureWidth;
+	        }
+    	}
         super.draw(canvas);
     }
 
@@ -127,5 +132,17 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 
     void setLauncher(Launcher launcher) {
         mLauncher = launcher;
+    }
+    public void setForceOpaque(boolean value){
+    	if(value!=forceOpaque){
+	    	forceOpaque=value;
+	    	if(value){
+	    		this.setBackgroundColor(0xFF000000);
+	    		this.setCacheColorHint(0xFF000000);
+	    	}else{
+	    		this.setBackgroundDrawable(null);
+	    		this.setCacheColorHint(Color.TRANSPARENT);
+	    	}
+    	}
     }
 }

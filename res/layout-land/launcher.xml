@@ -35,6 +35,8 @@
         <include android:id="@+id/cell3" layout="@layout/workspace_screen" />
         <include android:id="@+id/cell4" layout="@layout/workspace_screen" />
         <include android:id="@+id/cell5" layout="@layout/workspace_screen" />
+        <include android:id="@+id/cell6" layout="@layout/workspace_screen" />
+        <include android:id="@+id/cell7" layout="@layout/workspace_screen" />
 
     </com.android.launcher.Workspace>
 	<com.android.launcher.AllAppsGridView
@@ -52,7 +54,7 @@
 		android:paddingRight="50dip"
 		android:visibility="gone"
 	    android:verticalSpacing="10dip"
-	    android:numColumns="6" />
+	    android:numColumns="5" />
 	<com.android.launcher.HandleView
 	    android:id="@id/all_apps"
 	    android:layout_width="wrap_content"
@@ -77,7 +79,7 @@
         launcher:direction="vertical" />
 	<ImageView
 		android:src="@drawable/home_arrows_left"
-		android:layout_marginLeft="10dip"
+		android:layout_marginBottom="10dip"
 		android:layout_height="wrap_content"
 		android:id="@+id/btn_scroll_left"
 		android:layout_width="wrap_content"
@@ -85,7 +87,7 @@
 		android:onClick="previousScreen"/>
 	<ImageView
 		android:src="@drawable/home_arrows_right"
-		android:layout_marginRight="10dip"
+		android:layout_marginTop="10dip"
 		android:layout_height="wrap_content"
 		android:id="@+id/btn_scroll_right"
 		android:layout_width="wrap_content" 
