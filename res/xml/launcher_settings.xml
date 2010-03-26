@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory android:title="Desktop Settings">
+		<com.android.launcher.dlgSeekBarPreference
+			android:title="Desktop Screens" android:summary="Select the number of desktop screens to use"
+			android:dialogMessage="Select the number of desktop screens to use"
+			android:key="desktopScreens" android:defaultValue="3" android:max="5" />
+		<com.android.launcher.dlgSeekBarPreference
+			android:title="Default Screen" android:summary="Select the screen to set as default"
+			android:dialogMessage="Select the screen to set as default"
+			android:key="defaultScreen" android:defaultValue="3" android:max="6" />
+	</PreferenceCategory>
+	<PreferenceCategory android:title="Drawer Settings">
+		<CheckBoxPreference android:title="Animated Drawer"
+			android:defaultValue="true"
+			android:summary="Turns whether App Drawer should display animations"
+			android:key="drawerAnimated" />
+		<CheckBoxPreference android:title="Fast Drawer"
+			android:defaultValue="true"
+			android:summary="Turns the use of opaque solid bg to increment scrolling speed"
+			android:key="drawerFast" />
+		<com.android.launcher.dlgSeekBarPreference
+			android:title="Drawer Columns Portrait"
+			android:summary="Select the number of drawer columns to use on portrait layout"
+			android:dialogMessage="Select the number of drawer columns to use on portrait layout"
+			android:key="drawerColumnsPortrait" android:defaultValue="3"
+			android:max="5" />
+		<com.android.launcher.dlgSeekBarPreference
+			android:title="Drawer Columns Landscape"
+			android:summary="Select the number of drawer columns to use on landscape layout"
+			android:dialogMessage="Select the number of drawer columns to use on landscape layout"
+			android:key="drawerColumnsLandscape" android:defaultValue="4"
+			android:max="7" />
+	</PreferenceCategory>
+</PreferenceScreen>

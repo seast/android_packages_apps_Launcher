@@ -28,6 +28,7 @@ import android.graphics.Rect;
 import android.graphics.Region;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -116,7 +117,9 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
     final Rect mClipBounds = new Rect();
     int mDrawerContentHeight;
     int mDrawerContentWidth;
-
+    //rogro82@xda
+    int mHomeScreens = 0;
+    int mHomeScreensLoaded = 0;
     /**
      * Used to inflate the Workspace from XML.
      *
@@ -138,9 +141,16 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         super(context, attrs, defStyle);
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.Workspace, defStyle, 0);
-        mDefaultScreen = a.getInt(R.styleable.Workspace_defaultScreen, 1);
-        a.recycle();
+        /* Rogro82@xda Extended : Load the default and number of homescreens from the settings database */
+        mHomeScreens = AlmostNexusSettingsHelper.getDesktopScreens(context);
+        mDefaultScreen = AlmostNexusSettingsHelper.getDefaultScreen(context);
+        if(mDefaultScreen>mHomeScreens-1) mDefaultScreen=0;
+        Launcher.DEFAULT_SCREN = mDefaultScreen;
+        Launcher.SCREEN_COUNT = mHomeScreens;
 
+        a.recycle();
+        Log.d("WORKSPACESCHANGES","We wanna put "+mHomeScreens+" screens");
+        Log.d("WORKSPACESCHANGES","Default one will be "+mDefaultScreen);
         initWorkspace();
     }
 
@@ -175,7 +185,13 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         if (!(child instanceof CellLayout)) {
             throw new IllegalArgumentException("A Workspace can only have CellLayout children.");
         }
-        super.addView(child, index, params);
+        /* Rogro82@xda Extended : Only load the number of home screens set */
+        if(mHomeScreensLoaded < mHomeScreens)
+        {
+            mHomeScreensLoaded++;
+            super.addView(child, index, params);
+            Log.d("WORKSPACESCHANGES","We added ONE SCREEN");
+        }
     }
 
     @Override
@@ -353,7 +369,9 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
      */
     void addInScreen(View child, int screen, int x, int y, int spanX, int spanY, boolean insert) {
         if (screen < 0 || screen >= getChildCount()) {
-            throw new IllegalStateException("The screen must be >= 0 and < " + getChildCount());
+               /* Rogro82@xda Extended : Do not throw an exception else it will crash when there is an item on a hidden homescreen */
+               return;
+               //throw new IllegalStateException("The screen must be >= 0 and < " + getChildCount());
         }
 
         clearVacantCache();
@@ -484,7 +502,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
             mCurrentScreen = Math.max(0, Math.min(mNextScreen, getChildCount() - 1));
             //BY ADW 
         	indicatorLevels(mCurrentScreen);
-	    //EOF ADW
+        	//EOF ADW
             Launcher.setScreen(mCurrentScreen);
             mNextScreen = INVALID_SCREEN;
             clearChildrenCache();
