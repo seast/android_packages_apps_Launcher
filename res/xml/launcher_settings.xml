@@ -8,7 +8,7 @@
 		<com.android.launcher.dlgSeekBarPreference
 			android:title="Default Screen" android:summary="Select the screen to set as default"
 			android:dialogMessage="Select the screen to set as default"
-			android:key="defaultScreen" android:defaultValue="3" android:max="6" />
+			android:key="defaultScreen" android:defaultValue="2" android:max="4" />
 	</PreferenceCategory>
 	<PreferenceCategory android:title="Drawer Settings">
 		<CheckBoxPreference android:title="Animated Drawer"

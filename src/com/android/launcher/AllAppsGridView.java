@@ -49,17 +49,20 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 
     public AllAppsGridView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.AllAppsGridView, defStyle, 0);
         //TODO: ADW-Check if it's necessary
-        final int textureId = a.getResourceId(R.styleable.AllAppsGridView_texture, 0);
-        if (textureId != 0) {
-            mTexture = BitmapFactory.decodeResource(getResources(), textureId);
-            mTextureWidth = mTexture.getWidth();
-            mTextureHeight = mTexture.getHeight();
-
-            mPaint = new Paint();
-            mPaint.setDither(false);
+        boolean bootOpaque=AlmostNexusSettingsHelper.getDrawerFast(context);
+        setForceOpaque(bootOpaque);
+        if(!forceOpaque){
+	        final int textureId = a.getResourceId(R.styleable.AllAppsGridView_texture, 0);
+	        if (textureId != 0) {
+	            mTexture = BitmapFactory.decodeResource(getResources(), textureId);
+	            mTextureWidth = mTexture.getWidth();
+	            mTextureHeight = mTexture.getHeight();
+	
+	            mPaint = new Paint();
+	            mPaint.setDither(false);
+	        }
         }
         a.recycle();
     }

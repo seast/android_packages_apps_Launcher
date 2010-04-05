@@ -12,8 +12,9 @@ public final class AlmostNexusSettingsHelper {
 	}
 	public static int getDefaultScreen(Context context) {
 		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
-		int screens = sp.getInt("defaultScreen", 0);
-		return screens;
+		int screens= getDesktopScreens(context);
+		int def_screen = sp.getInt("defaultScreen", 2);
+		return def_screen;
 	}
 	public static int getColumnsPortrait(Context context) {
 		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
@@ -32,7 +33,7 @@ public final class AlmostNexusSettingsHelper {
 	}
 	public static boolean getDrawerFast(Context context) {
 		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
-		boolean fast = sp.getBoolean("drawerFast", false);
+		boolean fast = sp.getBoolean("drawerFast", true);
 		return fast;
 	}
 }
