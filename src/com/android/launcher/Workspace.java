@@ -149,8 +149,6 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         Launcher.SCREEN_COUNT = mHomeScreens;
 
         a.recycle();
-        Log.d("WORKSPACESCHANGES","We wanna put "+mHomeScreens+" screens");
-        Log.d("WORKSPACESCHANGES","Default one will be "+mDefaultScreen);
         initWorkspace();
     }
 
@@ -190,7 +188,6 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         {
             mHomeScreensLoaded++;
             super.addView(child, index, params);
-            Log.d("WORKSPACESCHANGES","We added ONE SCREEN");
         }
     }
 
