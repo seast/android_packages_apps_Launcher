@@ -1,9 +1,14 @@
 package com.android.launcher;
 
+import java.util.Calendar;
+
 import android.app.ActivityManager;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -37,8 +42,19 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
 	@Override
 	protected void onPause(){
 		if(shouldRestart){
-   			ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
-	        am.restartPackage("com.android.launcher");	
+			Intent intent = new Intent(getApplicationContext(), Launcher.class);
+            PendingIntent sender = PendingIntent.getBroadcast(getApplicationContext(),0, intent, 0);
+
+            // We want the alarm to go off 30 seconds from now.
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis());
+            calendar.add(Calendar.SECOND, 1);
+
+            // Schedule the alarm!
+            AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+            am.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), sender);
+   			ActivityManager acm = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+	        acm.restartPackage("com.android.launcher");
 		}
 		super.onPause();
 	}
