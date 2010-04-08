@@ -201,7 +201,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     //private ViewGroup allApps;
     private TransitionDrawable mHandleIcon;
     private HandleView mHandleView;
-    private AllAppsGridView mAllAppsGrid;
+    //private AllAppsGridView mAllAppsGrid;
+    private AllAppsSlidingView mAllAppsGrid;
 
     private boolean mDesktopLocked = true;
     private Bundle mSavedState;
@@ -459,12 +460,12 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         
         mIsNewIntent = false;
         //TODO:ADW Change columns after rotating phone
-        int ori = getResources().getConfiguration().orientation;
+        /*int ori = getResources().getConfiguration().orientation;
 		if(ori==Configuration.ORIENTATION_PORTRAIT){
 			mAllAppsGrid.setNumColumns(AlmostNexusSettingsHelper.getColumnsPortrait(Launcher.this));
 		}else {
 			mAllAppsGrid.setNumColumns(AlmostNexusSettingsHelper.getColumnsLandscape(Launcher.this));
-		}
+		}*/
 		allowDrawerAnimations=AlmostNexusSettingsHelper.getDrawerAnimated(Launcher.this);
 		mAllAppsGrid.setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
     }
@@ -580,8 +581,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         //allApps =(ViewGroup) dragLayer.findViewById(R.id.AppsContainer);
         //final SlidingDrawer drawer = mDrawer;
 
-        mAllAppsGrid = (AllAppsGridView) dragLayer.findViewById(R.id.all_apps_view);
-        final AllAppsGridView grid = mAllAppsGrid;
+        mAllAppsGrid = (AllAppsSlidingView) dragLayer.findViewById(R.id.all_apps_view);
+        final AllAppsSlidingView grid = mAllAppsGrid;
 
         final DeleteZone deleteZone = (DeleteZone) dragLayer.findViewById(R.id.delete_zone);
 
@@ -598,7 +599,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         //drawer.setOnDrawerCloseListener(drawerManager);
         //drawer.setOnDrawerScrollListener(drawerManager);
 
-        grid.setTextFilterEnabled(false);
+        //grid.setTextFilterEnabled(false);
         grid.setDragger(dragLayer);
         grid.setLauncher(this);
 
@@ -1025,7 +1026,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         TextKeyListener.getInstance().release();
 
-        mAllAppsGrid.clearTextFilter();
+        //mAllAppsGrid.clearTextFilter();
         mAllAppsGrid.setAdapter(null);
         sModel.unbind();
         sModel.abortLoaders();
@@ -1935,7 +1936,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 						mAllAppsGrid.setVisibility(View.GONE);
 						allAppsAnimating=false;
 			            mAllAppsGrid.setSelection(0);
-			            mAllAppsGrid.clearTextFilter();	
+			            //mAllAppsGrid.clearTextFilter();	
 					}
 				});
 				allAppsAnimating=true;
@@ -2140,7 +2141,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         return mWorkspace;
     }
 
-    GridView getApplicationsGrid() {
+    AllAppsSlidingView getApplicationsGrid() {
         return mAllAppsGrid;
     }
 
@@ -2557,7 +2558,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             }
 
             mAllAppsGrid.setSelection(0);
-            mAllAppsGrid.clearTextFilter();
+            //mAllAppsGrid.clearTextFilter();
 	    //BY ADW
 	    mPreviousView.setVisibility(View.VISIBLE);
  	    mNextView.setVisibility(View.VISIBLE);
