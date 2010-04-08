@@ -1324,8 +1324,8 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
                 }
             }
             for(int i=0;i<activeViews.length;i++){
-            	Log.d("MyRecycler","We have recycled activeview "+i);
-            	Log.d("MyRecycler","So whe we call it will be "+(i-mFirstActivePosition));
+            	//Log.d("MyRecycler","We have recycled activeview "+i);
+            	//Log.d("MyRecycler","So whe we call it will be "+(i-mFirstActivePosition));
             }
         }
 
