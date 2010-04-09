@@ -21,9 +21,19 @@ public final class AlmostNexusSettingsHelper {
 		int screens = sp.getInt("drawerColumnsPortrait", 3)+1;
 		return screens;
 	}
+	public static int getRowsPortrait(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		int screens = sp.getInt("drawerRowsPortrait", 3)+1;
+		return screens;
+	}
 	public static int getColumnsLandscape(Context context) {
 		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
 		int screens = sp.getInt("drawerColumnsLandscape", 4)+1;
+		return screens;
+	}
+	public static int getRowsLandscape(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		int screens = sp.getInt("drawerRowsLandscape", 2)+1;
 		return screens;
 	}
 	public static boolean getDrawerAnimated(Context context) {

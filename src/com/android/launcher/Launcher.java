@@ -460,12 +460,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         
         mIsNewIntent = false;
         //TODO:ADW Change columns after rotating phone
-        /*int ori = getResources().getConfiguration().orientation;
+        int ori = getResources().getConfiguration().orientation;
 		if(ori==Configuration.ORIENTATION_PORTRAIT){
 			mAllAppsGrid.setNumColumns(AlmostNexusSettingsHelper.getColumnsPortrait(Launcher.this));
+			mAllAppsGrid.setNumRows(AlmostNexusSettingsHelper.getRowsPortrait(Launcher.this));
 		}else {
 			mAllAppsGrid.setNumColumns(AlmostNexusSettingsHelper.getColumnsLandscape(Launcher.this));
-		}*/
+			mAllAppsGrid.setNumRows(AlmostNexusSettingsHelper.getRowsLandscape(Launcher.this));
+		}
 		allowDrawerAnimations=AlmostNexusSettingsHelper.getDrawerAnimated(Launcher.this);
 		mAllAppsGrid.setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
     }

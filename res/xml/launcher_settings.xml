@@ -26,10 +26,22 @@
 			android:key="drawerColumnsPortrait" android:defaultValue="3"
 			android:max="5" />
 		<com.android.launcher.dlgSeekBarPreference
+			android:title="Drawer Rows Portrait"
+			android:summary="Select the number of drawer rows to use on portrait layout"
+			android:dialogMessage="Select the number of drawer rows to use on portrait layout"
+			android:key="drawerRowsPortrait" android:defaultValue="3"
+			android:max="5" />
+		<com.android.launcher.dlgSeekBarPreference
 			android:title="Drawer Columns Landscape"
 			android:summary="Select the number of drawer columns to use on landscape layout"
 			android:dialogMessage="Select the number of drawer columns to use on landscape layout"
 			android:key="drawerColumnsLandscape" android:defaultValue="4"
 			android:max="7" />
+		<com.android.launcher.dlgSeekBarPreference
+			android:title="Drawer Rows Landscape"
+			android:summary="Select the number of drawer rows to use on landscape layout"
+			android:dialogMessage="Select the number of drawer rows to use on landscape layout"
+			android:key="drawerRowsLandscape" android:defaultValue="3"
+			android:max="4" />
 	</PreferenceCategory>
 </PreferenceScreen>

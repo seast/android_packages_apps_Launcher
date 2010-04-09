@@ -36,8 +36,12 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
         drawerFast.setOnPreferenceChangeListener(this);
         dlgSeekBarPreference columnsPortrait= (dlgSeekBarPreference) findPreference("drawerColumnsPortrait");
         columnsPortrait.setMin(1);
+        dlgSeekBarPreference rowsPortrait= (dlgSeekBarPreference) findPreference("drawerRowsPortrait");
+        rowsPortrait.setMin(1);
         dlgSeekBarPreference columnsLandscape= (dlgSeekBarPreference) findPreference("drawerColumnsLandscape");
         columnsLandscape.setMin(1);
+        dlgSeekBarPreference rowsLandscape= (dlgSeekBarPreference) findPreference("drawerRowsLandscape");
+        rowsLandscape.setMin(1);
     }
 	@Override
 	protected void onPause(){
