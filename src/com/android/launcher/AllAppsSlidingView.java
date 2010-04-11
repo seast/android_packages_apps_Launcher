@@ -39,6 +39,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     
     private int mCurrentScreen;
     private int mTotalScreens;
+    private int mCurrentHolder;
     private int mPageWidth;
     private int mDefaultScreen=DEFAULT_SCREEN;
     private int mNextScreen = INVALID_SCREEN;
@@ -147,9 +148,8 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     private int mTextureWidth;
     private int mTextureHeight;
 	private int mCacheColorHint=0;
-	private boolean mCachingStarted;
-	private boolean mScrollingCacheEnabled;
-	private Runnable mClearScrollingCache;
+	private boolean scrollCacheCreated;
+	private boolean mBlockLayouts;
     
 	public AllAppsSlidingView(Context context) {
 		super(context);
@@ -199,7 +199,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
                 TRANSCRIPT_MODE_DISABLED);
         setTranscriptMode(transcriptMode);
 		*/
-        int color = a.getColor(com.android.internal.R.styleable.AbsListView_cacheColorHint, 0xFF000000);
+        int color = a.getColor(com.android.internal.R.styleable.AbsListView_cacheColorHint, 0x00000000);
         setCacheColorHint(color);
 
         /*boolean enableFastScroll = a.getBoolean(R.styleable.AbsListView_fastScrollEnabled, false);
@@ -219,13 +219,13 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	
     private void initWorkspace() {
         mDrawSelectorOnTop = false;
-    	setFocusable(true);
-    	setFocusableInTouchMode(true);  
+    	//setFocusable(true);
+    	//setFocusableInTouchMode(true);  
         setWillNotDraw(false);
         setAlwaysDrawnWithCacheEnabled(false);
         setChildrenDrawnWithCacheEnabled(true);
         setChildrenDrawingCacheEnabled(true);        
-        setScrollingCacheEnabled(true);
+        //setScrollingCacheEnabled(true);
         mScroller = new Scroller(getContext());
         mCurrentScreen = mDefaultScreen;
         mScroller.forceFinished(true);
@@ -254,12 +254,14 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
             if(mCurrentScreen!=Math.max(0, Math.min(mNextScreen, mTotalScreens - 1))){
 	        	mCurrentScreen = Math.max(0, Math.min(mNextScreen, mTotalScreens - 1));
 	            mNextScreen = INVALID_SCREEN;
-	            //Log.d("MyApps","computeScroll ended?");
+	            Log.d("MyApps","computeScroll ended?");
 	            //mFirstPosition=mCurrentScreen*mNumColumns*mNumRows;
 	            //Log.d("MyApps","my mFirstPosition="+mFirstPosition);
 	            //RecycleOuterViews(mCurrentScreen);
 	        	//mLayoutMode=LAYOUT_NORMAL;
 	        	//clearScrollingCache();
+	            clearChildrenCache();
+	            mBlockLayouts=false;
 	            requestLayout();
             }
         }
@@ -280,9 +282,65 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     		drawChild(canvas, getChildAt(i), drawingTime);
     	}*/
     }
+
     @Override
     protected void dispatchDraw(Canvas canvas) {
+        int saveCount = 0;
+    	if(!forceOpaque){
+	    	final Bitmap texture = mTexture;
+	        final Paint paint = mPaint;
+	
+	        final int width = getWidth();
+	        final int height = getHeight();
+	
+	        final int textureWidth = mTextureWidth;
+	        final int textureHeight = mTextureHeight;
+	
+	        int x = getScrollX();//0;
+	        int y;
+	
+	        while ((x-getScrollX()) < width) {
+	            y = 0;
+	            while (y < height) {
+	                canvas.drawBitmap(texture, x, y, paint);
+	                y += textureHeight;
+	            }
+	            x += textureWidth;
+	        }
+    	}
+
+        final boolean clipToPadding = (mGroupFlags & CLIP_TO_PADDING_MASK) == CLIP_TO_PADDING_MASK;
+        if (clipToPadding) {
+            saveCount = canvas.save();
+            final int scrollX = mScrollX;
+            final int scrollY = mScrollY;
+            canvas.clipRect(scrollX + mPaddingLeft, scrollY + mPaddingTop,
+                    scrollX + mRight - mLeft - mPaddingRight,
+                    scrollY + mBottom - mTop - mPaddingBottom);
+            mGroupFlags &= ~CLIP_TO_PADDING_MASK;
+        }
+
+        final boolean drawSelectorOnTop = mDrawSelectorOnTop;
+        if (!drawSelectorOnTop) {
+            drawSelector(canvas);
+        }
+
+        super.dispatchDraw(canvas);
+
+        if (drawSelectorOnTop) {
+            drawSelector(canvas);
+        }
+
+        if (clipToPadding) {
+            canvas.restoreToCount(saveCount);
+            mGroupFlags |= CLIP_TO_PADDING_MASK;
+        }
+    }
+    
+    /*@Override
+    protected void dispatchDraw(Canvas canvas) {
         //TODO: ADW-Check if this is necessary
+    	Log.d("NOOOOOOOOOOOO","DispatchDraw!");
     	if(!forceOpaque){
 	    	final Bitmap texture = mTexture;
 	        final Paint paint = mPaint;
@@ -307,19 +365,13 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     	}
     	
         boolean restore = false;
-        /*float x = mScrollX * mWallpaperOffset;
-        if (x + mWallpaperWidth < mRight - mLeft) {
-            x = mRight - mLeft - mWallpaperWidth;
-        }
-
-        canvas.drawBitmap(mWallpaper, x, (mBottom - mTop - mWallpaperHeight) / 2, mPaint);*/
 
         // ViewGroup.dispatchDraw() supports many features we don't need:
         // clip to padding, layout animation, animation listener, disappearing
         // children, etc. The following implementation attempts to fast-track
         // the drawing dispatch by drawing only what we know needs to be drawn.
         if(getChildCount()>0){        
-	        boolean fastDraw = false;//mTouchState != TOUCH_STATE_SCROLLING && mNextScreen == INVALID_SCREEN;
+	        boolean fastDraw = mTouchState != TOUCH_STATE_SCROLLING && mNextScreen == INVALID_SCREEN;
 	        // If we are not scrolling or flinging, draw only the current screen
             //TODO:ADW-Find icons for screens to draw
 	        if (!mDrawSelectorOnTop) {
@@ -329,50 +381,16 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	        if(mCurrentScreen>0){
 	        	realScreen=1;
 	        }
-	        if(mCurrentScreen==mTotalScreens-1){
-	        	realScreen=2;
-	        }
 	        if (fastDraw) {
-	            //drawChild(canvas, getChildAt(mCurrentScreen), getDrawingTime());
-	        	Log.d("REDRAWWWWWWWW","Drawing with fastDraw");
-	        	drawChildren(canvas, realScreen, getDrawingTime());
+	        	drawChild(canvas, getChildAt(realScreen), getDrawingTime());
 	        } else {
 	            final long drawingTime = getDrawingTime();
-	            // If we are flinging, draw only the current screen and the target screen
-	            /*drawChildren(canvas, realScreen, drawingTime);
-                if(realNextScreen!=-1)
-	            drawChildren(canvas, realNextScreen, drawingTime);
-                if(realPreviousScreen!=-1)
-    	            drawChildren(canvas, realPreviousScreen, drawingTime);
-	            */
-	            /*if (mNextScreen >= 0 && mNextScreen < mTotalScreens &&
-	                    Math.abs(mCurrentScreen - mNextScreen) == 1) {
-	                //drawChild(canvas, getChildAt(mCurrentScreen), drawingTime);
-	                //drawChild(canvas, getChildAt(mNextScreen), drawingTime);
-		        	Log.d("REDRAWWWWWWWW","Drawing while scrolling screens "+realScreen+" y "+(realNextScreen));
-	                drawChildren(canvas, realScreen, drawingTime);
-	                drawChildren(canvas, realNextScreen, drawingTime);
-	            } else {
-	                // If we are scrolling, draw all of our children
-		        	Log.d("REDRAWWWWWWWW","Drawing every children");
-	                final int count = getChildCount();
-	                for (int i = 0; i < count; i++) {
-	                    drawChild(canvas, getChildAt(i), drawingTime);
-	                }
-	            }*/
-	            final int count = getChildCount();
-	            for (int i = 0; i < count; i++) {
-	            	final View child =getChildAt(i);
-	            	if(child.getLeft()+(child.getMeasuredWidth())>=getScrollX() && child.getRight()-(child.getMeasuredWidth())<=getScrollX()+mPageWidth){
-	            		drawChild(canvas, getChildAt(i), drawingTime);
-	            	}
-	            }
+                final int count = getChildCount();
+                for (int i = 0; i < count; i++) {
+                    drawChild(canvas, getChildAt(i), drawingTime);
+                }
 	        }
 	        
-            /*final int count = getChildCount();
-            for (int i = 0; i < count; i++) {
-                drawChild(canvas, getChildAt(i), getDrawingTime());
-            }*/
         }else{
         	Log.d("MyAPPS","Not redrawing cause of no children");        	
         }
@@ -380,7 +398,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         if (restore) {
             canvas.restore();
         }
-    }
+    }*/
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     	super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -394,24 +412,25 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     	super.onLayout(changed, left, top, right, bottom);
-    	layoutChildren();
+    	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","onLayout!!");
+    	/*Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->Changed?->"+changed);
+    	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->left?->"+left);
+    	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->top?->"+top);
+    	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->right?->"+right);
+    	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->bottom?->"+bottom);*/
+    	if(!mBlockLayouts){
+    		layoutChildren();
+    	}
+    	//if(!scrollCacheCreated)enableChildrenCache();
     }
     private void layoutChildren(){
-    	clearScrollingCache();
+    	//clearScrollingCache();
         // Pull all children into the RecycleBin.
         // These views will be reused if possible
         //final int firstPosition = mFirstPosition;
         final RecycleBin recycleBin = mRecycler;
-        if(mLayoutMode==LAYOUT_NORMAL){
-        	//mFirstPosition=mCurrentScreen*mNumColumns*mNumRows;
-        }else{
-        	if(mCurrentScreen>0){
-        		//mFirstPosition=(mCurrentScreen-1)*mNumColumns*mNumRows;
-        	}else{
-        		//mFirstPosition=mCurrentScreen*mNumColumns*mNumRows;
-        	}
-        }
-        recycleBin.scrapActiveViews();
+
+        //recycleBin.scrapActiveViews();
         //Log.d("MyApps","Tenemos que reciclar "+getChildCount()+" active views");
         //Log.d("MyApps","EL ID de la primera view a recyclar seria:"+getPositionForView(getChildAt(0)));
         /*if (mDataChanged) {
@@ -423,7 +442,10 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         	recycleBin.fillActiveViews(getChildCount(), mFirstPosition);
         }*/
         for (int i = 0; i < getChildCount(); i++) {
-            recycleBin.addScrapView(getChildAt(i));
+            final ViewGroup h=(ViewGroup) getChildAt(i);
+        	for(int j=0;j<h.getChildCount();j++){
+        		recycleBin.addScrapView(h.getChildAt(j));
+        	}
         }
         detachAllViewsFromParent();
         //TODO: ADW We should only add views from current screen except when scrolling
@@ -437,14 +459,22 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         /*for(int i=0;i<count;i++){
         	makePage(i);
         }*/
-        recycleBin.scrapActiveViews();
-        invalidate();
-        requestFocus();
-        setFocusable(true);
+        //recycleBin.scrapActiveViews();
+        //requestFocus();
+        //setFocusable(true);
+        /*if(mAdapter!=null){
+	        int realScreen=mCurrentScreen;
+	        if(realScreen>0) realScreen=1;
+	        getChildAt(realScreen).setFocusable(true);
+	        getChildAt(realScreen).requestFocus();
+        }*/
+        //getChildAt(realScreen).setPressed(true);
         mDataChanged = false;
-        if(mCacheColorHint!=0){
-        	createScrollingCache();
-        }
+        //if(mCacheColorHint!=0){
+        	//createScrollingCache();
+        //}
+        //invalidate();
+        mBlockLayouts=true;
     }
     public void makePage(int pageNum) {
     	if(pageNum<0 || pageNum>mTotalScreens-1){
@@ -470,7 +500,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         int pos=startPos;
         int x=marginLeft;
         int y=marginTop;
-        //Log.d("MyApps", "the selected item es:"+mSelectedPosition);
+        HolderLayout holder=new HolderLayout(getContext());
         for(int i=0;i<mNumRows;i++){
         	for(int j=0;j<mNumColumns;j++){
         		if(pos<mAdapter.getCount()){
@@ -509,15 +539,24 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 		            int childWidthSpec = getChildMeasureSpec(
 		                    MeasureSpec.makeMeasureSpec(columnWidth, MeasureSpec.EXACTLY), 0, p.width);
 		            child.measure(childWidthSpec, childHeightSpec);
-        			int left=pageSpacing+x;//+ ((columnWidth - child.getMeasuredWidth()) / 2);
+        			int left=x;//+pageSpacing;//+ ((columnWidth - child.getMeasuredWidth()) / 2);
         			int top=y;//+((rowHeight - child.getMeasuredHeight()) / 2);
-		            child.layout(left, top, left+columnWidth, top+rowHeight);
+        			int w=columnWidth;
+        			int h=rowHeight;
+        			/*if(columnWidth>child.getWidth()){
+        				w=child.getWidth();
+        			}
+        			if(rowHeight>child.getMeasuredHeight()){
+        				w=child.getMeasuredHeight();
+        			}*/
+		            
+        			child.layout(left, top, left+w, top+h);
 		            //addViewInLayout(child, pos, p, true);
 		            if (recycled) {
-		                attachViewToParent(child, getChildCount(), p);
+		            	holder.attachViewToParent(child, holder.getChildCount(), p);
 		            } else {
 		            	//Log.d("MyApps","Adding view in layout on position="+(pos-mFirstPosition));
-		                addViewInLayout(child, getChildCount(), p, true);
+		                holder.addViewInLayout(child, holder.getChildCount(), p, true);
 		            }
 		            pos++;
 		        	x+=columnWidth;
@@ -526,7 +565,18 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         	x=marginLeft;
     		y+=rowHeight;
         }
-        this.invalidate();
+        AllAppsSlidingView.LayoutParams holderParams=new AllAppsSlidingView.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,ViewGroup.LayoutParams.FILL_PARENT);
+        holder.layout(pageSpacing, 0, pageSpacing+mPageWidth, getMeasuredHeight());
+	    //if (mCachingStarted) {
+        	holder.setDrawingCacheBackgroundColor(mCacheColorHint);
+	    	holder.setDrawingCacheQuality(DRAWING_CACHE_QUALITY_LOW);
+	        holder.setDrawingCacheEnabled(true);
+	    	//holder.setFocusable(true);
+	    	//holder.setFocusableInTouchMode(true);
+	    //}
+        addViewInLayout(holder, getChildCount(), holderParams, true);
+
+        //this.invalidate();
     }
     
     @Override
@@ -576,6 +626,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
                         // Scroll if the user moved far enough along the X axis
                         mTouchState = TOUCH_STATE_SCROLLING;
                         //createScrollingCache();
+                        //enableChildrenCache();
                     }
                     // Either way, cancel any pending longpress
                     //if (mAllowLongPress) {
@@ -661,6 +712,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
                 if(Math.abs(deltaX)>mTouchSlop || mTouchState == TOUCH_STATE_SCROLLING){
                 	mTouchState = TOUCH_STATE_SCROLLING;                	
 	                mLastMotionX = x;
+	                //if(!scrollCacheCreated)enableChildrenCache();
                 	//createScrollingCache();
 	                if (deltaX < 0) {
 	                    if (getScrollX() > 0) {
@@ -740,7 +792,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 		                    postDelayed(new Runnable() {
 		                        public void run() {
 		                            child.setPressed(false);
-		                            setPressed(false);
+		                            //setPressed(false);
 		                            if (!mDataChanged) {
 		                                post(performClick);
 		                            }
@@ -756,7 +808,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
             }
             mTouchState = TOUCH_STATE_REST;
             mCheckTapPosition=INVALID_POSITION;
-            setPressed(false);
+            //setPressed(false);
             hideSelector();
             invalidate();
 
@@ -788,74 +840,81 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     }
     public View getViewAtPosition(int pos){
     	View v = null;
-    	//TODO:ADW compute the number of pages currently layout
-    	int position=pos;//-(mCurrentScreen*mNumColumns*mNumRows);
+    	int position=pos;
+        int realScreen=0;
     	if(mCurrentScreen>0){
-    		int leftScreens=mCurrentScreen-1;
+    		realScreen=1;
+    		int leftScreens=mCurrentScreen;
     		position-=leftScreens*(mNumColumns*mNumRows);
     	}
-    	v=getChildAt(position);
+    	final ViewGroup h=(ViewGroup)getChildAt(realScreen);
+    	v=h.getChildAt(position);
     	return v;
     }
     @Override
     public int getPositionForView(View view) {
         View listItem = view;
-        int pos=0;
-    	if(mCurrentScreen>0){
-    		int leftScreens=mCurrentScreen-1;
+        int realScreen=0;
+    	int pos=0;
+        if(mCurrentScreen>0){
+    		realScreen=1;
+    		int leftScreens=mCurrentScreen;
     		pos+=leftScreens*(mNumColumns*mNumRows);
     	}
-    	for(int i=0;i<getChildCount();i++){
-            if (getChildAt(i).equals(listItem)) {
-                pos+=i;
-                return pos;
+    	final ViewGroup h=(ViewGroup)getChildAt(realScreen);
+    	for(int i=0;i<h.getChildCount();i++){
+            if (h.getChildAt(i).equals(listItem)) {
+                return (i+pos);
             }
     	}
         // Child not found!
         return INVALID_POSITION;
     }    
     public View pointToView(int x, int y) {
-    	Rect frame = new Rect();
-    	int startPos=0;
-    	int lastPos=getChildCount()-1;
-    	for(int i=startPos;i<=lastPos;i++){
-        	final View child = getChildAt(i);
-            if (child.getVisibility() == View.VISIBLE) {
-                child.getHitRect(frame);
-                if (frame.contains(x+getScrollX(), y+getScrollY())) {
-                    return child;
-                }
-            }
-        }
+    	if(getChildCount()>0){
+	    	Rect frame = new Rect();
+	    	int realScreen=0;
+	    	if(mCurrentScreen>0){
+	    		realScreen=1;
+	    	}
+	    	final ViewGroup h=(ViewGroup)getChildAt(realScreen);
+	    	for(int i=0;i<h.getChildCount();i++){
+	        	final View child = h.getChildAt(i);
+	            if (child.getVisibility() == View.VISIBLE) {
+	                child.getHitRect(frame);
+	                if (frame.contains(x, y)) {
+	                    return child;
+	                }
+	            }
+	        }
+    	}
         return null;
     }
     private void snapToDestination() {
         final int screenWidth = mPageWidth;
         final int whichScreen = (getScrollX() + (screenWidth / 2)) / screenWidth;
-        //Log.d("AAAAAAAAAAAAAAAAAAAAAAAAAA","HACIENDO SNAPPING TO SCREEN:"+whichScreen);
         snapToScreen(whichScreen);
     }
 
     void snapToScreen(int whichScreen) {
         if (!mScroller.isFinished()) return;
 
-        //clearVacantCache();
         //enableChildrenCache();
 
         whichScreen = Math.max(0, Math.min(whichScreen, mTotalScreens - 1));
-        //boolean changingScreens = whichScreen != mCurrentScreen;
+        boolean changingScreens = whichScreen != mCurrentScreen;
         
         mNextScreen = whichScreen;
         
-        /*View focusedChild = getFocusedChild();
-        if (focusedChild != null && changingScreens && focusedChild == getChildAt(mCurrentScreen)) {
+        View focusedChild = getFocusedChild();
+        if (focusedChild != null && changingScreens && focusedChild == getChildAt((mCurrentScreen==0)?0:1)) {
             focusedChild.clearFocus();
-        }*/
+        }
         
         final int newX = whichScreen * mPageWidth;
         final int delta = newX - getScrollX();
         mScroller.startScroll(getScrollX(), 0, delta, 0, Math.abs(delta) * 2);
-        invalidate();
+        //invalidate();
     }
 	@Override
 	public ApplicationsAdapter getAdapter() {
@@ -902,7 +961,8 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
             // Nothing selected
             //checkSelectionChanged();
         }
-
+        //mBlockLayouts=false;
+        mBlockLayouts=false;
         requestLayout();
 	}
     void hideSelector() {
@@ -920,8 +980,9 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     }	
 	@Override
 	public View getSelectedView() {
+    	final ViewGroup h=(ViewGroup)getChildAt(mCurrentScreen);
         if (mItemCount > 0 && mSelectedPosition >= 0) {
-            return getChildAt(mSelectedPosition);
+            return h.getChildAt(mSelectedPosition);
         } else {
             return null;
         }
@@ -934,52 +995,18 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	}    
     View obtainView(int position) {
         View scrapView;
-        //Log.d("MyApps","Trying to get a recycled view por position "+position+"...");
-        //Log.d("MyApps","does recycle Bin exist? "+mRecycler);
 
         scrapView = mRecycler.getScrapView(position);
-        //Log.d("RECYCLER","Position "+position+" returned "+scrapView);
 
         View child;
         if (scrapView != null) {
-            /*if (ViewDebug.TRACE_RECYCLER) {
-                ViewDebug.trace(scrapView, ViewDebug.RecyclerTraceType.RECYCLE_FROM_SCRAP_HEAP,
-                        position, -1);
-            }*/
-
             child = mAdapter.getView(position, scrapView, this);
-
-            /*if (ViewDebug.TRACE_RECYCLER) {
-                ViewDebug.trace(child, ViewDebug.RecyclerTraceType.BIND_VIEW,
-                        position, getChildCount());
-            }*/
 
             if (child != scrapView) {
                 mRecycler.addScrapView(scrapView);
-                /*if (mCacheColorHint != 0) {
-                    child.setDrawingCacheBackgroundColor(mCacheColorHint);
-                }
-                if (ViewDebug.TRACE_RECYCLER) {
-                    ViewDebug.trace(scrapView, ViewDebug.RecyclerTraceType.MOVE_TO_SCRAP_HEAP,
-                            position, -1);
-                }*/
             }
         } else {
             child = mAdapter.getView(position, null, this);
-            /*if (mCacheColorHint != 0) {
-                child.setDrawingCacheBackgroundColor(mCacheColorHint);
-            }
-            if (ViewDebug.TRACE_RECYCLER) {
-                ViewDebug.trace(child, ViewDebug.RecyclerTraceType.NEW_VIEW,
-                        position, getChildCount());
-            }*/
-        }
-        //if (mCacheColorHint != 0) {
-        	child.setDrawingCacheBackgroundColor(mCacheColorHint);
-        //}
-        if (mCachingStarted) {
-        	child.setDrawingCacheQuality(DRAWING_CACHE_QUALITY_LOW);
-            child.setDrawingCacheEnabled(true);
         }
         return child;
     }
@@ -1031,8 +1058,8 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     }
 
     private void positionSelector(int l, int t, int r, int b) {
-        mSelectorRect.set(l - mSelectionLeftPadding, t - mSelectionTopPadding, r
-                + mSelectionRightPadding, b + mSelectionBottomPadding);
+        mSelectorRect.set(l - mSelectionLeftPadding+getScrollX(), t - mSelectionTopPadding+getScrollY(), r
+                + mSelectionRightPadding+getScrollX(), b + mSelectionBottomPadding+getScrollY());
     }
     /**
      * Indicates whether this view is in a state where the selector should be drawn. This will
@@ -1042,8 +1069,9 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
      * @return True if the selector should be shown
      */
     boolean shouldShowSelector() {
-    	//Log.d("MyApps","Should draw selector??="+((hasFocus() && !isInTouchMode())|| touchModeDrawsInPressedState()));
-        return (hasFocus() && !isInTouchMode()) || touchModeDrawsInPressedState();
+		//final HolderLayout h=(HolderLayout)getChildAt(mCurrentScreen==0?0:1);
+        Log.d("MMMMMMMMMMMMMM","Should draw selector???--->"+((hasFocus() && !isInTouchMode()) || touchModeDrawsInPressedState()));
+    	return (hasFocus() && !isInTouchMode()) || touchModeDrawsInPressedState();
     }
 
     private void drawSelector(Canvas canvas) {
@@ -1477,8 +1505,8 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
                         //setSelectedPositionInt(mCheckTapPosition);
                         setSelection(mCheckTapPosition);
                         positionSelector(child);
-                        setPressed(true);
-                        
+                        //setPressed(true);
+                        //invalidate();
                         final int longPressTimeout = ViewConfiguration.getLongPressTimeout();
                         final boolean longClickable = isLongClickable();
 
@@ -1559,7 +1587,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
                 }
                 if (handled) {
                     mTouchState = TOUCH_STATE_REST;
-                    setPressed(false);
+                    //setPressed(false);
                     child.setPressed(false);
                 } else {
                     mTouchState = TOUCH_STATE_DONE_WAITING;
@@ -1581,7 +1609,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
                         handled = performLongPress(v, mCheckTapPosition, mCheckTapPosition);
                     }
                     if (handled) {
-                        setPressed(false);
+                        //setPressed(false);
                         v.setPressed(false);
                     }
                 } else {
@@ -1609,11 +1637,36 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         }
         return handled;
     }
-    @Override
+    /*@Override
     protected void dispatchSetPressed(boolean pressed) {
         // Don't dispatch setPressed to our children. We call setPressed on ourselves to
         // get the selector in the right state, but we don't want to press each child.
-    }    
+        int focusableScreen=(mCurrentScreen==0)?0:1;
+        getChildAt(focusableScreen).setPressed(pressed);
+    	
+    }
+    @Override
+    protected boolean onRequestFocusInDescendants(int direction, Rect previouslyFocusedRect) {
+        int focusableScreen=mCurrentScreen;
+        if(focusableScreen>0)focusableScreen=1;
+        getChildAt(focusableScreen).requestFocus(direction, previouslyFocusedRect);
+        return false;
+    }
+    @Override
+    public void addFocusables(ArrayList<View> views, int direction, int focusableMode) {
+        //final int realScreen=(mCurrentScreen==0?0:1);
+    	//getChildAt(realScreen).addFocusables(views, direction);
+        if (direction == View.FOCUS_LEFT) {
+            if (mCurrentScreen > 0) {
+                getChildAt(0).addFocusables(views, direction);
+            }
+        } else if (direction == View.FOCUS_RIGHT){
+            if (mCurrentScreen < getChildCount() - 1) {
+                getChildAt(1).addFocusables(views, direction);
+            }
+        }
+    }*/
+    
     /**
      * AbsListView extends LayoutParams to provide a place to hold the view type.
      */
@@ -1685,6 +1738,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
                 //rememberSyncState();
             }
             //checkFocus();
+            mBlockLayouts=false;
             requestLayout();
         }
 
@@ -1716,65 +1770,40 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
             mInstanceState = null;
         }
     }
-    private void createScrollingCache() {
-        if (mScrollingCacheEnabled && !mCachingStarted) {
-            setChildrenDrawnWithCacheEnabled(true);
-            setChildrenDrawingCacheEnabled(true);
-            mCachingStarted = true;
+    void enableChildrenCache() {
+        final int count = getChildCount();
+        for (int i = 0; i < count; i++) {
+            final HolderLayout h = (HolderLayout) getChildAt(i);
+            h.setChildrenDrawnWithCacheEnabled(true);
+            h.setChildrenDrawingCacheEnabled(true);
+            /*h.setDrawingCacheEnabled(true);
+        	h.setAlwaysDrawnWithCacheEnabled(true);
+        	h.setAnimationCacheEnabled(true);
+        	h.setChildrenDrawingCacheEnabled(true);
+        	h.setChildrenDrawnWithCacheEnabled(true);
+        	h.setDrawingCacheEnabled(true);
+    		setDrawingCacheQuality(DRAWING_CACHE_QUALITY_LOW);*/
         }
+    	/*setAlwaysDrawnWithCacheEnabled(true);
+    	setAnimationCacheEnabled(true);
+    	setChildrenDrawingCacheEnabled(true);
+    	setChildrenDrawnWithCacheEnabled(true);
+    	setDrawingCacheEnabled(true);
+    	//setScrollingCacheEnabled(true);
+		setDrawingCacheQuality(DRAWING_CACHE_QUALITY_LOW);*/        
+        scrollCacheCreated=true;
     }
 
-    private void clearScrollingCache() {
-        if (mClearScrollingCache == null) {
-            mClearScrollingCache = new Runnable() {
-                public void run() {
-                    if (mCachingStarted) {
-                        mCachingStarted = false;
-                        setChildrenDrawnWithCacheEnabled(false);
-                        if ((mPersistentDrawingCache & PERSISTENT_SCROLLING_CACHE) == 0) {
-                            setChildrenDrawingCacheEnabled(false);
-                        }
-                        if (!isAlwaysDrawnWithCacheEnabled()) {
-                            invalidate();
-                        }
-                    }
-                }
-            };
+    void clearChildrenCache() {
+        final int count = getChildCount();
+        for (int i = 0; i < count; i++) {
+            final HolderLayout h = (HolderLayout) getChildAt(i);
+            h.setChildrenDrawnWithCacheEnabled(false);
+            h.setDrawingCacheEnabled(false);
         }
-        post(mClearScrollingCache);
+        scrollCacheCreated=false;
     }
-    /**
-     * Indicates whether the children's drawing cache is used during a scroll.
-     * By default, the drawing cache is enabled but this will consume more memory.
-     *
-     * @return true if the scrolling cache is enabled, false otherwise
-     *
-     * @see #setScrollingCacheEnabled(boolean)
-     * @see View#setDrawingCacheEnabled(boolean)
-     */
-    public boolean isScrollingCacheEnabled() {
-        return mScrollingCacheEnabled;
-    }
-
-    /**
-     * Enables or disables the children's drawing cache during a scroll.
-     * By default, the drawing cache is enabled but this will use more memory.
-     *
-     * When the scrolling cache is enabled, the caches are kept after the
-     * first scrolling. You can manually clear the cache by calling
-     * {@link android.view.ViewGroup#setChildrenDrawingCacheEnabled(boolean)}.
-     *
-     * @param enabled true to enable the scroll cache, false otherwise
-     *
-     * @see #isScrollingCacheEnabled()
-     * @see View#setDrawingCacheEnabled(boolean)
-     */
-    public void setScrollingCacheEnabled(boolean enabled) {
-        if (mScrollingCacheEnabled && !enabled) {
-            clearScrollingCache();
-        }
-        mScrollingCacheEnabled = enabled;
-    }    
+    
     //TODO: ADW Events
 
 	public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
@@ -1819,8 +1848,18 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 				setDrawingCacheBackgroundColor(Color.TRANSPARENT);
 	    	}
     	}
+    	mBlockLayouts=false;
+    	requestLayout();
+		/*setBackgroundDrawable(null);
+		setCacheColorHint(0xFF000000);
+    	setAlwaysDrawnWithCacheEnabled(true);
+    	setAnimationCacheEnabled(true);
+    	setChildrenDrawingCacheEnabled(true);
+    	setChildrenDrawnWithCacheEnabled(true);
+    	setDrawingCacheEnabled(true);
+    	//setScrollingCacheEnabled(true);
 		setDrawingCacheQuality(DRAWING_CACHE_QUALITY_LOW);
-		requestLayout();
+		requestLayout();*/
     }
 	public int getNumColumns() {
 		return mNumColumns;
@@ -1841,5 +1880,15 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 			mTotalScreens=getPageCount();
 			requestLayout();
 		}
+	}
+	@Override
+	protected void onAnimationEnd() {
+		// TODO Auto-generated method stub
+		super.onAnimationEnd();
+	}
+	@Override
+	protected void onAnimationStart() {
+		// TODO Auto-generated method stub
+		super.onAnimationStart();
 	}
 }

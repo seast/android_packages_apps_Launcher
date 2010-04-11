@@ -87,7 +87,7 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
 			       });
 			AlertDialog alert = builder.create();
 			alert.show();		
-		}else if(preference.getKey().equals("drawerFast")){
+		}/*else if(preference.getKey().equals("drawerFast")){
 			boolean val=Boolean.parseBoolean(newValue.toString());
 			if(!val){
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -103,7 +103,7 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
 			}else{
 				shouldRestart=false;
 			}			
-		}
+		}*/
         return true;  
 	}
     
