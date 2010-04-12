@@ -173,17 +173,15 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         //ADW force the hack
         forceOpaque=!bootOpaque;
         setForceOpaque(bootOpaque);
-        if(!forceOpaque){
-	        //final int textureId = a.getResourceId(R.styleable.AllAppsSlidingView_texture, 0);
-        	final int textureId = R.drawable.pattern_carbon_fiber_dark;
-	        if (textureId != 0) {
-	            mTexture = BitmapFactory.decodeResource(getResources(), textureId);
-	            mTextureWidth = mTexture.getWidth();
-	            mTextureHeight = mTexture.getHeight();
-	
-	            mPaint = new Paint();
-	            mPaint.setDither(false);
-	        }
+        //final int textureId = a.getResourceId(R.styleable.AllAppsSlidingView_texture, 0);
+    	final int textureId = R.drawable.pattern_carbon_fiber_dark;
+        if (textureId != 0) {
+            mTexture = BitmapFactory.decodeResource(getResources(), textureId);
+            mTextureWidth = mTexture.getWidth();
+            mTextureHeight = mTexture.getHeight();
+
+            mPaint = new Paint();
+            mPaint.setDither(false);
         }
         a.recycle();
 
@@ -213,8 +211,13 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	}
     @Override
     public boolean isOpaque() {
-    	if(forceOpaque) return true;
-        else return !mTexture.hasAlpha();
+    	if(forceOpaque){
+    		return true;
+    	}else if(mTexture!=null){
+    		return !mTexture.hasAlpha();
+    	}else{
+    		return false;
+    	}
     }
 	
     private void initWorkspace() {
@@ -258,7 +261,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	            //mFirstPosition=mCurrentScreen*mNumColumns*mNumRows;
 	            //Log.d("MyApps","my mFirstPosition="+mFirstPosition);
 	            //RecycleOuterViews(mCurrentScreen);
-	        	//mLayoutMode=LAYOUT_NORMAL;
+	        	mLayoutMode=LAYOUT_NORMAL;
 	        	//clearScrollingCache();
 	            clearChildrenCache();
 	            mBlockLayouts=false;
@@ -449,13 +452,13 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         }
         detachAllViewsFromParent();
         //TODO: ADW We should only add views from current screen except when scrolling
-        //if(mLayoutMode==LAYOUT_NORMAL){
-        	//makePage(mCurrentScreen);
-        //}else{
+        if(mLayoutMode==LAYOUT_NORMAL){
+        	makePage(mCurrentScreen);
+        }else{
         	makePage(mCurrentScreen-1);
         	makePage(mCurrentScreen);
         	makePage(mCurrentScreen+1);
-        //}
+        }
         /*for(int i=0;i<count;i++){
         	makePage(i);
         }*/
@@ -712,6 +715,11 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
                 if(Math.abs(deltaX)>mTouchSlop || mTouchState == TOUCH_STATE_SCROLLING){
                 	mTouchState = TOUCH_STATE_SCROLLING;                	
 	                mLastMotionX = x;
+	                if(mLayoutMode==LAYOUT_NORMAL){
+	                	mLayoutMode=LAYOUT_SCROLLING;
+	                	mBlockLayouts=false;
+	                	requestLayout();
+	                }
 	                //if(!scrollCacheCreated)enableChildrenCache();
                 	//createScrollingCache();
 	                if (deltaX < 0) {
@@ -843,7 +851,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     	int position=pos;
         int realScreen=0;
     	if(mCurrentScreen>0){
-    		realScreen=1;
+    		//realScreen=1;
     		int leftScreens=mCurrentScreen;
     		position-=leftScreens*(mNumColumns*mNumRows);
     	}
@@ -857,7 +865,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         int realScreen=0;
     	int pos=0;
         if(mCurrentScreen>0){
-    		realScreen=1;
+    		//realScreen=1;
     		int leftScreens=mCurrentScreen;
     		pos+=leftScreens*(mNumColumns*mNumRows);
     	}
@@ -875,7 +883,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	    	Rect frame = new Rect();
 	    	int realScreen=0;
 	    	if(mCurrentScreen>0){
-	    		realScreen=1;
+	    		//realScreen=1;
 	    	}
 	    	final ViewGroup h=(ViewGroup)getChildAt(realScreen);
 	    	for(int i=0;i<h.getChildCount();i++){
