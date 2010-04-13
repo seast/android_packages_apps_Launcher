@@ -40,6 +40,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.Bitmap;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -1953,7 +1954,12 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     	    mNextView.setVisibility(View.VISIBLE);            
 		}    	
     }
-   
+    protected Bitmap getBlurredBg(){
+    	Bitmap img=null;
+        Workspace workspace = mWorkspace;
+    	img=mWorkspace.getWallpaperSection();
+        return img;
+    }
     private void dismissPreview(final View v) {
         final PopupWindow window = (PopupWindow) v.getTag();
         if (window != null) {

@@ -174,15 +174,15 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         forceOpaque=!bootOpaque;
         setForceOpaque(bootOpaque);
         //final int textureId = a.getResourceId(R.styleable.AllAppsSlidingView_texture, 0);
-    	final int textureId = R.drawable.pattern_carbon_fiber_dark;
-        if (textureId != 0) {
-            mTexture = BitmapFactory.decodeResource(getResources(), textureId);
-            mTextureWidth = mTexture.getWidth();
-            mTextureHeight = mTexture.getHeight();
+    	//final int textureId = R.drawable.pattern_carbon_fiber_dark;
+        //if (textureId != 0) {
+            //mTexture = BitmapFactory.decodeResource(getResources(), textureId);
+            //mTextureWidth = mTexture.getWidth();
+            //mTextureHeight = mTexture.getHeight();
 
-            mPaint = new Paint();
-            mPaint.setDither(false);
-        }
+            //mPaint = new Paint();
+            //mPaint.setDither(false);
+        //}
         a.recycle();
 
         Drawable d = a.getDrawable(com.android.internal.R.styleable.AbsListView_listSelector);
@@ -211,13 +211,14 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	}
     @Override
     public boolean isOpaque() {
-    	if(forceOpaque){
+    	return true;
+    	/*if(forceOpaque){
     		return true;
     	}else if(mTexture!=null){
     		return !mTexture.hasAlpha();
     	}else{
     		return false;
-    	}
+    	}*/
     }
 	
     private void initWorkspace() {
@@ -246,7 +247,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     }
     
     void setLauncher(Launcher launcher) {
-        mLauncher = launcher;
+        mLauncher = launcher;        
     }    
     @Override
     public void computeScroll() {
@@ -257,7 +258,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
             if(mCurrentScreen!=Math.max(0, Math.min(mNextScreen, mTotalScreens - 1))){
 	        	mCurrentScreen = Math.max(0, Math.min(mNextScreen, mTotalScreens - 1));
 	            mNextScreen = INVALID_SCREEN;
-	            Log.d("MyApps","computeScroll ended?");
+	            //Log.d("MyApps","computeScroll ended?");
 	            //mFirstPosition=mCurrentScreen*mNumColumns*mNumRows;
 	            //Log.d("MyApps","my mFirstPosition="+mFirstPosition);
 	            //RecycleOuterViews(mCurrentScreen);
@@ -289,7 +290,8 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     @Override
     protected void dispatchDraw(Canvas canvas) {
         int saveCount = 0;
-    	if(!forceOpaque){
+    	//if(!forceOpaque){
+        if(mTexture!=null && !forceOpaque){
 	    	final Bitmap texture = mTexture;
 	        final Paint paint = mPaint;
 	
@@ -415,7 +417,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     	super.onLayout(changed, left, top, right, bottom);
-    	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","onLayout!!");
+    	//Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","onLayout!!");
     	/*Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->Changed?->"+changed);
     	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->left?->"+left);
     	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->top?->"+top);
@@ -423,6 +425,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->bottom?->"+bottom);*/
     	if(!mBlockLayouts){
     		layoutChildren();
+    		enableChildrenCache();
     	}
     	//if(!scrollCacheCreated)enableChildrenCache();
     }
@@ -722,13 +725,14 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	                }
 	                //if(!scrollCacheCreated)enableChildrenCache();
                 	//createScrollingCache();
+                	
 	                if (deltaX < 0) {
 	                    if (getScrollX() > 0) {
 	                        scrollBy(Math.max(-getScrollX(), deltaX), 0);
 	                    }
 	                } else if (deltaX > 0) {
-	                	final int availableToScroll = ((mTotalScreens-1)*mPageWidth)-(mCurrentScreen*mPageWidth);
-	                    if (availableToScroll > 0) {
+	                	final int availableToScroll = ((mTotalScreens)*mPageWidth)-getScrollX()-mPageWidth;
+	                	if (availableToScroll > 0) {
 	                        scrollBy(Math.min(availableToScroll, deltaX), 0);
 	                    }
 	                }
@@ -1078,7 +1082,6 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
      */
     boolean shouldShowSelector() {
 		//final HolderLayout h=(HolderLayout)getChildAt(mCurrentScreen==0?0:1);
-        Log.d("MMMMMMMMMMMMMM","Should draw selector???--->"+((hasFocus() && !isInTouchMode()) || touchModeDrawsInPressedState()));
     	return (hasFocus() && !isInTouchMode()) || touchModeDrawsInPressedState();
     }
 
@@ -1621,7 +1624,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
                         v.setPressed(false);
                     }
                 } else {
-                    setPressed(false);
+                    v.setPressed(false);
                     if (v != null) v.setPressed(false);
                 }
             }
@@ -1898,5 +1901,18 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	protected void onAnimationStart() {
 		// TODO Auto-generated method stub
 		super.onAnimationStart();
+	}
+	@Override
+	public void setVisibility(int visibility) {
+		// TODO Auto-generated method stub
+        if(visibility==View.VISIBLE){
+			mTexture=mLauncher.getBlurredBg();
+	        mTextureWidth = mTexture.getWidth();
+	        mTextureHeight = mTexture.getHeight();
+	
+	        mPaint = new Paint();
+	        mPaint.setDither(false);
+        }
+		super.setVisibility(visibility);
 	}
 }
