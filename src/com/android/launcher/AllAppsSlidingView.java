@@ -20,11 +20,14 @@ import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.HapticFeedbackConstants;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.SoundEffectConstants;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.widget.AbsListView;
 import android.widget.Adapter;
 import android.widget.AdapterView;
@@ -159,13 +162,12 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	public AllAppsSlidingView(Context context, AttributeSet attrs) {
 		//super(context, attrs);
 		// TODO Auto-generated constructor stub
-        //initWorkspace();
 		this(context, attrs, com.android.internal.R.attr.absListViewStyle);
+        initWorkspace();
 	}
 	public AllAppsSlidingView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		// TODO Auto-generated constructor stub
-		initWorkspace();
         TypedArray a = context.obtainStyledAttributes(attrs,
                 com.android.internal.R.styleable.AbsListView, defStyle, 0);
         //TODO: ADW-Check if it's necessary
@@ -207,6 +209,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         setSmoothScrollbarEnabled(smoothScrollbar);*/
 
         a.recycle();
+		initWorkspace();
 		
 	}
     @Override
@@ -223,8 +226,8 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	
     private void initWorkspace() {
         mDrawSelectorOnTop = false;
-    	//setFocusable(true);
-    	//setFocusableInTouchMode(true);  
+    	setFocusable(true);
+    	setFocusableInTouchMode(true);  
         setWillNotDraw(false);
         setAlwaysDrawnWithCacheEnabled(false);
         setChildrenDrawnWithCacheEnabled(true);
@@ -319,9 +322,12 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
             saveCount = canvas.save();
             final int scrollX = mScrollX;
             final int scrollY = mScrollY;
-            canvas.clipRect(scrollX + mPaddingLeft, scrollY + mPaddingTop,
+            /*canvas.clipRect(scrollX + mPaddingLeft, scrollY + mPaddingTop,
                     scrollX + mRight - mLeft - mPaddingRight,
-                    scrollY + mBottom - mTop - mPaddingBottom);
+                    scrollY + mBottom - mTop - mPaddingBottom);*/
+            canvas.clipRect(scrollX + mPaddingLeft, scrollY,
+                    scrollX + mRight - mLeft,
+                    scrollY + mBottom - mTop);            
             mGroupFlags &= ~CLIP_TO_PADDING_MASK;
         }
 
@@ -417,12 +423,6 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     	super.onLayout(changed, left, top, right, bottom);
-    	//Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","onLayout!!");
-    	/*Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->Changed?->"+changed);
-    	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->left?->"+left);
-    	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->top?->"+top);
-    	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->right?->"+right);
-    	Log.d("AAAAAAAAAAAAAAAARRRRRRRRRGGGGGGGG","--------->bottom?->"+bottom);*/
     	if(!mBlockLayouts){
     		layoutChildren();
     		enableChildrenCache();
@@ -457,6 +457,9 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         //TODO: ADW We should only add views from current screen except when scrolling
         if(mLayoutMode==LAYOUT_NORMAL){
         	makePage(mCurrentScreen);
+        	//getChildAt(0).setFocusable(false);
+        	//getChildAt(0).requestFocus();
+        	//requestFocus();
         }else{
         	makePage(mCurrentScreen-1);
         	makePage(mCurrentScreen);
@@ -466,8 +469,8 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         	makePage(i);
         }*/
         //recycleBin.scrapActiveViews();
-        //requestFocus();
-        //setFocusable(true);
+        requestFocus();
+        setFocusable(true);
         /*if(mAdapter!=null){
 	        int realScreen=mCurrentScreen;
 	        if(realScreen>0) realScreen=1;
@@ -850,6 +853,370 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
             }*/
         }
     }
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    	return commonKey(keyCode, 1, event);
+    }
+
+    @Override
+    public boolean onKeyMultiple(int keyCode, int repeatCount, KeyEvent event) {
+        return commonKey(keyCode, repeatCount, event);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        boolean handled=commonKey(keyCode, 1, event);
+            switch (keyCode) {
+            case KeyEvent.KEYCODE_DPAD_CENTER:
+            case KeyEvent.KEYCODE_ENTER:
+		        if (isPressed() && mSelectedPosition >= 0 && mAdapter != null &&
+		                mSelectedPosition < mAdapter.getCount()) {
+		            final HolderLayout h=(HolderLayout)getChildAt(0);
+		        	final View view = h.getChildAt(mSelectedPosition);
+		            final int realPosition=getPositionForView(view);
+		            performItemClick(view, mSelectedPosition, mAdapter.getItemId(mSelectedPosition));
+		            setPressed(false);
+		            if (view != null) view.setPressed(false);
+		            return true;
+		        }
+            }
+        return handled;
+    }
+
+    private boolean commonKey(int keyCode, int count, KeyEvent event) {
+    	if (mAdapter == null) {
+            return false;
+        }
+
+        if (mDataChanged) {
+            layoutChildren();
+        }
+
+        boolean handled = false;
+        int action = event.getAction();
+
+        if (action != KeyEvent.ACTION_UP) {
+            if (mSelectedPosition < 0) {
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_DPAD_UP:
+                    case KeyEvent.KEYCODE_DPAD_DOWN:
+                    case KeyEvent.KEYCODE_DPAD_LEFT:
+                    case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    case KeyEvent.KEYCODE_DPAD_CENTER:
+                    case KeyEvent.KEYCODE_SPACE:
+                    case KeyEvent.KEYCODE_ENTER:
+                        resurrectSelection();
+                        return true;
+                }
+            }
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                    handled = arrowScroll(FOCUS_LEFT);
+                    break;
+
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    handled = arrowScroll(FOCUS_RIGHT);
+                    break;
+
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    handled = arrowScroll(FOCUS_UP);
+                    break;
+
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    handled = arrowScroll(FOCUS_DOWN);
+                    break;
+
+                case KeyEvent.KEYCODE_DPAD_CENTER:
+                case KeyEvent.KEYCODE_ENTER: {
+                    if (getChildCount() > 0 && event.getRepeatCount() == 0) {
+                        keyPressed();
+                    }
+                    return true;
+                }
+
+                /*case KeyEvent.KEYCODE_SPACE:
+                    if (!event.isShiftPressed()) {
+                        handled = pageScroll(FOCUS_DOWN);
+                    } else {
+                        handled = pageScroll(FOCUS_UP);
+                    }
+                    break;*/
+            }
+        }
+
+        if (handled) {
+            return true;
+        } else {
+            switch (action) {
+                case KeyEvent.ACTION_DOWN:
+                    return super.onKeyDown(keyCode, event);
+                case KeyEvent.ACTION_UP:
+                    return super.onKeyUp(keyCode, event);
+                case KeyEvent.ACTION_MULTIPLE:
+                    return super.onKeyMultiple(keyCode, count, event);
+                default:
+                    return false;
+            }
+        }
+    }
+    /**
+     * Scrolls up or down by the number of items currently present on screen.
+     *
+     * @param direction either {@link View#FOCUS_UP} or {@link View#FOCUS_DOWN}
+     * @return whether selection was moved
+     */
+    boolean pageScroll(int direction) {
+        /*int nextPage = -1;
+
+        if (direction == FOCUS_UP) {
+            nextPage = Math.max(0, mSelectedPosition - getChildCount() - 1);
+        } else if (direction == FOCUS_DOWN) {
+            nextPage = Math.min(mItemCount - 1, mSelectedPosition + getChildCount() - 1);
+        }
+
+        if (nextPage >= 0) {
+            setSelectionInt(nextPage);
+            invokeOnItemScrollListener();
+            return true;
+        }*/
+
+        return false;
+    }
+
+    /**
+     * Scrolls to the next or previous item, horizontally or vertically.
+     *
+     * @param direction either {@link View#FOCUS_LEFT}, {@link View#FOCUS_RIGHT},
+     *        {@link View#FOCUS_UP} or {@link View#FOCUS_DOWN}
+     *
+     * @return whether selection was moved
+     */
+    boolean arrowScroll(int direction) {
+        final int selectedPosition = mSelectedPosition;
+        final int numColumns = mNumColumns;
+        final int numRows=mNumRows;
+        int rowPos;
+        int colPos;
+
+        boolean moved = false;
+        final HolderLayout h=(HolderLayout) getChildAt(0);
+
+        colPos = (selectedPosition%numColumns);
+        int lastColPos=(h.getChildCount()-1)%numColumns;
+        rowPos = (int)(selectedPosition/numColumns);
+        int lastRowPos=(h.getChildCount()-1)/numColumns;
+        switch (direction) {
+            case FOCUS_UP:
+                if (rowPos > 0) {
+                	//Substract 1 to rowPos
+                	rowPos--;
+                    //mLayoutMode = LAYOUT_MOVE_SELECTION;
+                    //setSelection(Math.max(0, ((rowPos*numRows)+(colPos*numColumns))));
+                    moved = true;
+                }
+                break;
+            case FOCUS_DOWN:
+                if (rowPos < numRows-1 && rowPos <lastRowPos) {
+                	rowPos++;
+                    //mLayoutMode = LAYOUT_MOVE_SELECTION;
+                    //setSelection(Math.min(selectedPosition + numColumns, mItemCount - 1));
+                    moved = true;
+                }
+                break;
+            case FOCUS_LEFT:
+                if (colPos > 0) {
+                	colPos--;
+                    //mLayoutMode = LAYOUT_MOVE_SELECTION;
+                    //setSelection(Math.max(0, selectedPosition - 1));
+                    moved = true;
+                }else{
+                	if(mCurrentScreen>0){
+                    	setSelection(INVALID_POSITION);
+                		mLayoutMode=LAYOUT_SCROLLING;
+                		mBlockLayouts=false;
+                		requestLayout();
+                		snapToScreen(mCurrentScreen-1);
+                		invalidate();                		
+                		return true;
+                	}
+                }
+                break;
+            case FOCUS_RIGHT:
+                if (colPos < numColumns-1 && colPos < lastColPos) {
+                	colPos++;
+                    //mLayoutMode = LAYOUT_MOVE_SELECTION;
+                    //setSelection(Math.min(selectedPosition + 1, mItemCount - 1));
+                    moved = true;
+                }else{
+                	Log.d("KEYBOARD","We're at the last column");
+                	if(mCurrentScreen<mTotalScreens-1){
+                    	Log.d("KEYBOARD","We should scroll right");
+                    	setSelection(INVALID_POSITION);
+                		mLayoutMode=LAYOUT_SCROLLING;
+                		mBlockLayouts=false;
+                		requestLayout();
+                		snapToScreen(mCurrentScreen+1);
+                		invalidate();
+                		return true;
+                	}
+                }
+                break;
+        }
+        if (moved) {
+            int pos=((rowPos*numColumns)+(colPos));
+            if(pos<h.getChildCount()){
+	        	playSoundEffect(SoundEffectConstants.getContantForFocusDirection(direction));
+	            setSelection(Math.max(0, pos));
+	            positionSelector(h.getChildAt(pos));
+            }
+        }
+
+        return moved;
+    }
+    /**
+     * Attempt to bring the selection back if the user is switching from touch
+     * to trackball mode
+     * @return Whether selection was set to something.
+     */
+    boolean resurrectSelection() {
+    	if(getChildCount()<=0){
+    		return false;
+    	}
+    	final HolderLayout h=(HolderLayout) getChildAt(0);
+        final int childCount = h.getChildCount();
+
+        if (childCount <= 0) {
+            return false;
+        }
+        positionSelector(h.getChildAt(0));
+        setSelection(0);
+        return true;
+        /*int selectedTop = 0;
+        int selectedPos;
+        int childrenTop = mListPadding.top;
+        int childrenBottom = mBottom - mTop - mListPadding.bottom;
+        final int firstPosition = mFirstPosition;
+        final int toPosition = mResurrectToPosition;
+        boolean down = true;
+
+        if (toPosition >= firstPosition && toPosition < firstPosition + childCount) {
+            selectedPos = toPosition;
+
+            final View selected = getChildAt(selectedPos - mFirstPosition);
+            selectedTop = selected.getTop();
+            int selectedBottom = selected.getBottom();
+
+            // We are scrolled, don't get in the fade
+            if (selectedTop < childrenTop) {
+                selectedTop = childrenTop + getVerticalFadingEdgeLength();
+            } else if (selectedBottom > childrenBottom) {
+                selectedTop = childrenBottom - selected.getMeasuredHeight()
+                        - getVerticalFadingEdgeLength();
+            }
+        } else {
+            if (toPosition < firstPosition) {
+                // Default to selecting whatever is first
+                selectedPos = firstPosition;
+                for (int i = 0; i < childCount; i++) {
+                    final View v = getChildAt(i);
+                    final int top = v.getTop();
+
+                    if (i == 0) {
+                        // Remember the position of the first item
+                        selectedTop = top;
+                        // See if we are scrolled at all
+                        if (firstPosition > 0 || top < childrenTop) {
+                            // If we are scrolled, don't select anything that is
+                            // in the fade region
+                            childrenTop += getVerticalFadingEdgeLength();
+                        }
+                    }
+                    if (top >= childrenTop) {
+                        // Found a view whose top is fully visisble
+                        selectedPos = firstPosition + i;
+                        selectedTop = top;
+                        break;
+                    }
+                }
+            } else {
+                final int itemCount = mItemCount;
+                down = false;
+                selectedPos = firstPosition + childCount - 1;
+
+                for (int i = childCount - 1; i >= 0; i--) {
+                    final View v = getChildAt(i);
+                    final int top = v.getTop();
+                    final int bottom = v.getBottom();
+
+                    if (i == childCount - 1) {
+                        selectedTop = top;
+                        if (firstPosition + childCount < itemCount || bottom > childrenBottom) {
+                            childrenBottom -= getVerticalFadingEdgeLength();
+                        }
+                    }
+
+                    if (bottom <= childrenBottom) {
+                        selectedPos = firstPosition + i;
+                        selectedTop = top;
+                        break;
+                    }
+                }
+            }
+        }*/
+
+        /*mResurrectToPosition = INVALID_POSITION;
+        removeCallbacks(mFlingRunnable);
+        mTouchMode = TOUCH_MODE_REST;
+        clearScrollingCache();
+        mSpecificTop = selectedTop;
+        selectedPos = lookForSelectablePosition(selectedPos, down);
+        if (selectedPos >= firstPosition && selectedPos <= getLastVisiblePosition()) {
+            mLayoutMode = LAYOUT_SPECIFIC;
+            setSelectionInt(selectedPos);
+            invokeOnItemScrollListener();
+        } else {
+            selectedPos = INVALID_POSITION;
+        }
+        reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+
+        return selectedPos >= 0;*/
+    }    
+    @Override
+    protected void onFocusChanged(boolean gainFocus, int direction, Rect previouslyFocusedRect) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
+        /*int closestChildIndex = -1;
+        if (gainFocus && previouslyFocusedRect != null) {
+            previouslyFocusedRect.offset(mScrollX, mScrollY);
+
+            // figure out which item should be selected based on previously
+            // focused rect
+            Rect otherRect = mTempRect;
+            int minDistance = Integer.MAX_VALUE;
+            final int childCount = getChildCount();
+            for (int i = 0; i < childCount; i++) {
+                // only consider view's on appropriate edge of grid
+                if (!isCandidateSelection(i, direction)) {
+                    continue;
+                }
+
+                final View other = getChildAt(i);
+                other.getDrawingRect(otherRect);
+                offsetDescendantRectToMyCoords(other, otherRect);
+                int distance = getDistance(previouslyFocusedRect, otherRect, direction);
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestChildIndex = i;
+                }
+            }
+        }
+
+        if (closestChildIndex >= 0) {
+            setSelection(closestChildIndex + mFirstPosition);
+        } else {
+            requestLayout();
+        }*/
+    }    
     public View getViewAtPosition(int pos){
     	View v = null;
     	int position=pos;
@@ -992,7 +1359,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     }	
 	@Override
 	public View getSelectedView() {
-    	final ViewGroup h=(ViewGroup)getChildAt(mCurrentScreen);
+    	final ViewGroup h=(ViewGroup)getChildAt(0);
         if (mItemCount > 0 && mSelectedPosition >= 0) {
             return h.getChildAt(mSelectedPosition);
         } else {
@@ -1004,6 +1371,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	public void setSelection(int position) {
 		// TODO Auto-generated method stub
 		mSelectedPosition=position;
+		invalidate();
 	}    
     View obtainView(int position) {
         View scrapView;
@@ -1549,6 +1917,44 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         }
     }
     /**
+     * Sets the selector state to "pressed" and posts a CheckForKeyLongPress to see if
+     * this is a long press.
+     */
+    void keyPressed() {
+        Drawable selector = mSelector;
+        Rect selectorRect = mSelectorRect;
+        if (selector != null && (isFocused() || touchModeDrawsInPressedState())
+                && selectorRect != null && !selectorRect.isEmpty()) {
+
+            final View v = getViewAtPosition(mSelectedPosition);
+
+            if (v != null) {
+                if (v.hasFocusable()) return;
+                v.setPressed(true);
+            }
+            setPressed(true);
+
+            final boolean longClickable = isLongClickable();
+            Drawable d = selector.getCurrent();
+            if (d != null && d instanceof TransitionDrawable) {
+                if (longClickable) {
+                    ((TransitionDrawable) d).startTransition(ViewConfiguration
+                            .getLongPressTimeout());
+                } else {
+                    ((TransitionDrawable) d).resetTransition();
+                }
+            }
+            if (longClickable && !mDataChanged) {
+                if (mPendingCheckForKeyLongPress == null) {
+                    mPendingCheckForKeyLongPress = new CheckForKeyLongPress();
+                }
+                mPendingCheckForKeyLongPress.rememberWindowAttachCount();
+                postDelayed(mPendingCheckForKeyLongPress, ViewConfiguration.getLongPressTimeout());
+            }
+        }
+    }
+    
+    /**
      * A base class for Runnables that will check that their view is still attached to
      * the original window as when the Runnable was created.
      *
@@ -1655,27 +2061,21 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         int focusableScreen=(mCurrentScreen==0)?0:1;
         getChildAt(focusableScreen).setPressed(pressed);
     	
-    }
-    @Override
+    }*/
+    /*@Override
     protected boolean onRequestFocusInDescendants(int direction, Rect previouslyFocusedRect) {
-        int focusableScreen=mCurrentScreen;
-        if(focusableScreen>0)focusableScreen=1;
-        getChildAt(focusableScreen).requestFocus(direction, previouslyFocusedRect);
+        //int focusableScreen=mCurrentScreen;
+        //if(focusableScreen>0)focusableScreen=1;
+        getChildAt(0).requestFocus(direction, previouslyFocusedRect);
+        Log.d("CABRALOCA","Requested focus in screen "+0);
         return false;
-    }
-    @Override
+    }*/
+    /*@Override
     public void addFocusables(ArrayList<View> views, int direction, int focusableMode) {
         //final int realScreen=(mCurrentScreen==0?0:1);
     	//getChildAt(realScreen).addFocusables(views, direction);
-        if (direction == View.FOCUS_LEFT) {
-            if (mCurrentScreen > 0) {
-                getChildAt(0).addFocusables(views, direction);
-            }
-        } else if (direction == View.FOCUS_RIGHT){
-            if (mCurrentScreen < getChildCount() - 1) {
-                getChildAt(1).addFocusables(views, direction);
-            }
-        }
+    	Log.d("CABRALOCA","Adding focusables");
+    	getChildAt(0).addFocusables(views, direction);
     }*/
     
     /**
@@ -1914,5 +2314,14 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	        mPaint.setDither(false);
         }
 		super.setVisibility(visibility);
+	}
+	@Override
+	public void setAnimation(Animation animation) {
+		// TODO Auto-generated method stub
+		if(getChildCount()<=0){
+			super.setAnimation(animation);
+		}else{
+			getChildAt(0).setAnimation(animation);
+		}
 	}
 }

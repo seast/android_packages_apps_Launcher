@@ -3,6 +3,7 @@ package com.android.launcher;
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -53,7 +54,7 @@ public class HolderLayout extends ViewGroup {
 		// TODO Auto-generated method stub
 		super.dispatchSetSelected(selected);
 	}
-    @Override
+    /*@Override
     public void requestChildFocus(View child, View focused) {
         super.requestChildFocus(child, focused);
         if (child != null) {
@@ -61,7 +62,7 @@ public class HolderLayout extends ViewGroup {
             child.getDrawingRect(r);
             requestRectangleOnScreen(r);
         }
-    }
+    }*/
     @Override
     protected void setChildrenDrawingCacheEnabled(boolean enabled) {
         final int count = getChildCount();
@@ -77,6 +78,13 @@ public class HolderLayout extends ViewGroup {
     protected void setChildrenDrawnWithCacheEnabled(boolean enabled) {
         super.setChildrenDrawnWithCacheEnabled(enabled);
     }
+
+	@Override
+	protected void onFocusChanged(boolean gainFocus, int direction,
+			Rect previouslyFocusedRect) {
+		// TODO Auto-generated method stub
+		//super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
+	}
     
 
 }

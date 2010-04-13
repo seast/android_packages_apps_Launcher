@@ -518,33 +518,20 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         paint.setDither(false);
         paint.setColorFilter(cf);
         
-        int width = 320;//cell.getWidth();
+        int width = cell.getWidth();
         int height = cell.getHeight();
     	
     	float percent=(float)mCurrentScreen/(float)(mHomeScreens-1);
-    	Log.d("WORKSPACE!!!","Porcentaje desplazamiento:"+String.valueOf(percent));
-    	//float x=((float)(mWallpaperWidth*percent));
     	float x=(float)(mWallpaperWidth/2)*percent;
-    	/*if(x+width>mWallpaperWidth){
-    		x=mWallpaperWidth-width;
-    	}*/
-    	//float x=(mWallpaperWidth/width)/percent;
         float y=(mWallpaperHeight-height)/2;
         
         Bitmap b=Bitmap.createBitmap((int) width, (int) height,
                 Bitmap.Config.ARGB_8888);
         Canvas canvas=new Canvas(b);
         canvas.drawARGB(255, 0, 255, 0);
-		Log.d("WORKSPACE!!!","The wallpaper width="+mWallpaperWidth);
-		Log.d("WORKSPACE!!!","The wallpaper x="+x);
-        //canvas.drawBitmap(mWallpaper, x, (mBottom - mTop - mWallpaperHeight) / 2, mPaint);
         Rect src=new Rect((int)x, (int)y, (int)x+width, (int)y+height);
         Rect dst=new Rect(0,0,width,height);
-		Log.d("WORKSPACE!!!","WTF are src x="+src.left+" and src y="+src.right);
-		//Log.d("WORKSPACE!!!","WTF are src h="+src.height()+" and dst h="+dst.height());
 		canvas.drawBitmap(mWallpaper, src, dst, mPaint);
-		//cell.buildDrawingCache();
-		//Bitmap bb=Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         cell.dispatchDraw(canvas);
         canvas.drawBitmap(b, 0, 0, paint);
         b=Bitmap.createScaledBitmap(b, width/3, height/3, true);

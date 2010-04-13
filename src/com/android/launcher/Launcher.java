@@ -865,7 +865,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-		d("NExusthings","NEW INTENT");
 
         // Close the menu
         if (Intent.ACTION_MAIN.equals(intent.getAction())) {
@@ -945,7 +944,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         //
         // The source code of these various methods shows what states should be kept to
         // achieve what we want here.
-		d("NExusthings","RESTOREINSTANCE");
 
         Bundle windowState = savedInstanceState.getBundle("android:viewHierarchyState");
         SparseArray<Parcelable> savedStates = null;
@@ -1534,8 +1532,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
      */
     private void bindDesktopItems(ArrayList<ItemInfo> shortcuts,
             ArrayList<LauncherAppWidgetInfo> appWidgets) {
-
-		d("NExusthings","BIND DESKTOP ITEMS");
         
     	final ApplicationsAdapter drawerAdapter = sModel.getApplicationsAdapter();
         if (shortcuts == null || appWidgets == null || drawerAdapter == null) {
@@ -1955,10 +1951,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		}    	
     }
     protected Bitmap getBlurredBg(){
-    	Bitmap img=null;
         Workspace workspace = mWorkspace;
-    	img=mWorkspace.getWallpaperSection();
-        return img;
+    	return workspace.getWallpaperSection();
     }
     private void dismissPreview(final View v) {
         final PopupWindow window = (PopupWindow) v.getTag();
