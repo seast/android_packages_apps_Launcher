@@ -423,11 +423,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         			int h=rowHeight;
 		            
         			child.layout(left, top, left+w, top+h);
-		            if (recycled) {
-		            	holder.attachViewToParent(child, holder.getChildCount(), p);
-		            } else {
-		                holder.addViewInLayout(child, holder.getChildCount(), p, true);
-		            }
+	                holder.addViewInLayout(child, holder.getChildCount(), p, true);
 		            pos++;
 		        	x+=columnWidth;
         		}
@@ -509,7 +505,6 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
                 // Remember location of down touch
                 mLastMotionX = x;
                 mLastMotionY = y;
-                mAllowLongPress = true;
 
                 /*
                  * If being flinged and user touches the screen, initiate drag;
@@ -524,7 +519,6 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
             case MotionEvent.ACTION_UP:
                 // Release the drag
                 mTouchState = TOUCH_STATE_REST;
-                mAllowLongPress = false;
                 break;
         }
 

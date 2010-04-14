@@ -597,7 +597,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         mHandleIcon.setCrossFadeEnabled(true);
 
         //drawer.lock();
-        final DrawerManager drawerManager = new DrawerManager();
+        //final DrawerManager drawerManager = new DrawerManager();
         //drawer.setOnDrawerOpenListener(drawerManager);
         //drawer.setOnDrawerCloseListener(drawerManager);
         //drawer.setOnDrawerScrollListener(drawerManager);
@@ -2521,77 +2521,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         @Override
         public void onChange(boolean selfChange) {
             onAppWidgetReset();
-        }
-    }
-
-    //private class DrawerManager implements SlidingDrawer.OnDrawerOpenListener,
-            //SlidingDrawer.OnDrawerCloseListener, SlidingDrawer.OnDrawerScrollListener {
-    private class DrawerManager {
-        private boolean mOpen;
-
-        public void onDrawerOpened() {
-            if (!mOpen) {
-                mHandleIcon.reverseTransition(150);
-
-                final Rect bounds = mWorkspace.mDrawerBounds;
-                offsetBoundsToDragLayer(bounds, mAllAppsGrid);
-
-                mOpen = true;
-	    }
-	    //BY ADW
-	    mPreviousView.setVisibility(View.GONE);
-	    mNextView.setVisibility(View.GONE);
-	    //EOF ADW
-        }
-
-        private void offsetBoundsToDragLayer(Rect bounds, View view) {
-            view.getDrawingRect(bounds);
-
-            while (view != mDragLayer) {
-                bounds.offset(view.getLeft(), view.getTop());
-                view = (View) view.getParent();
-            }
-        }
-
-        public void onDrawerClosed() {
-            if (mOpen) {
-                mHandleIcon.reverseTransition(150);
-                mWorkspace.mDrawerBounds.setEmpty();
-                mOpen = false;
-            }
-
-            mAllAppsGrid.setSelection(0);
-            //mAllAppsGrid.clearTextFilter();
-	    //BY ADW
-	    mPreviousView.setVisibility(View.VISIBLE);
- 	    mNextView.setVisibility(View.VISIBLE);
-	    //EOF ADW
-
-        }
-
-        public void onScrollStarted() {
-            if (PROFILE_DRAWER) {
-                android.os.Debug.startMethodTracing("/sdcard/launcher-drawer");
-            }
-
-            mWorkspace.mDrawerContentWidth = mAllAppsGrid.getWidth();
-            mWorkspace.mDrawerContentHeight = mAllAppsGrid.getHeight();
-	    //BY ADW
-	    mPreviousView.setVisibility(View.GONE);
-	    mNextView.setVisibility(View.GONE);
-	    //EOF ADW
-	
-
-        }
-
-        public void onScrollEnded() {
-            if (PROFILE_DRAWER) {
-                android.os.Debug.stopMethodTracing();
-            }
-	    //BY ADW
-	    mPreviousView.setVisibility(View.VISIBLE);
- 	    mNextView.setVisibility(View.VISIBLE);
-	    //EOF ADW
         }
     }
 
