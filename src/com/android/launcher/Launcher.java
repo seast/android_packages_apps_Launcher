@@ -1645,10 +1645,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                 }
             }
 
-            final boolean allApps = mSavedState.getBoolean(RUNTIME_STATE_ALL_APPS_FOLDER, false);
+            //ADW Removed to not reopen on rotation
+            /*final boolean allApps = mSavedState.getBoolean(RUNTIME_STATE_ALL_APPS_FOLDER, false);
             if (allApps) {
             	showAllApps(true);
-            }
+            }*/
 
             mSavedState = null;
         }
