@@ -53,7 +53,7 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
         //TODO: ADW-Check if it's necessary
         boolean bootOpaque=AlmostNexusSettingsHelper.getDrawerFast(context);
         setForceOpaque(bootOpaque);
-        if(!forceOpaque){
+        //if(!forceOpaque){
 	        final int textureId = a.getResourceId(R.styleable.AllAppsGridView_texture, 0);
 	        if (textureId != 0) {
 	            mTexture = BitmapFactory.decodeResource(getResources(), textureId);
@@ -63,7 +63,7 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 	            mPaint = new Paint();
 	            mPaint.setDither(false);
 	        }
-        }
+        //}
         a.recycle();
     }
 
@@ -142,9 +142,14 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 	    	if(value){
 	    		this.setBackgroundColor(0xFF000000);
 	    		this.setCacheColorHint(0xFF000000);
+	    		this.setDrawingCacheBackgroundColor(0xFF000000);
+	    		setScrollingCacheEnabled(true);
 	    	}else{
 	    		this.setBackgroundDrawable(null);
 	    		this.setCacheColorHint(Color.TRANSPARENT);
+	    		super.setCacheColorHint(Color.TRANSPARENT);
+	    		this.setDrawingCacheBackgroundColor(Color.TRANSPARENT);
+	    		setScrollingCacheEnabled(true);
 	    	}
     	}
     }

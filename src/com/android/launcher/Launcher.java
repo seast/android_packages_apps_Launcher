@@ -63,6 +63,7 @@ import android.text.method.TextKeyListener;
 import static android.util.Log.*;
 import android.util.SparseArray;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -70,10 +71,13 @@ import android.view.MenuItem;
 import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.view.ViewStub;
 import android.view.WindowManager;
 import android.view.View.OnLongClickListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.ScaleAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -203,8 +207,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private TransitionDrawable mHandleIcon;
     private HandleView mHandleView;
     //private AllAppsGridView mAllAppsGrid;
-    private AllAppsSlidingView mAllAppsGrid;
-
+    //private AllAppsSlidingView mAllAppsGrid;
+    private View mAllAppsGrid;
     private boolean mDesktopLocked = true;
     private Bundle mSavedState;
 
@@ -227,6 +231,12 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private boolean allAppsOpen=false;
     private boolean allAppsAnimating=false;
     private boolean allowDrawerAnimations=true;
+    private boolean newDrawer=true;
+    private boolean newPreviews=true;
+    private boolean homePreviews=true;
+	private boolean fullScreenPreviews=true;
+    private boolean showingPreviews=false;
+	private boolean hideStatusBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -243,7 +253,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         checkForLocaleChange();
         setWallpaperDimension();
-
+        newDrawer=AlmostNexusSettingsHelper.getDrawerNew(Launcher.this);
         setContentView(R.layout.launcher);
         setupViews();
 
@@ -264,7 +274,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         // For handling default keys
         mDefaultKeySsb = new SpannableStringBuilder();
         Selection.setSelection(mDefaultKeySsb, 0);
-        
+        if(!AlmostNexusSettingsHelper.getDesktopRotation(this)){
+        	this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
+        }
     }
 
     private void checkForLocaleChange() {
@@ -432,10 +444,13 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     @Override
     protected void onResume() {
         super.onResume();
-        this.setRequestedOrientation(
-        		Settings.System.getInt(this.getContentResolver(), "launcher_orientation", 1) == 0 ?
-        				ActivityInfo.SCREEN_ORIENTATION_NOSENSOR : ActivityInfo.SCREEN_ORIENTATION_USER);
-        
+        if(AlmostNexusSettingsHelper.getDesktopRotation(this)){
+	        this.setRequestedOrientation(
+	        		Settings.System.getInt(this.getContentResolver(), "launcher_orientation", 1) == 0 ?
+	        				ActivityInfo.SCREEN_ORIENTATION_NOSENSOR : ActivityInfo.SCREEN_ORIENTATION_USER);
+        }else{
+        	this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
+        }
         if (mRestoring) {
             startLoaders();
         }
@@ -461,23 +476,40 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         
         mIsNewIntent = false;
         //TODO:ADW Change columns after rotating phone
+        //newDrawer=AlmostNexusSettingsHelper.getDrawerNew(Launcher.this);
         int ori = getResources().getConfiguration().orientation;
 		if(ori==Configuration.ORIENTATION_PORTRAIT){
-			mAllAppsGrid.setNumColumns(AlmostNexusSettingsHelper.getColumnsPortrait(Launcher.this));
-			mAllAppsGrid.setNumRows(AlmostNexusSettingsHelper.getRowsPortrait(Launcher.this));
+			if(newDrawer){
+				((AllAppsSlidingView) mAllAppsGrid).setNumColumns(AlmostNexusSettingsHelper.getColumnsPortrait(Launcher.this));
+				((AllAppsSlidingView) mAllAppsGrid).setNumRows(AlmostNexusSettingsHelper.getRowsPortrait(Launcher.this));
+			}else{
+				((AllAppsGridView) mAllAppsGrid).setNumColumns(AlmostNexusSettingsHelper.getColumnsPortrait(Launcher.this));
+			}
 		}else {
-			mAllAppsGrid.setNumColumns(AlmostNexusSettingsHelper.getColumnsLandscape(Launcher.this));
-			mAllAppsGrid.setNumRows(AlmostNexusSettingsHelper.getRowsLandscape(Launcher.this));
+			if(newDrawer){
+				((AllAppsSlidingView) mAllAppsGrid).setNumColumns(AlmostNexusSettingsHelper.getColumnsLandscape(Launcher.this));
+				((AllAppsSlidingView) mAllAppsGrid).setNumRows(AlmostNexusSettingsHelper.getRowsLandscape(Launcher.this));
+			}else{
+				((AllAppsGridView) mAllAppsGrid).setNumColumns(AlmostNexusSettingsHelper.getColumnsLandscape(Launcher.this));
+			}
 		}
 		allowDrawerAnimations=AlmostNexusSettingsHelper.getDrawerAnimated(Launcher.this);
-		mAllAppsGrid.setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
+		newPreviews=AlmostNexusSettingsHelper.getNewPreviews(this);
+		homePreviews=AlmostNexusSettingsHelper.getPreviewsHome(this);
+		fullScreenPreviews=AlmostNexusSettingsHelper.getFullScreenPreviews(this);
+		hideStatusBar=AlmostNexusSettingsHelper.getHideStatusbar(this);
+		fullScreen(hideStatusBar);
+		if(newDrawer){
+			((AllAppsSlidingView) mAllAppsGrid).setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
+		}else{
+			((AllAppsGridView) mAllAppsGrid).setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
+		}
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        dismissPreview(mPreviousView);
-        dismissPreview(mNextView);
+        dismissPreviews();
         closeDrawer(false);
     }
 
@@ -502,7 +534,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        boolean handled = super.onKeyDown(keyCode, event);
+    	boolean handled = super.onKeyDown(keyCode, event);
         if (!handled && acceptFilter() && keyCode != KeyEvent.KEYCODE_ENTER) {
             boolean gotKey = TextKeyListener.getInstance().onKeyDown(mWorkspace, mDefaultKeySsb,
                     keyCode, event);
@@ -580,12 +612,15 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         mWorkspace = (Workspace) dragLayer.findViewById(R.id.workspace);
         final Workspace workspace = mWorkspace;
 
-        //mDrawer = (SlidingDrawer) dragLayer.findViewById(R.id.drawer);
-        //allApps =(ViewGroup) dragLayer.findViewById(R.id.AppsContainer);
-        //final SlidingDrawer drawer = mDrawer;
-
-        mAllAppsGrid = (AllAppsSlidingView) dragLayer.findViewById(R.id.all_apps_view);
-        final AllAppsSlidingView grid = mAllAppsGrid;
+        ViewStub tmp=(ViewStub)dragLayer.findViewById(R.id.stub_drawer);
+        //mAllAppsGrid = (AllAppsSlidingView) dragLayer.findViewById(R.id.all_apps_view);
+        if(newDrawer){
+        	tmp.setLayoutResource(R.layout.new_drawer);
+        }else{
+        	tmp.setLayoutResource(R.layout.old_drawer);
+        }
+        mAllAppsGrid = tmp.inflate();
+        final View grid = mAllAppsGrid;
 
         final DeleteZone deleteZone = (DeleteZone) dragLayer.findViewById(R.id.delete_zone);
 
@@ -603,8 +638,13 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         //drawer.setOnDrawerScrollListener(drawerManager);
 
         //grid.setTextFilterEnabled(false);
-        grid.setDragger(dragLayer);
-        grid.setLauncher(this);
+        if(newDrawer){
+        	((AllAppsSlidingView)grid).setDragger(dragLayer);
+        	((AllAppsSlidingView)grid).setLauncher(this);
+        }else{
+        	((AllAppsGridView)grid).setDragger(dragLayer);
+        	((AllAppsGridView)grid).setLauncher(this);
+        }
 
         workspace.setOnLongClickListener(this);
         workspace.setDragger(dragLayer);
@@ -894,10 +934,13 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             if ((intent.getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) !=
                     Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) {
 
-                if (!mWorkspace.isDefaultScreenShowing()) {
-                    mWorkspace.moveToDefaultScreen();
+                if(!homePreviews){
+	            	if (!mWorkspace.isDefaultScreenShowing()) {
+	                    mWorkspace.moveToDefaultScreen();
+	                }
+                }else{
+                	showPreviews(mHandleView, 0, mWorkspace.mHomeScreens);                	
                 }
-
                 closeDrawer();
 
                 final View v = getWindow().peekDecorView();
@@ -1028,15 +1071,18 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         TextKeyListener.getInstance().release();
 
         //mAllAppsGrid.clearTextFilter();
-        mAllAppsGrid.setAdapter(null);
+        if(newDrawer){
+        	((AllAppsSlidingView)mAllAppsGrid).setAdapter(null);
+        }else{
+        	((AllAppsGridView)mAllAppsGrid).setAdapter(null);
+        }
         sModel.unbind();
         sModel.abortLoaders();
 
         getContentResolver().unregisterContentObserver(mObserver);
         getContentResolver().unregisterContentObserver(mWidgetObserver);
 
-        dismissPreview(mPreviousView);
-        dismissPreview(mNextView);
+        dismissPreviews();
         unregisterReceiver(mApplicationsReceiver);
     }
 
@@ -1444,7 +1490,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+    	dismissPreviews();
+    	if (event.getAction() == KeyEvent.ACTION_DOWN) {
             switch (event.getKeyCode()) {
                 case KeyEvent.KEYCODE_BACK:
                     mWorkspace.dispatchKeyEvent(event);
@@ -1453,8 +1500,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                     } else {
                         closeFolder();
                     }
-                    dismissPreview(mPreviousView);
-                    dismissPreview(mNextView);
                     return true;
                 case KeyEvent.KEYCODE_HOME:
                     return true;
@@ -1648,7 +1693,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             //ADW Removed to not reopen on rotation
             /*final boolean allApps = mSavedState.getBoolean(RUNTIME_STATE_ALL_APPS_FOLDER, false);
             if (allApps) {
-            	showAllApps(true);
+            	showAllApps(false);
             }*/
 
             mSavedState = null;
@@ -1671,8 +1716,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
     private void bindDrawer(Launcher.DesktopBinder binder,
         ApplicationsAdapter drawerAdapter) {
-        mAllAppsGrid.setAdapter(drawerAdapter);
-        binder.startBindingAppWidgetsWhenIdle();
+       
+        if(newDrawer){
+        	((AllAppsSlidingView)mAllAppsGrid).setAdapter(drawerAdapter);
+        }else{
+        	((AllAppsGridView)mAllAppsGrid).setAdapter(drawerAdapter);
+        }
+        
+    	binder.startBindingAppWidgetsWhenIdle();
     }
 
     private void bindAppWidgets(Launcher.DesktopBinder binder,
@@ -1885,6 +1936,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private void showAllApps(boolean animated){
 		if(!allAppsOpen){
 			allAppsOpen=true;
+	        mWorkspace.lock();
+	        mDesktopLocked=true;
+	        mWorkspace.invalidate();			
 			//allApps.setVisibility(View.VISIBLE);
 			mAllAppsGrid.setVisibility(View.VISIBLE);
 			if(animated && allowDrawerAnimations){
@@ -1915,6 +1969,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private void closeAllApps(boolean animated){		
 		if(allAppsOpen){
 			allAppsOpen=false;
+	        mWorkspace.unlock();
+	        mDesktopLocked=false;
+	        mWorkspace.invalidate();			
 			if(animated && allowDrawerAnimations){
 				Animation animation = AnimationUtils.loadAnimation(this,R.anim.apps_fade_out);
 				animation.setAnimationListener(new android.view.animation.Animation.AnimationListener() {
@@ -1935,7 +1992,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 						//allApps.setVisibility(View.GONE);
 						mAllAppsGrid.setVisibility(View.GONE);
 						allAppsAnimating=false;
-			            mAllAppsGrid.setSelection(0);
+			            if(newDrawer){
+			            	((AllAppsSlidingView)mAllAppsGrid).setSelection(0);
+			            }else{
+			            	((AllAppsGridView)mAllAppsGrid).setSelection(0);
+			            }
 			            //mAllAppsGrid.clearTextFilter();	
 					}
 				});
@@ -1947,7 +2008,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	            //mWorkspace.mDrawerBounds.setEmpty();
 			}
 			mHandleIcon.resetTransition();
-    	    mPreviousView.setVisibility(View.VISIBLE);
+			mPreviousView.setVisibility(View.VISIBLE);
     	    mNextView.setVisibility(View.VISIBLE);            
 		}    	
     }
@@ -1955,10 +2016,54 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         Workspace workspace = mWorkspace;
     	return workspace.getWallpaperSection();
     }
+    protected boolean isPreviewing(){
+    	return showingPreviews;
+    }
+    private void zoom(){
+    	//TODO: ADW Maybe for the future... :)
+    	/*mWorkspace.lock();
+    	ScaleAnimation an=new ScaleAnimation(1, .1f, 1, .1f);
+    	an.setDuration(500);
+    	for(int i=0;i<mWorkspace.getChildCount();i++){
+    		mWorkspace.getChildAt(i).startAnimation(an);
+    	}*/
+    }
+    private void fullScreen(boolean enable){
+    	if(enable){
+	    	// go full screen
+	    	WindowManager.LayoutParams attrs = getWindow().getAttributes();
+	    	attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+	    	getWindow().setAttributes(attrs);
+    	}else{
+	    	// go non-full screen
+	    	WindowManager.LayoutParams attrs = getWindow().getAttributes();
+	    	attrs.flags &= (~WindowManager.LayoutParams.FLAG_FULLSCREEN);
+	    	getWindow().setAttributes(attrs);
+    	}
+    }
+    private void hideDesktop(boolean enable){
+    	if(enable){
+	    	mHandleView.setVisibility(View.INVISIBLE);
+	    	mNextView.setVisibility(View.INVISIBLE);
+	    	mPreviousView.setVisibility(View.INVISIBLE);
+    	}else{
+	    	mHandleView.setVisibility(View.VISIBLE);
+	    	mNextView.setVisibility(View.VISIBLE);
+	    	mPreviousView.setVisibility(View.VISIBLE);
+    	}
+    }
+    private void dismissPreviews(){
+    	dismissPreview(mNextView);
+    	dismissPreview(mPreviousView);
+    	dismissPreview(mHandleView);
+    }
     private void dismissPreview(final View v) {
-        final PopupWindow window = (PopupWindow) v.getTag();
+        //final PopupWindow window = (PopupWindow) v.getTag();
+    	final PreviewsPopupWindow window = (PreviewsPopupWindow) v.getTag();
         if (window != null) {
-            window.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            //fullScreen(!hideStatusBar);
+            hideDesktop(false);
+            window.setOnDismissListener(new PreviewsPopupWindow.OnDismissListener() {
                 public void onDismiss() {
                     ViewGroup group = (ViewGroup) v.getTag(R.id.workspace);
                     int count = group.getChildCount();
@@ -1974,31 +2079,51 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                 }
             });
             window.dismiss();
+            showingPreviews=false;
+            mWorkspace.unlock();
+            mWorkspace.invalidate();
+            mDesktopLocked=false;
         }
         v.setTag(null);
     }
 
     private void showPreviousPreview(View anchor) {
         int current = mWorkspace.getCurrentScreen();
-        //if (current <= 0) return;
-
-        showPreviews(anchor, 0, mWorkspace.getChildCount());
+        if(newPreviews){
+	        if (current <= 0) return;
+	        showPreviews(anchor, 0, mWorkspace.getCurrentScreen());
+        }else{
+        	showPreviews(anchor, 0, mWorkspace.getChildCount());
+        }
     }
 
     private void showNextPreview(View anchor) {
         int current = mWorkspace.getCurrentScreen();
-        //if (current >= mWorkspace.getChildCount() - 1) return;
-
-        showPreviews(anchor, 0, mWorkspace.getChildCount());        
+        if(newPreviews){
+	        if (current >= mWorkspace.getChildCount() - 1) return;
+	        showPreviews(anchor, mWorkspace.getCurrentScreen()+1, mWorkspace.getChildCount());
+        }else{
+        	showPreviews(anchor, 0, mWorkspace.getChildCount());
+        }
     }
 
     private void showPreviews(final View anchor, int start, int end) {
-        Resources resources = getResources();
+        //check first if it's already open
+        final PreviewsPopupWindow window = (PreviewsPopupWindow) anchor.getTag();
+        if (window != null) return;
+    	Resources resources = getResources();
 
         Workspace workspace = mWorkspace;
         CellLayout cell = ((CellLayout) workspace.getChildAt(start));
-        
-        float max = workspace.getChildCount();
+        float max;
+        ViewGroup preview;
+        if(newPreviews){
+        	max = 3;
+            preview= new PreviewsHolder(this);
+        }else{
+        	max = workspace.getChildCount();
+            preview = new LinearLayout(this);
+        }
         
         Rect r = new Rect();
         resources.getDrawable(R.drawable.preview_background).getPadding(r);
@@ -2012,8 +2137,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         int height = cell.getHeight();
         int x = cell.getLeftPadding();
         int y = cell.getTopPadding();
-        width -= (x + cell.getRightPadding());
-        height -= (y + cell.getBottomPadding());
+        //width -= (x + cell.getRightPadding());
+        //height -= (y + cell.getBottomPadding());
 
         float scale = w / width;
 
@@ -2022,7 +2147,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         final float sWidth = width * scale;
         float sHeight = height * scale;
 
-        LinearLayout preview = new LinearLayout(this);
 
         PreviewTouchHandler handler = new PreviewTouchHandler(anchor);
         ArrayList<Bitmap> bitmaps = new ArrayList<Bitmap>(count);
@@ -2052,17 +2176,27 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
             bitmaps.add(bitmap);            
         }
-        
-        PopupWindow p = new PopupWindow(this);
+       
+        PreviewsPopupWindow p = new PreviewsPopupWindow(this);
         p.setContentView(preview);
-        p.setWidth((int) (sWidth * count + extraW));
-        p.setHeight((int) (sHeight + extraH));
-        p.setAnimationStyle(R.style.AnimationPreview);
+        if(newPreviews){
+	        p.setWidth(width);
+	        p.setHeight(height);
+	        p.setAnimationStyle(R.style.AnimationPreview);
+        }else{
+        	p.setWidth((int) (sWidth * count + extraW));
+        	p.setHeight((int) (sHeight + extraH));
+            p.setAnimationStyle(R.style.AnimationPreview);
+        }
         p.setOutsideTouchable(true);
         p.setFocusable(true);
         p.setBackgroundDrawable(new ColorDrawable(0));
-        p.showAsDropDown(anchor, 0, 0);
-        p.setOnDismissListener(new PopupWindow.OnDismissListener() {
+        if(newPreviews){
+        	p.showAtLocation(anchor, Gravity.BOTTOM, 0, 0);
+        }else{
+        	p.showAsDropDown(anchor, 0, 0);
+        }
+        p.setOnDismissListener(new PreviewsPopupWindow.OnDismissListener() {
             public void onDismiss() {
                 dismissPreview(anchor);
             }
@@ -2070,7 +2204,15 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         anchor.setTag(p);
         anchor.setTag(R.id.workspace, preview);
-        anchor.setTag(R.id.icon, bitmaps);        
+        anchor.setTag(R.id.icon, bitmaps);
+        if(fullScreenPreviews){
+	        mWorkspace.lock();
+	        mDesktopLocked=true;
+	        showingPreviews=true;
+	        mWorkspace.invalidate();
+	        hideDesktop(true);
+	        //fullScreen(true);
+        }
     }
 
     class PreviewTouchHandler implements View.OnClickListener, Runnable, View.OnFocusChangeListener {
@@ -2144,7 +2286,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         return mWorkspace;
     }
 
-    AllAppsSlidingView getApplicationsGrid() {
+    View getApplicationsGrid() {
         return mAllAppsGrid;
     }
 

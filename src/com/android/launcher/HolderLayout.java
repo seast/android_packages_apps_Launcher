@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -85,6 +86,15 @@ public class HolderLayout extends ViewGroup {
 		// TODO Auto-generated method stub
 		//super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
 	}
-    
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+    	//Log.d("HolderLayout","INTERCEPT");
+		return true;
+    }
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+    	//Log.d("HolderLayout","TOUCH");
+		return true;
+    }
 
 }

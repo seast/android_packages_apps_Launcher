@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 	<PreferenceCategory android:title="Desktop Settings">
+		<CheckBoxPreference android:title="Orientation sensor"
+			android:defaultValue="true"
+			android:summary="Rotate desktop on sensor rotation"
+			android:key="desktopRotation" />
+		<CheckBoxPreference android:title="Hide StatusBar"
+			android:defaultValue="true"
+			android:summary="Hides your statusbar"
+			android:key="hideStatusbar" />
 		<com.android.launcher.dlgSeekBarPreference
 			android:title="Desktop Screens" android:summary="Select the number of desktop screens to use"
 			android:dialogMessage="Select the number of desktop screens to use"
@@ -11,6 +19,10 @@
 			android:key="defaultScreen" android:defaultValue="2" android:max="4" />
 	</PreferenceCategory>
 	<PreferenceCategory android:title="Drawer Settings">
+		<CheckBoxPreference android:title="New Drawer"
+			android:defaultValue="true"
+			android:summary="Use the Samsung Galaxy S implementation"
+			android:key="drawerNew" />
 		<CheckBoxPreference android:title="Animated Drawer"
 			android:defaultValue="true"
 			android:summary="Turns whether App Drawer should display animations"
@@ -43,5 +55,24 @@
 			android:dialogMessage="Select the number of drawer rows to use on landscape layout"
 			android:key="drawerRowsLandscape" android:defaultValue="3"
 			android:max="4" />
+	</PreferenceCategory>
+	<PreferenceCategory android:title="Previews Settings">
+		<CheckBoxPreference android:title="Home key binding"
+			android:defaultValue="true"
+			android:summary="Use the physical Home key to bring out desktop previews"
+			android:key="previewsHome" />
+		<CheckBoxPreference android:title="Sense previews"
+			android:defaultValue="true"
+			android:summary="Use the new sense-like implementation"
+			android:key="previewsNew" />
+		<CheckBoxPreference android:title="Clean Screen Mode"
+			android:defaultValue="true"
+			android:summary="Hide home icons/widgets when opening previews"
+			android:key="previewsFullScreen" />
+	</PreferenceCategory>
+	<PreferenceCategory android:title="Build Information">
+		<Preference
+			android:title="ADW Version"
+			android:summary="@string/adw_version"/>
 	</PreferenceCategory>
 </PreferenceScreen>

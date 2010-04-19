@@ -518,8 +518,8 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         paint.setDither(false);
         paint.setColorFilter(cf);
         
-        int width = cell.getWidth();
-        int height = cell.getHeight();
+        int width = (cell.getWidth()>0)?cell.getWidth():320;
+        int height = (cell.getHeight()>0)?cell.getHeight():400;
     	
     	float percent=(float)mCurrentScreen/(float)(mHomeScreens-1);
     	float x=(float)(mWallpaperWidth/2)*percent;
@@ -578,7 +578,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         // clip to padding, layout animation, animation listener, disappearing
         // children, etc. The following implementation attempts to fast-track
         // the drawing dispatch by drawing only what we know needs to be drawn.
-
+        if(mLauncher.isPreviewing()) return;
         boolean fastDraw = mTouchState != TOUCH_STATE_SCROLLING && mNextScreen == INVALID_SCREEN;
         // If we are not scrolling or flinging, draw only the current screen
         if (fastDraw) {

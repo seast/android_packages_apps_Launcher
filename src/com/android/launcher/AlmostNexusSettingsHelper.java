@@ -46,4 +46,34 @@ public final class AlmostNexusSettingsHelper {
 		boolean fast = sp.getBoolean("drawerFast", true);
 		return fast;
 	}
+	public static boolean getDrawerNew(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("drawerNew", true);
+		return newD;
+	}
+	public static boolean getDesktopRotation(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("desktopRotation", true);
+		return newD;
+	}
+	public static boolean getHideStatusbar(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("hideStatusbar", true);
+		return newD;
+	}
+	public static boolean getNewPreviews(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("previewsNew", true);
+		return newD;
+	}
+	public static boolean getFullScreenPreviews(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("previewsFullScreen", true);
+		return newD;
+	}
+	public static boolean getPreviewsHome(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("previewsHome", true);
+		return newD;
+	}
 }

@@ -24,7 +24,7 @@
     </style>
 
     <style name="AnimationPreview">
-        <item name="android:windowEnterAnimation">@anim/popup</item>
+        <item name="android:windowEnterAnimation">@anim/previews_fade_in</item>
         <item name="android:windowExitAnimation">@anim/fade_out_fast</item>
     </style>
 

@@ -37,24 +37,14 @@
         <include android:id="@+id/cell7" layout="@layout/workspace_screen" />
 
     </com.android.launcher.Workspace>
-	<com.android.launcher.AllAppsSlidingView
-        android:id="@+id/all_apps_view"
-        launcher:texture="@drawable/pattern_carbon_fiber_dark"
-	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent"
-	    android:scrollbarStyle="insideInset"
-	    android:drawSelectorOnTop="false"
-	    android:listSelector="@drawable/grid_selector"
-	    android:nextFocusLeft="@id/all_apps_view"
-	    android:nextFocusUp="@id/all_apps_view"
-	    android:nextFocusDown="@+id/all_apps"
-	    android:nextFocusRight="@id/all_apps_view"
-	    android:visibility="gone"
-	    android:paddingBottom="50dip"
-	    android:verticalSpacing="10dip"
-	    android:numColumns="4"/>
+	<ViewStub
+		android:id="@+id/stub_drawer"
+		android:inflatedId="@+id/all_apps_view"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		/>    
 	<com.android.launcher.HandleView
-	    android:id="@id/all_apps"
+	    android:id="@+id/all_apps"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
 	    android:nextFocusUp="@id/all_apps_view"

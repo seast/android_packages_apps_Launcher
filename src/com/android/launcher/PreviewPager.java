@@ -43,7 +43,7 @@ public class PreviewPager extends ViewGroup {
 			final ImageView img=(ImageView) getChildAt(i);
 			TransitionDrawable tmp=(TransitionDrawable)img.getDrawable();
 			if(i==mCurrentItem){
-				tmp.startTransition(200);
+				tmp.startTransition(50);
 			}else{
 				tmp.resetTransition();
 			}
