@@ -30,6 +30,8 @@ import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.view.animation.TranslateAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
@@ -63,7 +65,9 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
     private boolean shouldUninstall=false;
     private Handler mHandler = new Handler();
 	private boolean mUninstallTarget=false;
+	private int mCustomPadding=60;
 	String UninstallPkg = null;
+	private boolean mTrickyLocation=false;
     public DeleteZone(Context context) {
         super(context);
     }
@@ -158,13 +162,36 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
 
     public void onDragStart(View v, DragSource source, Object info, int dragAction) {
         final ItemInfo item = (ItemInfo) info;
+        mCustomPadding=mLauncher.getTrashPadding();
         if (item != null) {
-            mTrashMode = true;
+        	mTrashMode = true;
             createAnimations();
             final int[] location = mLocation;
             getLocationOnScreen(location);
-            mRegion.set(location[0], location[1], location[0] + mRight - mLeft,
-                    location[1] + mBottom - mTop);
+            if(mLauncher.isDockBarOpen()){
+            	MarginLayoutParams tmp=(MarginLayoutParams) getLayoutParams();
+            	tmp.bottomMargin+=mCustomPadding;
+            	setLayoutParams(tmp);
+                //TODO: ADW we need to hack the real location the first time we move the trash can
+                if(!mTrickyLocation){
+                    mRegion.set(location[0], location[1]-mCustomPadding, location[0] + mRight - mLeft,
+                            location[1] + mBottom - mTop-mCustomPadding);
+                    mTrickyLocation=true;
+                }else{
+                    mRegion.set(location[0], location[1], location[0] + mRight - mLeft,
+                            location[1] + mBottom - mTop);
+                }
+            }else{
+                //TODO: ADW we need to hack the real location the first time we move the trash can
+                if(mTrickyLocation){
+                    mRegion.set(location[0], location[1]+mCustomPadding, location[0] + mRight - mLeft,
+                            location[1] + mBottom - mTop+mCustomPadding);
+                    mTrickyLocation=false;
+                }else{
+                    mRegion.set(location[0], location[1], location[0] + mRight - mLeft,
+                            location[1] + mBottom - mTop);
+                }            	
+            }
             mDragLayer.setDeleteRegion(mRegion);
             mTransition.resetTransition();
             startAnimation(mInAnimation);
@@ -197,6 +224,14 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
             mDragLayer.setDeleteRegion(null);
             startAnimation(mOutAnimation);
             mHandle.startAnimation(mHandleInAnimation);
+            if(mLauncher.isDockBarOpen()){
+            	MarginLayoutParams tmp=(MarginLayoutParams) getLayoutParams();
+            	//Log.d("DELETEZONE","We already have a bottom margin of:"+tmp.bottomMargin);
+            	tmp.bottomMargin-=mCustomPadding;
+            	//Log.d("DELETEZONE","We changed bottom margin to:"+tmp.bottomMargin);
+            	setLayoutParams(tmp);
+            	//set(getLeft(), getTop(), getRight(), getBottom()+60);
+            }            
             setVisibility(GONE);
         }
         if(shouldUninstall && UninstallPkg!=null){

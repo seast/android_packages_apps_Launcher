@@ -2046,7 +2046,9 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         app = new ApplicationInfo(app);
 
         mDragger.startDrag(v, this, app, DragController.DRAG_ACTION_COPY);
-        mLauncher.closeAllApplications();
+        if(!mLauncher.isDockBarOpen()){
+        	mLauncher.closeAllApplications();
+        }
 
         return true;
 	}

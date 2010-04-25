@@ -101,6 +101,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.DataInputStream;
 
+import com.android.launcher.SliderView.OnTriggerListener;
+
 /**
  * Default launcher application.
  */
@@ -205,7 +207,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     //private SlidingDrawer mDrawer;
     //private ViewGroup allApps;
     private TransitionDrawable mHandleIcon;
-    private HandleView mHandleView;
+    //private HandleView mHandleView;
+    private SliderView mHandleView;
     //private AllAppsGridView mAllAppsGrid;
     //private AllAppsSlidingView mAllAppsGrid;
     private View mAllAppsGrid;
@@ -228,6 +231,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
     private ImageView mPreviousView;
     private ImageView mNextView;
+    private MiniLauncher mMiniLauncher;
     private boolean allAppsOpen=false;
     private boolean allAppsAnimating=false;
     private boolean allowDrawerAnimations=true;
@@ -425,10 +429,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                 case REQUEST_CREATE_APPWIDGET:
                     completeAddAppWidget(data, mAddItemCellInfo, !mDesktopLocked);
                     break;
-                //ADW: update custom settings
-                case REQUEST_UPDATE_ALMOSTNEXUS:
-                	updateAlmostNexusSettings();
-                	break;
             }
         } else if ((requestCode == REQUEST_PICK_APPWIDGET ||
                 requestCode == REQUEST_CREATE_APPWIDGET) && resultCode == RESULT_CANCELED &&
@@ -624,8 +624,23 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         final DeleteZone deleteZone = (DeleteZone) dragLayer.findViewById(R.id.delete_zone);
 
-        mHandleView = (HandleView) dragLayer.findViewById(R.id.all_apps);
+        //mHandleView = (HandleView) dragLayer.findViewById(R.id.all_apps);
+        mHandleView = (SliderView) dragLayer.findViewById(R.id.all_apps);
         mHandleView.setLauncher(this);
+        mHandleView.setOnTriggerListener(new OnTriggerListener() {
+			//@Override
+			public void onTrigger(View v, int whichHandle) {
+				// TODO Auto-generated method stub
+				//if(whichHandle==OnTriggerListener.UP){
+					DockBar dockbar=(DockBar) findViewById(R.id.dockbar);
+					dockbar.open();
+				//}				
+			}
+			//@Override
+			public void onGrabbedStateChange(View v, boolean grabbedState) {
+				// TODO Auto-generated method stub
+			}
+		});
         //BY ADW
         mHandleView.setOnClickListener(this);
         mHandleIcon = (TransitionDrawable) mHandleView.getDrawable();
@@ -657,7 +672,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         dragLayer.setIgnoredDropTarget(grid);
         dragLayer.setDragScoller(workspace);
-        dragLayer.setDragListener(deleteZone);
+        //dragLayer.setDragListener(deleteZone);
+        dragLayer.addDragListener(deleteZone);
+        
+        mMiniLauncher = (MiniLauncher) dragLayer.findViewById(R.id.mini_content);
+        mMiniLauncher.setLauncher(this);
+        mMiniLauncher.setOnLongClickListener(this);
+        //miniToolbar.setDragger(dragLayer);
+        dragLayer.addDragListener(mMiniLauncher);
 
 	//ADDED BY ADW -2010-03-11
 	    
@@ -719,7 +741,57 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         return favorite;
     }
+    /**
+     * Creates a view representing a shortcut inflated from the specified resource.
+     *
+     * @param layoutResId The id of the XML layout used to create the shortcut.
+     * @param parent The group the shortcut belongs to.
+     * @param info The data structure describing the shortcut.
+     *
+     * @return A View inflated from layoutResId.
+     */
+    View createSmallShortcut(int layoutResId, ViewGroup parent, ApplicationInfo info) {
+        ImageView favorite = (ImageView) mInflater.inflate(layoutResId, parent, false);
 
+        if (!info.filtered) {
+            info.icon = Utilities.createIconThumbnail(info.icon, this);
+            info.filtered = true;
+        }
+
+        favorite.setImageDrawable(info.icon);
+        favorite.setTag(info);
+        favorite.setOnClickListener(this);
+        return favorite;
+    }   
+    View createSmallFolder(int layoutResId, ViewGroup parent, UserFolderInfo info) {
+        ImageView favorite = (ImageView) mInflater.inflate(layoutResId, parent, false);
+
+        final Resources resources = getResources();
+        Drawable d = resources.getDrawable(R.drawable.ic_launcher_folder);
+        d = Utilities.createIconThumbnail(d, this);
+        favorite.setImageDrawable(d);
+        favorite.setTag(info);
+        favorite.setOnClickListener(this);
+        return favorite;
+    }
+    View createSmallLiveFolder(int layoutResId, ViewGroup parent, LiveFolderInfo info) {
+        ImageView favorite = (ImageView) mInflater.inflate(layoutResId, parent, false);
+
+        //LiveFolderIcon icon = (LiveFolderIcon)
+        //LayoutInflater.from(this).inflate(layoutResId, parent, false);
+
+        final Resources resources = getResources();
+        Drawable d = info.icon;
+        if (d == null) {
+        	d = Utilities.createIconThumbnail(
+            resources.getDrawable(R.drawable.ic_launcher_folder), this);
+        	info.filtered = true;
+        }
+        favorite.setImageDrawable(d);
+        favorite.setTag(info);
+        favorite.setOnClickListener(this);
+        return favorite;
+    }    
     /**
      * Add an application shortcut to the workspace.
      *
@@ -937,6 +1009,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                 if(!homePreviews){
 	            	if (!mWorkspace.isDefaultScreenShowing()) {
 	                    mWorkspace.moveToDefaultScreen();
+	                }else{
+	                	showPreviews(mHandleView, 0, mWorkspace.mHomeScreens);
 	                }
                 }else{
                 	showPreviews(mHandleView, 0, mWorkspace.mHomeScreens);                	
@@ -1589,7 +1663,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         for (int i = 0; i < count; i++) {
             ((ViewGroup) workspace.getChildAt(i)).removeAllViewsInLayout();
         }
-
+        //ADW remove the dockbar items too!!!
+        mMiniLauncher.removeAllViewsInLayout();
         if (DEBUG_USER_INTERFACE) {
             android.widget.Button finishButton = new android.widget.Button(this);
             finishButton.setText("Finish");
@@ -1616,48 +1691,57 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         final Workspace workspace = mWorkspace;
         final boolean desktopLocked = mDesktopLocked;
-
+        final MiniLauncher dockBar=(MiniLauncher) mDragLayer.findViewById(R.id.mini_content);
         final int end = Math.min(start + DesktopBinder.ITEMS_COUNT, count);
         int i = start;
 
         for ( ; i < end; i++) {
             final ItemInfo item = shortcuts.get(i);
-            switch (item.itemType) {
-                case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
-                case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
-                    final View shortcut = createShortcut((ApplicationInfo) item);
-                    workspace.addInScreen(shortcut, item.screen, item.cellX, item.cellY, 1, 1,
-                            !desktopLocked);
-                    break;
-                case LauncherSettings.Favorites.ITEM_TYPE_USER_FOLDER:
-                    final FolderIcon newFolder = FolderIcon.fromXml(R.layout.folder_icon, this,
-                            (ViewGroup) workspace.getChildAt(workspace.getCurrentScreen()),
-                            (UserFolderInfo) item);
-                    workspace.addInScreen(newFolder, item.screen, item.cellX, item.cellY, 1, 1,
-                            !desktopLocked);
-                    break;
-                case LauncherSettings.Favorites.ITEM_TYPE_LIVE_FOLDER:
-                    final FolderIcon newLiveFolder = LiveFolderIcon.fromXml(
-                            R.layout.live_folder_icon, this,
-                            (ViewGroup) workspace.getChildAt(workspace.getCurrentScreen()),
-                            (LiveFolderInfo) item);
-                    workspace.addInScreen(newLiveFolder, item.screen, item.cellX, item.cellY, 1, 1,
-                            !desktopLocked);
-                    break;
-                case LauncherSettings.Favorites.ITEM_TYPE_WIDGET_SEARCH:
-                    final int screen = workspace.getCurrentScreen();
-                    final View view = mInflater.inflate(R.layout.widget_search,
-                            (ViewGroup) workspace.getChildAt(screen), false);
-
-                    Search search = (Search) view.findViewById(R.id.widget_search);
-                    search.setLauncher(this);
-
-                    final Widget widget = (Widget) item;
-                    view.setTag(widget);
-
-                    workspace.addWidget(view, widget, !desktopLocked);
-                    break;
-            }
+            switch ((int)item.container) {
+			case LauncherSettings.Favorites.CONTAINER_DOCKBAR:
+				//d("BIND ITEMS","THIS IS A DOCKBAR ITEM!!!");
+				dockBar.addItemInDockBar(item);
+				break;
+			default:
+				//d("BIND ITEMS","THIS IS A DESKTOP ITEM!!!");
+	            switch (item.itemType) {
+	                case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
+	                case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
+	                    final View shortcut = createShortcut((ApplicationInfo) item);
+        				workspace.addInScreen(shortcut, item.screen, item.cellX, item.cellY, 1, 1,
+	                            !desktopLocked);
+	                    break;
+	                case LauncherSettings.Favorites.ITEM_TYPE_USER_FOLDER:
+	                    final FolderIcon newFolder = FolderIcon.fromXml(R.layout.folder_icon, this,
+	                            (ViewGroup) workspace.getChildAt(workspace.getCurrentScreen()),
+	                            (UserFolderInfo) item);
+	                    workspace.addInScreen(newFolder, item.screen, item.cellX, item.cellY, 1, 1,
+	                            !desktopLocked);
+	                    break;
+	                case LauncherSettings.Favorites.ITEM_TYPE_LIVE_FOLDER:
+	                    final FolderIcon newLiveFolder = LiveFolderIcon.fromXml(
+	                            R.layout.live_folder_icon, this,
+	                            (ViewGroup) workspace.getChildAt(workspace.getCurrentScreen()),
+	                            (LiveFolderInfo) item);
+	                    workspace.addInScreen(newLiveFolder, item.screen, item.cellX, item.cellY, 1, 1,
+	                            !desktopLocked);
+	                    break;
+	                case LauncherSettings.Favorites.ITEM_TYPE_WIDGET_SEARCH:
+	                    final int screen = workspace.getCurrentScreen();
+	                    final View view = mInflater.inflate(R.layout.widget_search,
+	                            (ViewGroup) workspace.getChildAt(screen), false);
+	
+	                    Search search = (Search) view.findViewById(R.id.widget_search);
+	                    search.setLauncher(this);
+	
+	                    final Widget widget = (Widget) item;
+	                    view.setTag(widget);
+	
+	                    workspace.addWidget(view, widget, !desktopLocked);
+	                    break;
+	            }
+				break;
+			}
         }
 
         workspace.requestLayout();
@@ -1803,7 +1887,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
 
     private void handleFolderClick(FolderInfo folderInfo) {
-        if (!folderInfo.opened) {
+        //TODO:ADW check whether folder is in desktop or dockbar
+    	if (!folderInfo.opened) {
             // Close any open folder
             closeFolder();
             // Open the requested folder
@@ -1863,8 +1948,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         openFolder.bind(folderInfo);
         folderInfo.opened = true;
-
-        mWorkspace.addInScreen(openFolder, folderInfo.screen, 0, 0, 4, 4);
+        if(folderInfo.container==LauncherSettings.Favorites.CONTAINER_DOCKBAR){
+        	mWorkspace.addInScreen(openFolder, mWorkspace.getCurrentScreen(), 0, 0, 4, 4);
+        }else{
+        	mWorkspace.addInScreen(openFolder, folderInfo.screen, 0, 0, 4, 4);
+        }
         openFolder.onOpen();
     }
 
@@ -1879,8 +1967,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
 
     public boolean onLongClick(View v) {
-	// BY ADW //        
-	switch (v.getId()) {
+	// BY ADW //
+    	switch (v.getId()) {
             case R.id.btn_scroll_left:
 		mWorkspace.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
 		    HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
@@ -2251,8 +2339,17 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     	Intent launchPreferencesIntent = new Intent().setClass(this, MyLauncherSettings.class);
         startActivityForResult(launchPreferencesIntent,MENU_ALMOSTNEXUS);    	   	
     }
-    private void updateAlmostNexusSettings(){
-    	//TODO: ADW-Here is where i update mAllAppsGrid columns/background and mWorkspace screens
+    protected boolean isDockBarOpen(){
+        final DockBar dockbar=(DockBar) mDragLayer.findViewById(R.id.dockbar);
+    	return dockbar.isOpen();
+    }
+    protected int getTrashPadding(){
+        final DockBar dockbar=(DockBar) mDragLayer.findViewById(R.id.dockbar);
+    	if(!dockbar.isOpen()){
+    		return 0;
+    	}else{
+    		return dockbar.getSize();
+    	}
     }
 //EOF ADW
     static LauncherModel getModel() {

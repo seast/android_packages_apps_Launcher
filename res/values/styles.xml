@@ -42,7 +42,17 @@
         <item name="android:paddingLeft">5dip</item>
         <item name="android:paddingRight">5dip</item>
     </style>
-
+    <style name="DockBarIcon">
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
+        <item name="android:scaleType">center</item>
+        <item name="android:background">@drawable/shortcut_selector</item>
+        <item name="android:paddingLeft">5dip</item>
+        <item name="android:paddingRight">5dip</item>
+        <item name="android:drawablePadding">3dip</item>
+    </style>
+    
     <style name="WorkspaceIcon.Portrait">
         <item name="android:drawablePadding">5dip</item>
         <item name="android:paddingTop">4dip</item>

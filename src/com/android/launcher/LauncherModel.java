@@ -839,6 +839,7 @@ public class LauncherModel {
 
                                 switch (container) {
                                 case LauncherSettings.Favorites.CONTAINER_DESKTOP:
+                                case LauncherSettings.Favorites.CONTAINER_DOCKBAR:
                                     desktopItems.add(info);
                                     break;
                                 default:
@@ -866,6 +867,7 @@ public class LauncherModel {
 
                             switch (container) {
                                 case LauncherSettings.Favorites.CONTAINER_DESKTOP:
+                                case LauncherSettings.Favorites.CONTAINER_DOCKBAR:
                                     desktopItems.add(folderInfo);
                                     break;
                             }
@@ -901,6 +903,7 @@ public class LauncherModel {
 
                             switch (container) {
                                 case LauncherSettings.Favorites.CONTAINER_DESKTOP:
+                                case LauncherSettings.Favorites.CONTAINER_DOCKBAR:
                                     desktopItems.add(liveFolderInfo);
                                     break;
                             }
