@@ -64,7 +64,7 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
 		mNumCells=a.getInt(R.styleable.MiniLauncher_cells, mNumCells);
 		mCellWidth=a.getDimensionPixelSize(R.styleable.MiniLauncher_cellWidth, mCellWidth);
 		mCellHeight=a.getDimensionPixelSize(R.styleable.MiniLauncher_cellHeight, mCellHeight);
-		Log.d("MINILAUNCHER","We have XCELLS"+mNumCells);
+		//Log.d("MINILAUNCHER","We have XCELLS"+mNumCells);
     }
 
     public boolean acceptDrop(DragSource source, int x, int y, int xOffset, int yOffset,

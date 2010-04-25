@@ -12,6 +12,7 @@ import android.os.Vibrator;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -113,7 +114,6 @@ public class SliderView extends ImageView {
             case MotionEvent.ACTION_DOWN: {
                 mTracking = true;
                 mTriggered = false;
-                vibrate(VIBRATE_SHORT);
                 setGrabbedState(true);
                 mPreviousX=(int) x;
                 mPreviousY=(int) y;
@@ -237,6 +237,8 @@ public class SliderView extends ImageView {
     void showTarget() {
     	if(mTargets==null){
     		createTargets();
+    	}else{
+    		updateLimits();
     	}
         AlphaAnimation alphaAnim = new AlphaAnimation(0.0f, 1.0f);
         alphaAnim.setDuration(ANIM_TARGET_TIME);
@@ -251,13 +253,13 @@ public class SliderView extends ImageView {
         return mOrientation == HORIZONTAL;
     }
     
-    private synchronized void vibrate(long duration) {
+    /*private synchronized void vibrate(long duration) {
         if (mVibrator == null) {
             mVibrator = (android.os.Vibrator)
                     getContext().getSystemService(Context.VIBRATOR_SERVICE);
         }
         mVibrator.vibrate(duration);
-    }
+    }*/
     /**
      * Sets the current grabbed state, and dispatches a grabbed state change
      * event to our listener.
@@ -279,7 +281,8 @@ public class SliderView extends ImageView {
      * @param whichHandle the handle that triggered the event.
      */
     private void dispatchTriggerEvent(int whichHandle) {
-        vibrate(VIBRATE_LONG);
+    	performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
+    		    HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
         if (mOnTriggerListener != null) {
             mOnTriggerListener.onTrigger(this, whichHandle);
         }
@@ -350,9 +353,9 @@ public class SliderView extends ImageView {
 	    	mTargets.add(v1);
 	    	lp=new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
 	    	lp.gravity=horizontalGravity;
-	    	lp.topMargin=getTop()-mTargetDistance-v1.getBackground().getIntrinsicHeight();
+	    	lp.topMargin=getTop()-mTargetDistance-frameAnimation.getIntrinsicHeight();
 	    	p.addView(v1, lp);
-	    	mLimitRect.top=getTop()-mTargetDistance-v1.getBackground().getIntrinsicHeight()-securityMargin;
+	    	mLimitRect.top=getTop()-mTargetDistance-frameAnimation.getIntrinsicHeight()-securityMargin;
     	}
 		if((mSlideDirections&OnTriggerListener.DOWN)==OnTriggerListener.DOWN){
 	    	ImageView v2 =new ImageView(getContext());
@@ -394,6 +397,33 @@ public class SliderView extends ImageView {
 	    	mLimitRect.right=getRight()+mTargetDistance+frameAnimation.getIntrinsicWidth()+securityMargin;
 		}
 		post(starter);
+    }
+    private void updateLimits(){
+    	for(ImageView v:mTargets){
+    		AnimationDrawable frameAnimation = (AnimationDrawable) v.getBackground();
+    		FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams) v.getLayoutParams();
+    		switch ((Integer)v.getTag()) {
+			case OnTriggerListener.UP:
+				lp.topMargin=getTop()-mTargetDistance-frameAnimation.getIntrinsicHeight();
+				mLimitRect.top=getTop()-mTargetDistance-frameAnimation.getIntrinsicHeight()-securityMargin;
+				break;
+			case OnTriggerListener.DOWN:
+				lp.topMargin=getBottom()+mTargetDistance;
+				mLimitRect.bottom=getBottom()+mTargetDistance+frameAnimation.getIntrinsicHeight()+securityMargin;
+				break;
+			case OnTriggerListener.LEFT:
+				lp.leftMargin=getLeft()-mTargetDistance-frameAnimation.getIntrinsicWidth();
+				mLimitRect.left=getLeft()-mTargetDistance-frameAnimation.getIntrinsicWidth()-securityMargin;
+				break;
+			case OnTriggerListener.RIGHT:
+		    	lp.leftMargin=getRight()+mTargetDistance;
+				mLimitRect.right=getRight()+mTargetDistance+frameAnimation.getIntrinsicWidth()+securityMargin;
+				break;
+			default:
+				break;
+			}
+    		v.setLayoutParams(lp);
+    	}
     }
     //TODO:ADW dirty hack to force the animation start
     //found here:http://code.google.com/p/android/issues/detail?id=1818
