@@ -103,11 +103,11 @@
 			android:layout_gravity="center"/>
   		<com.android.launcher.MiniLauncher
 			android:id="@+id/mini_content"
-			android:background="#DD000000"
+			android:background="@drawable/dockbar_bg"
 			android:layout_width="fill_parent"
 			android:layout_height="fill_parent"
-		    launcher:cellWidth="45dip"
-		    launcher:cellHeight="64dip"
+		    launcher:cellWidth="50dip"
+		    launcher:cellHeight="60dip"
 		    launcher:cells="5"
 		    launcher:orientation="vertical"		
 			/>

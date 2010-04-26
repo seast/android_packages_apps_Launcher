@@ -24,7 +24,9 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.TransitionDrawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -44,7 +46,7 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
     private int mNumCells=4;
     private int mCellWidth=20;
     private int mCellHeight=20;
-
+    private TransitionDrawable mBackground;
     public MiniLauncher(Context context) {
         super(context);
     }
@@ -122,7 +124,8 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
 
     public void onDragEnter(DragSource source, int x, int y, int xOffset, int yOffset,
             Object dragInfo) {
-    	this.setBackgroundColor(0xDD333333);
+    	//this.setBackgroundColor(0xDD333333);
+    	mBackground.startTransition(200);
     }
 
     public void onDragOver(DragSource source, int x, int y, int xOffset, int yOffset,
@@ -131,7 +134,8 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
 
     public void onDragExit(DragSource source, int x, int y, int xOffset, int yOffset,
             Object dragInfo) {
-    	this.setBackgroundColor(0xDD000000);
+    	//this.setBackgroundColor(0xDD000000);
+    	mBackground.resetTransition();
     }
 
     public void onDragStart(View v, DragSource source, Object info, int dragAction) {
@@ -174,7 +178,6 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
         //TODO:ADW Gonna hack
         view.setLongClickable(true);
         view.setOnLongClickListener(this);
-        
         //mTargetCell = estimateDropCell(x, y, 1, 1, view, this, mTargetCell);
         /*int[] targetCell;
         if(mOrientation==HORIZONTAL){
@@ -209,12 +212,39 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
 				//mLauncher.saveBottomApp(appNumber, "", "", "");
 				//TODO: ADW Delete the item and reposition the remaining ones
 				//FIRS DELETE deleteView
-				LayoutParams lp = (LayoutParams) mDeleteView.getLayoutParams();
+				
+				/*LayoutParams lp = (LayoutParams) mDeleteView.getLayoutParams();
 				ItemInfo it=(ItemInfo) mDeleteView.getTag();
 				LauncherModel model=Launcher.getModel();
 				model.removeDesktopItem(it);
 				LauncherModel.deleteItemFromDatabase(mLauncher, it);
-				removeView(mDeleteView);
+				removeView(mDeleteView);*/
+				
+				ItemInfo item=(ItemInfo) mDeleteView.getTag();
+		        final LauncherModel model = Launcher.getModel();
+	            if (item instanceof LauncherAppWidgetInfo) {
+	                model.removeDesktopAppWidget((LauncherAppWidgetInfo) item);
+	            } else {
+	                model.removeDesktopItem(item);
+	            }
+		        if (item instanceof UserFolderInfo) {
+		            final UserFolderInfo userFolderInfo = (UserFolderInfo)item;
+		            LauncherModel.deleteUserFolderContentsFromDatabase(mLauncher, userFolderInfo);
+		            model.removeUserFolder(userFolderInfo);
+		        } else if (item instanceof LauncherAppWidgetInfo) {
+		            final LauncherAppWidgetInfo launcherAppWidgetInfo = (LauncherAppWidgetInfo) item;
+		            final LauncherAppWidgetHost appWidgetHost = mLauncher.getAppWidgetHost();
+		            if (appWidgetHost != null) {
+		                appWidgetHost.deleteAppWidgetId(launcherAppWidgetInfo.appWidgetId);
+		            }
+		        }
+		        LauncherModel.deleteItemFromDatabase(mLauncher, item);
+		        detachViewFromParent(mDeleteView);
+		        removeView(mDeleteView);
+				
+				
+				
+				
 				/*final int count=getChildCount();
 				ArrayList<View> remainingItems = new ArrayList<View>();
 				for(int i=count-1;i>=0;i--){
@@ -299,6 +329,8 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
 	protected void onFinishInflate() {
 		// TODO Auto-generated method stub
 		super.onFinishInflate();
+		mBackground=(TransitionDrawable) getBackground();
+		mBackground.setCrossFadeEnabled(true);
 	}
 
 	@Override
@@ -328,14 +360,40 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		// TODO Auto-generated method stub
-        int count = getChildCount();
+		int realIconSize=0;
+		int cellGap=0;
+		int prevLeft=0;
+		int prevTop=0;
+		if(mOrientation==HORIZONTAL){
+			realIconSize=getMeasuredWidth()/mNumCells;
+			if(realIconSize>mCellWidth){
+				realIconSize=mCellWidth;
+			}else{
+				cellGap=realIconSize-mCellWidth;
+			}
+			prevLeft=cellGap;
+		}else{
+			realIconSize=getMeasuredHeight()/mNumCells;
+			if(realIconSize<mCellHeight){
+				realIconSize=mCellHeight;
+			}else{
+				cellGap=realIconSize-mCellHeight;
+			}
+			prevTop=cellGap;
+		}
+		int count = getChildCount();
+		
         for (int i = 0; i < count; i++) {
             View child = getChildAt(i);
             if (child.getVisibility() != GONE) {
                 LayoutParams lp = (LayoutParams) child.getLayoutParams();
-                int childLeft = (mOrientation==HORIZONTAL)?i*mCellWidth:0;
-                int childTop = (mOrientation==VERTICAL)?i*mCellHeight:0;
-                child.layout(childLeft, childTop, childLeft + mCellWidth, childTop + mCellHeight);
+                int childLeft=(mOrientation==HORIZONTAL)?prevLeft:0;
+                int childTop = (mOrientation==VERTICAL)?prevTop:0;
+                int childRight = childLeft+mCellWidth;
+                int childBottom = childTop+mCellHeight;
+                child.layout(childLeft, childTop, childRight, childBottom);
+                prevLeft=(mOrientation==HORIZONTAL)?childRight+cellGap:0;
+                prevTop=(mOrientation==VERTICAL)?childBottom+cellGap:0;
             }
         }
 		

@@ -241,6 +241,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private boolean fullScreenPreviews=true;
     private boolean showingPreviews=false;
 	private boolean hideStatusBar;
+	private boolean mShouldHideStatusbaronFocus;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1518,7 +1519,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private void showNotifications() {
         final StatusBarManager statusBar = (StatusBarManager) getSystemService(STATUS_BAR_SERVICE);
         if (statusBar != null) {
-            statusBar.expand();
+        	if(hideStatusBar){
+        		fullScreen(false);
+        		mShouldHideStatusbaronFocus=true;
+        	}
+        	statusBar.expand();
         }
     }
 
@@ -2854,4 +2859,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             }
         }
     }
+
+	@Override
+	public void onWindowFocusChanged(boolean hasFocus) {
+		// TODO Auto-generated method stub
+    	super.onWindowFocusChanged(hasFocus);
+		if(mShouldHideStatusbaronFocus && hideStatusBar){
+			fullScreen(true);
+			mShouldHideStatusbaronFocus=false;
+		}
+	}
 }
