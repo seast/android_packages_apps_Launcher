@@ -241,8 +241,10 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private boolean homePreviews=true;
 	private boolean fullScreenPreviews=true;
     private boolean showingPreviews=false;
-	private boolean hideStatusBar;
-	private boolean mShouldHideStatusbaronFocus;
+	private boolean hideStatusBar=false;
+	private boolean showDots=true;
+	private boolean showDockBar=true;
+	private boolean mShouldHideStatusbaronFocus=false;
 	private DockBar mDockBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -477,7 +479,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             });
         }
         
-        mIsNewIntent = false;
         //TODO:ADW Change columns after rotating phone
         //newDrawer=AlmostNexusSettingsHelper.getDrawerNew(Launcher.this);
         int ori = getResources().getConfiguration().orientation;
@@ -501,12 +502,16 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		homePreviews=AlmostNexusSettingsHelper.getPreviewsHome(this);
 		fullScreenPreviews=AlmostNexusSettingsHelper.getFullScreenPreviews(this);
 		hideStatusBar=AlmostNexusSettingsHelper.getHideStatusbar(this);
-		fullScreen(hideStatusBar);
+		showDots=AlmostNexusSettingsHelper.getUIDots(this);
+		showDockBar=AlmostNexusSettingsHelper.getUIDockbar(this);
 		if(newDrawer){
 			((AllAppsSlidingView) mAllAppsGrid).setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
 		}else{
 			((AllAppsGridView) mAllAppsGrid).setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
 		}
+		if(!mIsNewIntent)
+			updateUIConfiguration();
+        mIsNewIntent = false;
     }
 
     @Override
@@ -714,11 +719,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 			}
 		}
 		public void onClose() {
-			mHandleView.setVisibility(View.VISIBLE);
+			/*mHandleView.setVisibility(View.VISIBLE);
 			if(mNextView.getVisibility()==View.INVISIBLE){
 				mNextView.setVisibility(View.VISIBLE);
 				mPreviousView.setVisibility(View.VISIBLE);
-			}
+			}*/
 		}
 	});
     }
@@ -1029,10 +1034,18 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	            	if (!mWorkspace.isDefaultScreenShowing()) {
 	                    mWorkspace.moveToDefaultScreen();
 	                }else{
-	                	showPreviews(mHandleView, 0, mWorkspace.mHomeScreens);
+	                	if(!showingPreviews){
+	                		showPreviews(mHandleView, 0, mWorkspace.mHomeScreens);
+	                	}else{
+	                		dismissPreviews();
+	                	}
 	                }
                 }else{
-                	showPreviews(mHandleView, 0, mWorkspace.mHomeScreens);                	
+                	if(!showingPreviews){
+                		showPreviews(mHandleView, 0, mWorkspace.mHomeScreens);
+                	}else{
+                		dismissPreviews();
+                	}
                 }
                 closeDrawer();
 
@@ -2119,7 +2132,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	            //mWorkspace.mDrawerBounds.setEmpty();
 			}
 			mHandleIcon.resetTransition();
-			if(!isDockBarOpen()){
+			if(!isDockBarOpen() && showDots){
 				mPreviousView.setVisibility(View.VISIBLE);
 	    	    mNextView.setVisibility(View.VISIBLE);
 			}else{
@@ -2134,6 +2147,12 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
     protected boolean isPreviewing(){
     	return showingPreviews;
+    }
+    private void updateUIConfiguration(){
+    	fullScreen(hideStatusBar);
+    	mNextView.setVisibility(showDots?View.VISIBLE:View.GONE);
+    	mPreviousView.setVisibility(showDots?View.VISIBLE:View.GONE);
+    	mHandleView.setSlidingEnabled(showDockBar);
     }
     private void zoom(){
     	//TODO: ADW Maybe for the future... :)
@@ -2164,8 +2183,10 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	    	mPreviousView.setVisibility(View.INVISIBLE);
     	}else{
 	    	mHandleView.setVisibility(View.VISIBLE);
-	    	mNextView.setVisibility(View.VISIBLE);
-	    	mPreviousView.setVisibility(View.VISIBLE);
+	    	if(showDots){
+		    	mNextView.setVisibility(View.VISIBLE);
+		    	mPreviousView.setVisibility(View.VISIBLE);
+	    	}
     	}
     }
     private void dismissPreviews(){
@@ -2227,6 +2248,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         //check first if it's already open
         final PreviewsPopupWindow window = (PreviewsPopupWindow) anchor.getTag();
         if (window != null) return;
+        showingPreviews=true;
     	Resources resources = getResources();
 
         Workspace workspace = mWorkspace;
@@ -2322,13 +2344,13 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         anchor.setTag(R.id.workspace, preview);
         anchor.setTag(R.id.icon, bitmaps);
         if(fullScreenPreviews){
+	        hideDesktop(true);
+	        if(mDockBar.isOpen()){
+	        	mDockBar.close();
+	        }
 	        mWorkspace.lock();
 	        mDesktopLocked=true;
-	        showingPreviews=true;
 	        mWorkspace.invalidate();
-	        hideDesktop(true);
-	        mDockBar.close();
-	        //fullScreen(true);
         }
     }
 

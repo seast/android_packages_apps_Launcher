@@ -50,7 +50,6 @@ public class SliderView extends ImageView {
     private boolean mAnimating=false;
 	private Rect mTmpRect;
 	private boolean mTracking;
-	private Vibrator mVibrator;
 	private int mCurrentState;
 	private ArrayList<ImageView> mTargets;
 	private int mTargetDistance=50;
@@ -63,6 +62,7 @@ public class SliderView extends ImageView {
 	private int securityMargin=15;	
 	private Launcher mLauncher;
 	private long mTouchTime;
+	private boolean mSlidingEnabled=true;
 	public SliderView(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub
@@ -112,13 +112,15 @@ public class SliderView extends ImageView {
         final float y = event.getY();
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
-                mTracking = true;
-                mTriggered = false;
-                setGrabbedState(true);
-                mPreviousX=(int) x;
-                mPreviousY=(int) y;
+                if(mSlidingEnabled){
+	            	mTracking = true;
+	                mTriggered = false;
+	                setGrabbedState(true);
+	                mPreviousX=(int) x;
+	                mPreviousY=(int) y;
+	                showTarget();
+                }
                 setState(STATE_PRESSED);
-                showTarget();
                 mTouchTime=System.currentTimeMillis();
                 break;
             }
@@ -158,9 +160,8 @@ public class SliderView extends ImageView {
                 break;
             case MotionEvent.ACTION_UP:
             	final long upTime=System.currentTimeMillis();
-        		final boolean shortTap=((upTime-mTouchTime)<250);
-        		//Log.d("SLIDER","shorttap="+shortTap+" & mTriggered="+mTriggered);
-            	if(!mSliding ||(shortTap&&!mTriggered)){
+        		final boolean shortTap=((upTime-mTouchTime)<350);
+        		if((!mSliding && mSlidingEnabled) ||(shortTap&&!mTriggered)){
             		performClick();
             	}
             case MotionEvent.ACTION_CANCEL:
@@ -229,9 +230,11 @@ public class SliderView extends ImageView {
         mCurrentState = state;
     }
     public void hideTarget() {
-        for(ImageView v:mTargets){
-	    	v.clearAnimation();
-	        v.setVisibility(View.INVISIBLE);
+        if(mTargets!=null){
+	    	for(ImageView v:mTargets){
+		    	v.clearAnimation();
+		        v.setVisibility(View.INVISIBLE);
+	        }
         }
     }
     void showTarget() {
@@ -424,6 +427,9 @@ public class SliderView extends ImageView {
 			}
     		v.setLayoutParams(lp);
     	}
+    }
+    public void setSlidingEnabled(boolean enable){
+    	mSlidingEnabled=enable;
     }
     //TODO:ADW dirty hack to force the animation start
     //found here:http://code.google.com/p/android/issues/detail?id=1818

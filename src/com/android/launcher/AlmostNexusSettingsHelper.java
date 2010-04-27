@@ -38,7 +38,7 @@ public final class AlmostNexusSettingsHelper {
 	}
 	public static boolean getDrawerAnimated(Context context) {
 		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
-		boolean animated = sp.getBoolean("drawerAnimated", true);
+		boolean animated = sp.getBoolean("drawerAnimated", false);
 		return animated;
 	}
 	public static boolean getDrawerFast(Context context) {
@@ -58,7 +58,7 @@ public final class AlmostNexusSettingsHelper {
 	}
 	public static boolean getHideStatusbar(Context context) {
 		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
-		boolean newD = sp.getBoolean("hideStatusbar", true);
+		boolean newD = sp.getBoolean("hideStatusbar", false);
 		return newD;
 	}
 	public static boolean getNewPreviews(Context context) {
@@ -76,4 +76,25 @@ public final class AlmostNexusSettingsHelper {
 		boolean newD = sp.getBoolean("previewsHome", true);
 		return newD;
 	}
+	public static boolean getUIDots(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("uiDots", true);
+		return newD;
+	}
+	public static boolean getUIDockbar(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("uiDockbar", true);
+		return newD;
+	}
+	public static boolean getUILAB(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("uiLAB", true);
+		return newD;
+	}
+	public static boolean getUIRAB(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("uiRAB", true);
+		return newD;
+	}
+	
 }
