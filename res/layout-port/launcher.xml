@@ -118,9 +118,9 @@
 			android:background="@drawable/dockbar_bg"
 			android:layout_width="fill_parent"
 			android:layout_height="fill_parent"
-		    launcher:cellWidth="64dip"
-		    launcher:cellHeight="48dip"
-		    launcher:cells="5"
+		    launcher:cellWidth="50dip"
+		    launcher:cellHeight="52dip"
+		    launcher:cells="6"
 		    launcher:orientation="horizontal"
 			/>
 	</com.android.launcher.DockBar>

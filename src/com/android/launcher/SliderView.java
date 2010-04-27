@@ -158,7 +158,7 @@ public class SliderView extends ImageView {
                 break;
             case MotionEvent.ACTION_UP:
             	final long upTime=System.currentTimeMillis();
-        		final boolean shortTap=((upTime-mTouchTime)<500);
+        		final boolean shortTap=((upTime-mTouchTime)<250);
         		//Log.d("SLIDER","shorttap="+shortTap+" & mTriggered="+mTriggered);
             	if(!mSliding ||(shortTap&&!mTriggered)){
             		performClick();
@@ -182,13 +182,13 @@ public class SliderView extends ImageView {
         boolean moved=false;
         if (isHorizontal()) {
             deltaX = (int) x- (getWidth() / 2);
-            if((getLeft()+deltaX)>mLimitRect.left && (getRight()+deltaX)<mLimitRect.right){
+            if((deltaX<0 && getLeft()>mLimitRect.left) || (deltaX>0 && getRight()<mLimitRect.right)){
             	offsetLeftAndRight(deltaX);
             	moved=true;
             }
         } else {
             deltaY = (int) y- (getHeight() / 2);
-            if((getTop()+deltaY)>mLimitRect.top && (getBottom()+deltaY)<mLimitRect.bottom){
+            if((deltaY<0 && getTop()>mLimitRect.top) || (deltaY>0 && getBottom()<mLimitRect.bottom)){
             	offsetTopAndBottom(deltaY);
             	moved=true;
             }
@@ -210,7 +210,7 @@ public class SliderView extends ImageView {
         int dx= initPosition.x-getLeft();
         int dy= initPosition.y-getTop();
 
-        if (animate) {
+        if (animate && getVisibility()==View.VISIBLE) {
             TranslateAnimation trans = new TranslateAnimation(0, dx, 0, dy);
             trans.setDuration(ANIM_DURATION);
             trans.setAnimationListener(mAnimationDoneListener);

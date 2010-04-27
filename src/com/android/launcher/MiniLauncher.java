@@ -114,17 +114,17 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
         	t2.show();
         	return;
         }
-        addItemInDockBar(info);
+        info.cellX=getChildCount();
         //add it to launcher database
         final LauncherModel model = Launcher.getModel();
         model.addDesktopItem(info);
         LauncherModel.addOrMoveItemInDatabase(mLauncher, info,
-                LauncherSettings.Favorites.CONTAINER_DOCKBAR, -1, -1, -1);        
+                LauncherSettings.Favorites.CONTAINER_DOCKBAR, -1, getChildCount(), -1);        
+        addItemInDockBar(info);
     }
 
     public void onDragEnter(DragSource source, int x, int y, int xOffset, int yOffset,
             Object dragInfo) {
-    	//this.setBackgroundColor(0xDD333333);
     	mBackground.startTransition(200);
     }
 
@@ -134,7 +134,6 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
 
     public void onDragExit(DragSource source, int x, int y, int xOffset, int yOffset,
             Object dragInfo) {
-    	//this.setBackgroundColor(0xDD000000);
     	mBackground.resetTransition();
     }
 
@@ -175,20 +174,8 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
         	return;
             //throw new IllegalStateException("Unknown item type: " + info.itemType);
         }
-        //TODO:ADW Gonna hack
         view.setLongClickable(true);
         view.setOnLongClickListener(this);
-        //mTargetCell = estimateDropCell(x, y, 1, 1, view, this, mTargetCell);
-        /*int[] targetCell;
-        if(mOrientation==HORIZONTAL){
-        	targetCell=new int[]{getChildCount()-1,0};
-        }else{
-        	targetCell=new int[]{0,getChildCount()-1};
-        }*/
-        
-        //this.onDropChild(view, targetCell);
-        //LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        //img.setLayoutParams(lp);
         addView(view);
         invalidate();
     }
@@ -208,18 +195,8 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
 	DialogInterface.OnClickListener deleteShortcut =
 		new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
-				//setApp("", "", "");
-				//mLauncher.saveBottomApp(appNumber, "", "", "");
-				//TODO: ADW Delete the item and reposition the remaining ones
+				//ADW Delete the item and reposition the remaining ones
 				//FIRS DELETE deleteView
-				
-				/*LayoutParams lp = (LayoutParams) mDeleteView.getLayoutParams();
-				ItemInfo it=(ItemInfo) mDeleteView.getTag();
-				LauncherModel model=Launcher.getModel();
-				model.removeDesktopItem(it);
-				LauncherModel.deleteItemFromDatabase(mLauncher, it);
-				removeView(mDeleteView);*/
-				
 				ItemInfo item=(ItemInfo) mDeleteView.getTag();
 		        final LauncherModel model = Launcher.getModel();
 	            if (item instanceof LauncherAppWidgetInfo) {
@@ -241,32 +218,19 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
 		        LauncherModel.deleteItemFromDatabase(mLauncher, item);
 		        detachViewFromParent(mDeleteView);
 		        removeView(mDeleteView);
-				
-				
-				
-				
-				/*final int count=getChildCount();
-				ArrayList<View> remainingItems = new ArrayList<View>();
-				for(int i=count-1;i>=0;i--){
+				//Now we need to update database (and position) for remainint items
+				final int count=getChildCount();
+				for(int i=0;i<count;i++){
 					final View cell=getChildAt(i);
 					final ItemInfo info = (ItemInfo) cell.getTag();
-	                CellLayout.LayoutParams lp2 = (CellLayout.LayoutParams) cell.getLayoutParams();
-	                if(lp2.cellX>lp.cellX){
-	                	//detachViewFromParent(cell);
-		                //Log.d("DOCKBAR","Our child "+cell+" IS in x="+lp2.cellX);
-	                	lp2.cellX-=1;
-	                	cell.setLayoutParams(lp2);
-	                	//addView(cell);
-	                	remainingItems.add(cell);
+	                if(info.cellX>item.cellX){
+	                	info.cellX-=1;
+	                	cell.setTag(info);
 		                LauncherModel.moveItemInDatabase(mLauncher, info,
-		                        LauncherSettings.Favorites.CONTAINER_DOCKBAR, -1, lp2.cellX, lp2.cellY);
+		                        LauncherSettings.Favorites.CONTAINER_DOCKBAR, -1, info.cellX, -1);
 	                }
-	                //Log.d("DOCKBAR","We've removed children!!!");
-	                for(View v: remainingItems){
-	                	CellLayout.LayoutParams lp3 = (CellLayout.LayoutParams) v.getLayoutParams();
-		                //Log.d("DOCKBAR","Our child "+v+" should be in x="+lp3.cellX);
-	                }
-                }*/
+	                Log.d("MINILAUNCHER","We've removed children!!!");
+                }
 				requestLayout();
 				mDeleteView=null;
 			}
@@ -278,38 +242,6 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
 			}
 	};
 	
-/*	@Override
-    public boolean onTouchEvent(MotionEvent ev) {
- 
-        final int action = ev.getAction();
-        final float x = ev.getX();
- 
-		if (intent != null) {
-	        switch (action) {
-	        	case MotionEvent.ACTION_DOWN:
-		            this.setBackgroundResource(R.drawable.focused_application_background);
-					break;
-		        case MotionEvent.ACTION_UP:
-		            this.setBackgroundDrawable(null);
-					break;
-	        }
-		}
- 
-        return super.onTouchEvent(ev);
-    }
-*/ 
-	/*@Override
-	public void onFocusChanged (boolean gainFocus, int direction, Rect previouslyFocusedRect) {
-		if (intent != null) {
-			if (gainFocus) {
-				this.setBackgroundResource(R.drawable.focused_application_background);
-			} else {
-				this.setBackgroundDrawable(null);
-			}
-		}
-	}*/
-
-
     void setLauncher(Launcher launcher) {
         mLauncher = launcher;
     }
@@ -318,16 +250,9 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
         mDragLayer = dragLayer;
     }
 
-	@Override
-	protected void onAttachedToWindow() {
-		// TODO Auto-generated method stub
-		super.onAttachedToWindow();
-		//log.d()
-	}
 
 	@Override
 	protected void onFinishInflate() {
-		// TODO Auto-generated method stub
 		super.onFinishInflate();
 		mBackground=(TransitionDrawable) getBackground();
 		mBackground.setCrossFadeEnabled(true);
@@ -341,59 +266,36 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
             View child = getChildAt(i);
             LayoutParams lp = (LayoutParams) child.getLayoutParams();
         	child.measure(mCellWidth, mCellHeight);
-
-            /*int childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY);
-            int childheightMeasureSpec =
-                    MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY);
-            child.measure(childWidthMeasureSpec, childheightMeasureSpec);*/
         }		
 		
-		// TODO Auto-generated method stub
 		if(mOrientation==HORIZONTAL){
 			super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(mCellHeight, MeasureSpec.AT_MOST));
 		}else{
 			super.onMeasure(MeasureSpec.makeMeasureSpec(mCellWidth, MeasureSpec.AT_MOST),heightMeasureSpec);
 		}
-		//Log.d("MINILAUNCHER","w="+getMeasuredWidth()+" & h="+getMeasuredHeight());
 	}
 
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		// TODO Auto-generated method stub
-		int realIconSize=0;
-		int cellGap=0;
-		int prevLeft=0;
-		int prevTop=0;
-		if(mOrientation==HORIZONTAL){
-			realIconSize=getMeasuredWidth()/mNumCells;
-			if(realIconSize>mCellWidth){
-				realIconSize=mCellWidth;
-			}else{
-				cellGap=realIconSize-mCellWidth;
-			}
-			prevLeft=cellGap;
-		}else{
-			realIconSize=getMeasuredHeight()/mNumCells;
-			if(realIconSize<mCellHeight){
-				realIconSize=mCellHeight;
-			}else{
-				cellGap=realIconSize-mCellHeight;
-			}
-			prevTop=cellGap;
-		}
 		int count = getChildCount();
+		
+		
+		int marginLeft=((getMeasuredWidth())/2)-(((count*mCellWidth)/2));
+		int marginTop=((getMeasuredHeight())/2)-(((count*mCellHeight)/2));
 		
         for (int i = 0; i < count; i++) {
             View child = getChildAt(i);
+            ItemInfo item=(ItemInfo) child.getTag();
             if (child.getVisibility() != GONE) {
                 LayoutParams lp = (LayoutParams) child.getLayoutParams();
-                int childLeft=(mOrientation==HORIZONTAL)?prevLeft:0;
-                int childTop = (mOrientation==VERTICAL)?prevTop:0;
+                //int childLeft=(mOrientation==HORIZONTAL)?marginLeft+(i*mCellWidth):0;
+                //int childTop = (mOrientation==VERTICAL)?marginTop+(i*mCellHeight):0;
+                int childLeft=(mOrientation==HORIZONTAL)?marginLeft+(item.cellX*mCellWidth):0;
+                int childTop = (mOrientation==VERTICAL)?marginTop+(item.cellX*mCellHeight):0;
                 int childRight = childLeft+mCellWidth;
                 int childBottom = childTop+mCellHeight;
                 child.layout(childLeft, childTop, childRight, childBottom);
-                prevLeft=(mOrientation==HORIZONTAL)?childRight+cellGap:0;
-                prevTop=(mOrientation==VERTICAL)?childBottom+cellGap:0;
             }
         }
 		

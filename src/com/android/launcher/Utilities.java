@@ -16,16 +16,23 @@
 
 package com.android.launcher;
 
+import android.graphics.Bitmap.Config;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.Shader.TileMode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PaintDrawable;
 import android.graphics.Bitmap;
+import android.graphics.LinearGradient;
+import android.graphics.Matrix;
 import android.graphics.PixelFormat;
 import android.graphics.Canvas;
 import android.graphics.PaintFlagsDrawFilter;
 import android.graphics.Paint;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.content.res.Resources;
 import android.content.Context;
 
@@ -214,4 +221,60 @@ final class Utilities {
 
         return bitmap;
     }
+    //TODO: ADW Create an icon drawable with reflection :P
+    //Thanks to http://www.inter-fuser.com/2009/12/android-reflections-with-bitmaps.html
+    static Drawable drawReflection(Drawable icon,Context context){
+    	final Resources resources=context.getResources();
+    	sIconWidth = sIconHeight = (int) resources.getDimension(android.R.dimen.app_icon_size);
+    	//The gap we want between the reflection and the original image
+        final float scale=1.30f;
+      
+        int width = sIconWidth;
+        int height = sIconHeight;
+        float ratio=sIconHeight/(sIconHeight*scale);
+    	Bitmap original = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        final Canvas cv = new Canvas();
+        cv.setBitmap(original);
+        icon.setBounds(0,0, width, height);
+        icon.draw(cv);
+        //This will not scale but will flip on the Y axis
+        Matrix matrix = new Matrix();
+        matrix.preScale(1, -1);
+        
+        //Create a Bitmap with the flip matix applied to it.
+        //We only want the bottom half of the image
+        Bitmap reflectionImage = Bitmap.createBitmap(original, 0, height/2, width, height/2, matrix, false);
+        
+            
+        //Create a new bitmap with same width but taller to fit reflection
+        Bitmap bitmapWithReflection = Bitmap.createBitmap(width 
+          , (int) (height*scale), Config.ARGB_8888);
+      
+       //Create a new Canvas with the bitmap that's big enough for
+       //the image plus gap plus reflection
+       Canvas canvas = new Canvas(bitmapWithReflection);
+       //Draw in the gap
+       //Paint deafaultPaint = new Paint();
+       //canvas.drawRect(0, height, width, height + reflectionGap, deafaultPaint);
+       //Draw in the reflection
+       canvas.drawBitmap(reflectionImage,0, height-6, null);
+       
+       //Create a shader that is a linear gradient that covers the reflection
+       Paint paint = new Paint(); 
+       LinearGradient shader = new LinearGradient(0, original.getHeight(), 0, 
+         bitmapWithReflection.getHeight(), 0x70ffffff, 0x00ffffff, 
+         TileMode.CLAMP); 
+       //Set the paint to use this shader (linear gradient)
+       paint.setShader(shader); 
+       //Set the Transfer mode to be porter duff and destination in
+       paint.setXfermode(new PorterDuffXfermode(Mode.DST_IN)); 
+       //Draw a rectangle using the paint with our linear gradient
+       canvas.drawRect(0, height-6, width, 
+         bitmapWithReflection.getHeight(), paint); 
+       //Draw in the original image
+       canvas.drawBitmap(original, 0, 0, null);
+       
+       return new FastBitmapDrawable(Bitmap.createScaledBitmap(bitmapWithReflection,Math.round((float)sIconWidth*ratio),sIconHeight,true));
+    }
+    
 }

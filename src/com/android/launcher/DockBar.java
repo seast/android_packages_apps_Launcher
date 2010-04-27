@@ -36,6 +36,7 @@ public class DockBar extends LinearLayout implements OnClickListener {
     private GestureDetector mGestureDetector;
     private DockbarGestureListener mGestureListener;
 	public boolean mInterceptClicks=false;
+	private DockBarListener mDockBarListener;
 	public DockBar(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub
@@ -84,6 +85,7 @@ public class DockBar extends LinearLayout implements OnClickListener {
 		}
 	}
 	public void open(){
+		dispatchDockBarEvent(true);
 		setClickable(false);
 		mState=OPEN;
 		setVisibility(View.VISIBLE);
@@ -108,6 +110,7 @@ public class DockBar extends LinearLayout implements OnClickListener {
 		startAnimation(anim);
 	}
 	public void close(){
+		dispatchDockBarEvent(false);
 		mState=CLOSED;
         int x=0;
         int y=0;
@@ -234,4 +237,30 @@ public class DockBar extends LinearLayout implements OnClickListener {
 			close();
 		}
 	}
+    public void setDockBarListener(DockBarListener listener) {
+        mDockBarListener = listener;
+    }
+
+    /**
+     * Dispatches a trigger event to listener. Ignored if a listener is not set.
+     * @param whichHandle the handle that triggered the event.
+     */
+    private void dispatchDockBarEvent(boolean open) {
+        if (mDockBarListener != null) {
+        	if(open){
+        		mDockBarListener.onOpen();
+        	}else{
+        		mDockBarListener.onClose();
+        	}
+        }
+    }	
+    /**
+     * Interface definition for a callback to be invoked when a tab is triggered
+     * by moving it beyond a threshold.
+     */
+    public interface DockBarListener {
+        void onOpen();
+        void onClose();
+    }
+	
 }

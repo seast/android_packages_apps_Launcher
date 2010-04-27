@@ -170,22 +170,42 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
             getLocationOnScreen(location);
             if(mLauncher.isDockBarOpen()){
             	MarginLayoutParams tmp=(MarginLayoutParams) getLayoutParams();
-            	tmp.bottomMargin+=mCustomPadding;
+            	if(mOrientation==ORIENTATION_HORIZONTAL){
+            		tmp.bottomMargin=mCustomPadding;
+            		tmp.rightMargin=0;
+            	}else{
+            		tmp.bottomMargin=0;
+            		tmp.rightMargin=mCustomPadding;
+            	}
             	setLayoutParams(tmp);
                 //TODO: ADW we need to hack the real location the first time we move the trash can
                 if(!mTrickyLocation){
-                    mRegion.set(location[0], location[1]-mCustomPadding, location[0] + mRight - mLeft,
+                    if(mOrientation==ORIENTATION_HORIZONTAL){
+                    	mRegion.set(location[0], location[1]-mCustomPadding, location[0] + mRight - mLeft,
                             location[1] + mBottom - mTop-mCustomPadding);
+                    }else{
+                    	mRegion.set(location[0]-mCustomPadding, location[1], location[0] + mRight - mLeft -mCustomPadding,
+                                location[1] + mBottom - mTop);
+                    }
                     mTrickyLocation=true;
                 }else{
                     mRegion.set(location[0], location[1], location[0] + mRight - mLeft,
                             location[1] + mBottom - mTop);
                 }
             }else{
+            	MarginLayoutParams tmp=(MarginLayoutParams) getLayoutParams();
+        		tmp.bottomMargin=0;
+        		tmp.rightMargin=0;
+            	setLayoutParams(tmp);
                 //TODO: ADW we need to hack the real location the first time we move the trash can
                 if(mTrickyLocation){
-                    mRegion.set(location[0], location[1]+mCustomPadding, location[0] + mRight - mLeft,
+                	if(mOrientation==ORIENTATION_HORIZONTAL){
+                		mRegion.set(location[0], location[1]+mCustomPadding, location[0] + mRight - mLeft,
                             location[1] + mBottom - mTop+mCustomPadding);
+                	}else{
+                		mRegion.set(location[0]+mCustomPadding, location[1], location[0] + mRight - mLeft+mCustomPadding,
+                                location[1] + mBottom - mTop);
+                	}
                     mTrickyLocation=false;
                 }else{
                     mRegion.set(location[0], location[1], location[0] + mRight - mLeft,
@@ -195,7 +215,10 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
             mDragLayer.setDeleteRegion(mRegion);
             mTransition.resetTransition();
             startAnimation(mInAnimation);
-            mHandle.startAnimation(mHandleOutAnimation);
+            if(!mLauncher.isDockBarOpen()){
+            	mHandle.startAnimation(mHandleOutAnimation);
+            }
+            
             setVisibility(VISIBLE);
             //ADW Store app data for uninstall if its an Application
             //ADW Thanks to irrenhaus@xda & Rogro82@xda :)
@@ -223,11 +246,18 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
             mTrashMode = false;
             mDragLayer.setDeleteRegion(null);
             startAnimation(mOutAnimation);
-            mHandle.startAnimation(mHandleInAnimation);
+            if(!mLauncher.isDockBarOpen()){
+            	mHandle.startAnimation(mHandleInAnimation);
+            }
+            
             if(mLauncher.isDockBarOpen()){
             	MarginLayoutParams tmp=(MarginLayoutParams) getLayoutParams();
             	//Log.d("DELETEZONE","We already have a bottom margin of:"+tmp.bottomMargin);
-            	tmp.bottomMargin-=mCustomPadding;
+            	if(mOrientation==ORIENTATION_HORIZONTAL){
+            		tmp.bottomMargin=0;
+            	}else{
+            		tmp.rightMargin=0;
+            	}
             	//Log.d("DELETEZONE","We changed bottom margin to:"+tmp.bottomMargin);
             	setLayoutParams(tmp);
             	//set(getLeft(), getTop(), getRight(), getBottom()+60);

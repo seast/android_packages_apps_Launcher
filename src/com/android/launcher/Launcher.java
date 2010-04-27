@@ -101,6 +101,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.DataInputStream;
 
+import com.android.launcher.DockBar.DockBarListener;
 import com.android.launcher.SliderView.OnTriggerListener;
 
 /**
@@ -242,6 +243,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private boolean showingPreviews=false;
 	private boolean hideStatusBar;
 	private boolean mShouldHideStatusbaronFocus;
+	private DockBar mDockBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -631,11 +633,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         mHandleView.setOnTriggerListener(new OnTriggerListener() {
 			//@Override
 			public void onTrigger(View v, int whichHandle) {
-				// TODO Auto-generated method stub
-				//if(whichHandle==OnTriggerListener.UP){
-					DockBar dockbar=(DockBar) findViewById(R.id.dockbar);
-					dockbar.open();
-				//}				
+				mDockBar.open();
 			}
 			//@Override
 			public void onGrabbedStateChange(View v, boolean grabbedState) {
@@ -704,6 +702,25 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	Drawable previous = mPreviousView.getDrawable();
 	Drawable next = mNextView.getDrawable();
 	mWorkspace.setIndicators(previous, next);
+	//TODO:ADW add a listener to the dockbar to show/hide the app-drawer-button and the dots
+	mDockBar=(DockBar)findViewById(R.id.dockbar);
+	mDockBar.setDockBarListener(new DockBarListener() {
+		//TODO:ADW handle previous states before hiding/showing
+		public void onOpen() {
+			mHandleView.setVisibility(View.GONE);
+			if(mNextView.getVisibility()==View.VISIBLE){
+				mNextView.setVisibility(View.INVISIBLE);
+				mPreviousView.setVisibility(View.INVISIBLE);
+			}
+		}
+		public void onClose() {
+			mHandleView.setVisibility(View.VISIBLE);
+			if(mNextView.getVisibility()==View.INVISIBLE){
+				mNextView.setVisibility(View.VISIBLE);
+				mPreviousView.setVisibility(View.VISIBLE);
+			}
+		}
+	});
     }
 
     /**
@@ -758,8 +775,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             info.icon = Utilities.createIconThumbnail(info.icon, this);
             info.filtered = true;
         }
-
-        favorite.setImageDrawable(info.icon);
+        favorite.setImageDrawable(Utilities.drawReflection(info.icon, this));
         favorite.setTag(info);
         favorite.setOnClickListener(this);
         return favorite;
@@ -769,7 +785,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         final Resources resources = getResources();
         Drawable d = resources.getDrawable(R.drawable.ic_launcher_folder);
-        d = Utilities.createIconThumbnail(d, this);
+        //d = Utilities.createIconThumbnail(d, this);
+        d=Utilities.drawReflection(d, this);
         favorite.setImageDrawable(d);
         favorite.setTag(info);
         favorite.setOnClickListener(this);
@@ -788,6 +805,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             resources.getDrawable(R.drawable.ic_launcher_folder), this);
         	info.filtered = true;
         }
+        d=Utilities.drawReflection(d, this);
         favorite.setImageDrawable(d);
         favorite.setTag(info);
         favorite.setOnClickListener(this);
@@ -1696,7 +1714,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         final Workspace workspace = mWorkspace;
         final boolean desktopLocked = mDesktopLocked;
-        final MiniLauncher dockBar=(MiniLauncher) mDragLayer.findViewById(R.id.mini_content);
+        final MiniLauncher miniLauncher=(MiniLauncher) mDragLayer.findViewById(R.id.mini_content);
         final int end = Math.min(start + DesktopBinder.ITEMS_COUNT, count);
         int i = start;
 
@@ -1705,7 +1723,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             switch ((int)item.container) {
 			case LauncherSettings.Favorites.CONTAINER_DOCKBAR:
 				//d("BIND ITEMS","THIS IS A DOCKBAR ITEM!!!");
-				dockBar.addItemInDockBar(item);
+				miniLauncher.addItemInDockBar(item);
 				break;
 			default:
 				//d("BIND ITEMS","THIS IS A DESKTOP ITEM!!!");
@@ -2101,8 +2119,13 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	            //mWorkspace.mDrawerBounds.setEmpty();
 			}
 			mHandleIcon.resetTransition();
-			mPreviousView.setVisibility(View.VISIBLE);
-    	    mNextView.setVisibility(View.VISIBLE);            
+			if(!isDockBarOpen()){
+				mPreviousView.setVisibility(View.VISIBLE);
+	    	    mNextView.setVisibility(View.VISIBLE);
+			}else{
+				mPreviousView.setVisibility(View.GONE);
+	    	    mNextView.setVisibility(View.GONE);
+			}
 		}    	
     }
     protected Bitmap getBlurredBg(){
@@ -2304,6 +2327,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	        showingPreviews=true;
 	        mWorkspace.invalidate();
 	        hideDesktop(true);
+	        mDockBar.close();
 	        //fullScreen(true);
         }
     }
@@ -2345,16 +2369,10 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         startActivityForResult(launchPreferencesIntent,MENU_ALMOSTNEXUS);    	   	
     }
     protected boolean isDockBarOpen(){
-        final DockBar dockbar=(DockBar) mDragLayer.findViewById(R.id.dockbar);
-    	return dockbar.isOpen();
+    	return mDockBar.isOpen();
     }
     protected int getTrashPadding(){
-        final DockBar dockbar=(DockBar) mDragLayer.findViewById(R.id.dockbar);
-    	if(!dockbar.isOpen()){
-    		return 0;
-    	}else{
-    		return dockbar.getSize();
-    	}
+		return mDockBar.getSize();
     }
 //EOF ADW
     static LauncherModel getModel() {
