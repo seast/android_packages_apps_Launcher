@@ -166,6 +166,8 @@ class LauncherSettings {
          */
         static final int CONTAINER_DESKTOP = -100;
         static final int CONTAINER_DOCKBAR = -200;
+        static final int CONTAINER_LAB = -300;
+        static final int CONTAINER_RAB = -400;
 
         /**
          * The screen holding the favorite (if container is CONTAINER_DESKTOP)

@@ -118,4 +118,10 @@
         <attr name="cellHeight"  />
         <attr name="cells" format="integer" />
     </declare-styleable>    
+    <declare-styleable name="ActionButton">
+        <attr name="ident">
+            <enum name="LAB" value="-300" />
+            <enum name="RAB" value="-400" />
+        </attr>
+    </declare-styleable>
  </resources>

@@ -246,6 +246,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private boolean showDockBar=true;
 	private boolean mShouldHideStatusbaronFocus=false;
 	private DockBar mDockBar;
+	private boolean autoCloseDockbar;
+	private ActionButton mLAB;
+	private ActionButton mRAB;
+	private boolean showLAB=true;
+	private boolean showRAB=true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -504,6 +509,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		hideStatusBar=AlmostNexusSettingsHelper.getHideStatusbar(this);
 		showDots=AlmostNexusSettingsHelper.getUIDots(this);
 		showDockBar=AlmostNexusSettingsHelper.getUIDockbar(this);
+		autoCloseDockbar=AlmostNexusSettingsHelper.getUICloseDockbar(this);
+		showLAB=AlmostNexusSettingsHelper.getUILAB(this);
+		showRAB=AlmostNexusSettingsHelper.getUIRAB(this);
 		if(newDrawer){
 			((AllAppsSlidingView) mAllAppsGrid).setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
 		}else{
@@ -684,6 +692,15 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         mMiniLauncher.setOnLongClickListener(this);
         //miniToolbar.setDragger(dragLayer);
         dragLayer.addDragListener(mMiniLauncher);
+        
+        mLAB = (ActionButton) dragLayer.findViewById(R.id.btn_lab);
+        mLAB.setLauncher(this);
+        dragLayer.addDragListener(mLAB);
+        mRAB = (ActionButton) dragLayer.findViewById(R.id.btn_rab);
+        mRAB.setLauncher(this);
+        dragLayer.addDragListener(mRAB);
+        mLAB.setOnClickListener(this);
+        mRAB.setOnClickListener(this);
 
 	//ADDED BY ADW -2010-03-11
 	    
@@ -713,17 +730,22 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		//TODO:ADW handle previous states before hiding/showing
 		public void onOpen() {
 			mHandleView.setVisibility(View.GONE);
+			mLAB.setVisibility(View.GONE);
+			mRAB.setVisibility(View.GONE);
 			if(mNextView.getVisibility()==View.VISIBLE){
 				mNextView.setVisibility(View.INVISIBLE);
 				mPreviousView.setVisibility(View.INVISIBLE);
 			}
 		}
 		public void onClose() {
-			/*mHandleView.setVisibility(View.VISIBLE);
-			if(mNextView.getVisibility()==View.INVISIBLE){
+			mHandleView.setVisibility(View.VISIBLE);
+	    	mRAB.setVisibility(showRAB?View.VISIBLE:View.GONE);
+	    	mLAB.setVisibility(showLAB?View.VISIBLE:View.GONE);
+			if(showDots && !isAllAppsVisible()){
 				mNextView.setVisibility(View.VISIBLE);
 				mPreviousView.setVisibility(View.VISIBLE);
-			}*/
+			}
+			
 		}
 	});
     }
@@ -815,7 +837,34 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         favorite.setTag(info);
         favorite.setOnClickListener(this);
         return favorite;
-    }    
+    }
+    Drawable createSmallActionButtonIcon(ItemInfo info){
+        Drawable d = null;
+    	final Resources resources = getResources();
+        if(info instanceof ApplicationInfo){
+            if (!((ApplicationInfo)info).filtered) {
+            	((ApplicationInfo)info).icon = Utilities.createIconThumbnail(((ApplicationInfo)info).icon, this);
+            	((ApplicationInfo)info).filtered = true;
+            }
+            d=((ApplicationInfo)info).icon;
+        }else if(info instanceof LiveFolderInfo){
+        	d=((LiveFolderInfo)info).icon;
+            if (d == null) {
+            	d = Utilities.createIconThumbnail(
+                resources.getDrawable(R.drawable.ic_launcher_folder), this);
+            	((LiveFolderInfo)info).filtered = true;
+            }        	
+        }else if(info instanceof UserFolderInfo){
+        	d = resources.getDrawable(R.drawable.ic_launcher_folder);
+        }
+        if (d == null) {
+        	d = Utilities.createIconThumbnail(
+            resources.getDrawable(R.drawable.ic_launcher_shortcut), this);
+        }
+        d=Utilities.scaledDrawable(d, this);
+    	
+    	return d;
+    }
     /**
      * Add an application shortcut to the workspace.
      *
@@ -1734,7 +1783,15 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         for ( ; i < end; i++) {
             final ItemInfo item = shortcuts.get(i);
             switch ((int)item.container) {
-			case LauncherSettings.Favorites.CONTAINER_DOCKBAR:
+            case LauncherSettings.Favorites.CONTAINER_LAB:
+            	d("BIND ITEMS","THIS IS A ACTION BUTTON ITEM!!!");
+            	mLAB.UpdateLaunchInfo(item);
+            	break;
+            case LauncherSettings.Favorites.CONTAINER_RAB:
+            	d("BIND ITEMS","THIS IS A ACTION BUTTON ITEM!!!");
+            	mRAB.UpdateLaunchInfo(item);
+            	break;
+            case LauncherSettings.Favorites.CONTAINER_DOCKBAR:
 				//d("BIND ITEMS","THIS IS A DOCKBAR ITEM!!!");
 				miniLauncher.addItemInDockBar(item);
 				break;
@@ -1892,19 +1949,30 @@ public final class Launcher extends Activity implements View.OnClickListener, On
      * @param v The view representing the clicked shortcut.
      */
     public void onClick(View v) {
-        Object tag = v.getTag();
+    	Object tag = v.getTag();
         if (tag instanceof ApplicationInfo) {
             // Open shortcut
-            final Intent intent = ((ApplicationInfo) tag).intent;
+        	ApplicationInfo info=(ApplicationInfo) tag;
+            final Intent intent = info.intent;
             startActivitySafely(intent);
+            //Close dockbar if setting says so
+            if(info.container==LauncherSettings.Favorites.CONTAINER_DOCKBAR && isDockBarOpen() && autoCloseDockbar){
+            	mDockBar.close();
+            }
         } else if (tag instanceof FolderInfo) {
-            handleFolderClick((FolderInfo) tag);
+        	FolderInfo info=(FolderInfo) tag;
+            handleFolderClick(info);
+            if(info.container==LauncherSettings.Favorites.CONTAINER_DOCKBAR && isDockBarOpen() && autoCloseDockbar){
+            	mDockBar.close();
+            }
         }else if (v == mHandleView) {
             if (isAllAppsVisible()) {
                 closeAllApps(true);
             } else {
                 showAllApps(true);
             }
+        }else{
+    		Toast t=Toast.makeText(this, "No application defined yet :)", Toast.LENGTH_SHORT);
         }
     }
 
@@ -2152,6 +2220,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     	fullScreen(hideStatusBar);
     	mNextView.setVisibility(showDots?View.VISIBLE:View.GONE);
     	mPreviousView.setVisibility(showDots?View.VISIBLE:View.GONE);
+    	mRAB.setVisibility(showRAB?View.VISIBLE:View.GONE);
+    	mLAB.setVisibility(showLAB?View.VISIBLE:View.GONE);
     	mHandleView.setSlidingEnabled(showDockBar);
     }
     private void zoom(){

@@ -94,6 +94,11 @@
 			android:defaultValue="true"
 			android:summary="Enable/disable the new dockbar for your shortcuts"
 			android:key="uiDockbar" />
+		<CheckBoxPreference android:title="Closing dockbar"
+			android:defaultValue="false"
+			android:dependency="uiDockbar"
+			android:summary="Auto-close dockbar after app-launch"
+			android:key="uiCloseDockbar" />
 		<CheckBoxPreference android:title="LAB"
 			android:defaultValue="true"
 			android:summary="Enable/disable the customizable Left Action Button"

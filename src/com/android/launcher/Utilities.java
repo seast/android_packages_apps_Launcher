@@ -23,6 +23,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PaintDrawable;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.PixelFormat;
@@ -276,5 +278,30 @@ final class Utilities {
        
        return new FastBitmapDrawable(Bitmap.createScaledBitmap(bitmapWithReflection,Math.round((float)sIconWidth*ratio),sIconHeight,true));
     }
-    
+    //TODO: ADW Create an icon drawable with reflection :P
+    //Thanks to http://www.inter-fuser.com/2009/12/android-reflections-with-bitmaps.html
+    static Drawable scaledDrawable(Drawable icon,Context context){
+    	final Resources resources=context.getResources();
+    	sIconWidth = sIconHeight = (int) resources.getDimension(android.R.dimen.app_icon_size);
+        final float scale=0.50f;
+      
+        int width = sIconWidth;
+        int height = sIconHeight;
+    	Bitmap original = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(original);
+        canvas.setBitmap(original);
+        icon.setBounds(0,0, width, height);
+        icon.draw(canvas);
+        
+        Paint paint = new Paint(); 
+        LinearGradient shader = new LinearGradient(width/2, 0, width/2, 
+          height, 0xCCFFFFFF, 0x33FFFFFF, TileMode.CLAMP); 
+        paint.setShader(shader); 
+        paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
+        canvas.drawRect(0, 0, width, 
+                height, paint);
+        
+    	Bitmap endImage=Bitmap.createScaledBitmap(original, (int)(width*scale), (int)(height*scale), true);
+    	return new FastBitmapDrawable(endImage);
+    }   
 }

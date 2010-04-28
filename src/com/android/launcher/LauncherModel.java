@@ -840,6 +840,8 @@ public class LauncherModel {
                                 switch (container) {
                                 case LauncherSettings.Favorites.CONTAINER_DESKTOP:
                                 case LauncherSettings.Favorites.CONTAINER_DOCKBAR:
+                                case LauncherSettings.Favorites.CONTAINER_LAB:
+                                case LauncherSettings.Favorites.CONTAINER_RAB:
                                     desktopItems.add(info);
                                     break;
                                 default:
@@ -868,6 +870,8 @@ public class LauncherModel {
                             switch (container) {
                                 case LauncherSettings.Favorites.CONTAINER_DESKTOP:
                                 case LauncherSettings.Favorites.CONTAINER_DOCKBAR:
+                                case LauncherSettings.Favorites.CONTAINER_LAB:
+                                case LauncherSettings.Favorites.CONTAINER_RAB:
                                     desktopItems.add(folderInfo);
                                     break;
                             }
@@ -904,6 +908,8 @@ public class LauncherModel {
                             switch (container) {
                                 case LauncherSettings.Favorites.CONTAINER_DESKTOP:
                                 case LauncherSettings.Favorites.CONTAINER_DOCKBAR:
+                                case LauncherSettings.Favorites.CONTAINER_LAB:
+                                case LauncherSettings.Favorites.CONTAINER_RAB:
                                     desktopItems.add(liveFolderInfo);
                                     break;
                             }

@@ -86,6 +86,11 @@ public final class AlmostNexusSettingsHelper {
 		boolean newD = sp.getBoolean("uiDockbar", true);
 		return newD;
 	}
+	public static boolean getUICloseDockbar(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("uiCloseDockbar", false);
+		return newD;
+	}
 	public static boolean getUILAB(Context context) {
 		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
 		boolean newD = sp.getBoolean("uiLAB", true);
