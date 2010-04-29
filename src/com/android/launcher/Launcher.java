@@ -176,6 +176,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private static final String RUNTIME_STATE_PENDING_FOLDER_RENAME = "launcher.rename_folder";
     // Type: long
     private static final String RUNTIME_STATE_PENDING_FOLDER_RENAME_ID = "launcher.rename_folder_id";
+    // Type: boolean
+    private static final String RUNTIME_STATE_DOCKBAR = "launcher.dockbar";
 
     private static final LauncherModel sModel = new LauncherModel();
 
@@ -251,6 +253,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private ActionButton mRAB;
 	private boolean showLAB=true;
 	private boolean showRAB=true;
+	private boolean tintActionIcons=true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -512,6 +515,13 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		autoCloseDockbar=AlmostNexusSettingsHelper.getUICloseDockbar(this);
 		showLAB=AlmostNexusSettingsHelper.getUILAB(this);
 		showRAB=AlmostNexusSettingsHelper.getUIRAB(this);
+		
+		boolean tint=AlmostNexusSettingsHelper.getUITint(this);
+		if(tint!=tintActionIcons){
+			tintActionIcons=tint;
+			mRAB.updateIcon();
+			mLAB.updateIcon();
+		}
 		if(newDrawer){
 			((AllAppsSlidingView) mAllAppsGrid).setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
 		}else{
@@ -525,7 +535,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     @Override
     protected void onPause() {
         super.onPause();
-        dismissPreviews();
+        //dismissPreviews();
         closeDrawer(false);
     }
 
@@ -861,7 +871,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         	d = Utilities.createIconThumbnail(
             resources.getDrawable(R.drawable.ic_launcher_shortcut), this);
         }
-        d=Utilities.scaledDrawable(d, this);
+        d=Utilities.scaledDrawable(d, this,tintActionIcons);
     	
     	return d;
     }
@@ -1188,6 +1198,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         // configuration change
         if (allAppsOpen && isConfigurationChange) {
             outState.putBoolean(RUNTIME_STATE_ALL_APPS_FOLDER, true);
+        }
+        if(mDockBar.isOpen()){
+        	outState.putBoolean(RUNTIME_STATE_DOCKBAR, true);
         }
 
         if (mAddItemCellInfo != null && mAddItemCellInfo.valid && mWaitingForResult) {
@@ -1784,19 +1797,15 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             final ItemInfo item = shortcuts.get(i);
             switch ((int)item.container) {
             case LauncherSettings.Favorites.CONTAINER_LAB:
-            	d("BIND ITEMS","THIS IS A ACTION BUTTON ITEM!!!");
             	mLAB.UpdateLaunchInfo(item);
             	break;
             case LauncherSettings.Favorites.CONTAINER_RAB:
-            	d("BIND ITEMS","THIS IS A ACTION BUTTON ITEM!!!");
             	mRAB.UpdateLaunchInfo(item);
             	break;
             case LauncherSettings.Favorites.CONTAINER_DOCKBAR:
-				//d("BIND ITEMS","THIS IS A DOCKBAR ITEM!!!");
 				miniLauncher.addItemInDockBar(item);
 				break;
 			default:
-				//d("BIND ITEMS","THIS IS A DESKTOP ITEM!!!");
 	            switch (item.itemType) {
 	                case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
 	                case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
@@ -1868,11 +1877,15 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             }
 
             //ADW Removed to not reopen on rotation
-            /*final boolean allApps = mSavedState.getBoolean(RUNTIME_STATE_ALL_APPS_FOLDER, false);
+            final boolean allApps = mSavedState.getBoolean(RUNTIME_STATE_ALL_APPS_FOLDER, false);
             if (allApps) {
             	showAllApps(false);
-            }*/
-
+            }
+            
+            final boolean dockOpen=mSavedState.getBoolean(RUNTIME_STATE_DOCKBAR, false);
+            if(dockOpen){
+            	mDockBar.open();
+            }
             mSavedState = null;
         }
 
@@ -1950,7 +1963,12 @@ public final class Launcher extends Activity implements View.OnClickListener, On
      */
     public void onClick(View v) {
     	Object tag = v.getTag();
-        if (tag instanceof ApplicationInfo) {
+        //TODO:ADW Check whether to display a toast if clicked mLAB or mRAB withount binding
+    	if(tag instanceof ItemInfo && tag==null && v instanceof ActionButton){
+    		Toast t=Toast.makeText(this, "No application defined yet, drop something here! :)", Toast.LENGTH_SHORT);
+    		return;
+    	}
+    	if (tag instanceof ApplicationInfo) {
             // Open shortcut
         	ApplicationInfo info=(ApplicationInfo) tag;
             final Intent intent = info.intent;
@@ -1971,8 +1989,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             } else {
                 showAllApps(true);
             }
-        }else{
-    		Toast t=Toast.makeText(this, "No application defined yet :)", Toast.LENGTH_SHORT);
         }
     }
 
@@ -2216,13 +2232,18 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     protected boolean isPreviewing(){
     	return showingPreviews;
     }
+    protected boolean isFullScreenPreviewing(){
+    	return showingPreviews && fullScreenPreviews;
+    }
     private void updateUIConfiguration(){
     	fullScreen(hideStatusBar);
-    	mNextView.setVisibility(showDots?View.VISIBLE:View.GONE);
-    	mPreviousView.setVisibility(showDots?View.VISIBLE:View.GONE);
-    	mRAB.setVisibility(showRAB?View.VISIBLE:View.GONE);
-    	mLAB.setVisibility(showLAB?View.VISIBLE:View.GONE);
-    	mHandleView.setSlidingEnabled(showDockBar);
+    	if(!mDockBar.isOpen()){
+	    	mNextView.setVisibility(showDots?View.VISIBLE:View.GONE);
+	    	mPreviousView.setVisibility(showDots?View.VISIBLE:View.GONE);
+	    	mRAB.setVisibility(showRAB?View.VISIBLE:View.GONE);
+	    	mLAB.setVisibility(showLAB?View.VISIBLE:View.GONE);
+	    	mHandleView.setSlidingEnabled(showDockBar);
+    	}
     }
     private void zoom(){
     	//TODO: ADW Maybe for the future... :)
@@ -2251,12 +2272,27 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	    	mHandleView.setVisibility(View.INVISIBLE);
 	    	mNextView.setVisibility(View.INVISIBLE);
 	    	mPreviousView.setVisibility(View.INVISIBLE);
+    		mRAB.setVisibility(View.INVISIBLE);
+    		mLAB.setVisibility(View.INVISIBLE);
+	        if(mDockBar.isOpen()){
+	        	mDockBar.setVisibility(View.INVISIBLE);
+	        }    		
     	}else{
-	    	mHandleView.setVisibility(View.VISIBLE);
-	    	if(showDots){
-		    	mNextView.setVisibility(View.VISIBLE);
-		    	mPreviousView.setVisibility(View.VISIBLE);
-	    	}
+	        if(mDockBar.isOpen()){
+	        	mDockBar.setVisibility(View.VISIBLE);
+	        }else{
+		    	mHandleView.setVisibility(View.VISIBLE);
+		    	if(showDots){
+			    	mNextView.setVisibility(View.VISIBLE);
+			    	mPreviousView.setVisibility(View.VISIBLE);
+		    	}
+		    	if(showRAB){
+		    		mRAB.setVisibility(View.VISIBLE);
+		    	}
+		    	if(showLAB){
+		    		mLAB.setVisibility(View.VISIBLE);
+		    	}
+	        }
     	}
     }
     private void dismissPreviews(){
@@ -2415,9 +2451,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         anchor.setTag(R.id.icon, bitmaps);
         if(fullScreenPreviews){
 	        hideDesktop(true);
-	        if(mDockBar.isOpen()){
-	        	mDockBar.close();
-	        }
 	        mWorkspace.lock();
 	        mDesktopLocked=true;
 	        mWorkspace.invalidate();

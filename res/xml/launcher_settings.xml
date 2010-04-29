@@ -107,6 +107,10 @@
 			android:defaultValue="true"
 			android:summary="Enable/disable the customizable Right Action Button"
 			android:key="uiRAB" />
+		<CheckBoxPreference android:title="Tint AB"
+			android:defaultValue="true"
+			android:summary="Enable/disable icon tint effect on Action Buttons"
+			android:key="uiTint" />
 	</PreferenceScreen>
 	<PreferenceCategory android:title="Build Information">
 		<Preference

@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -245,12 +246,10 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
 		super.onScrollChanged(l, t, oldl, oldt);
 		mPager.setLeft(l);
-		//Log.d("Scroller","onScrollChanged");
         if(mLayoutMode==LAYOUT_SCROLLING){
 			final int screenWidth = mPageWidth;
 	        final int whichScreen = (getScrollX() + (screenWidth / 2)) / screenWidth;
 	        if(whichScreen!=mScrollToScreen){
-	            //Log.d("Scroll","We are changed to screen:"+whichScreen +" from "+mScrollToScreen);
 	        	if(mScrollToScreen!=INVALID_POSITION){
 	        		addRemovePages(mScrollToScreen, whichScreen);
 	        	}
@@ -258,20 +257,10 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	        	mPager.setCurrentItem(whichScreen);
 	        }
         }
-        //snapToScreen(whichScreen);
-		/*if((l-oldl)>0){
-			Log.d("Scroll","Scrolling right");
-			for(int i=0;i<getChildCount();i++){
-				
-			}
-		}else{
-			Log.d("Scroll","Scrolling left");
-		}*/
 	}
     
     @Override
     public void computeScroll() {
-    	//Log.d("Scroller","computeScroll");
         if (mScroller.computeScrollOffset()) {
             scrollTo(mScroller.getCurrX(),mScroller.getCurrY());
             postInvalidate();
@@ -304,15 +293,15 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	    	final Bitmap texture = mTexture;
 	        final Paint paint = mPaint;
 	
-	        final int width = getWidth();
+	        /*final int width = getWidth();
 	        final int height = getHeight();
 	
 	        final int textureWidth = mTextureWidth;
-	        final int textureHeight = mTextureHeight;
+	        final int textureHeight = mTextureHeight;*/
 	
 	        int x = getScrollX();//0;
-	        int y;
-	
+	        int y=0;
+	        /*
 	        while ((x-getScrollX()) < width) {
 	            y = 0;
 	            while (y < height) {
@@ -320,7 +309,12 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	                y += textureHeight;
 	            }
 	            x += textureWidth;
-	        }
+	        }*/
+	        /*Matrix matrix=new Matrix();
+	        matrix.setScale(3, 3);
+	        matrix.postTranslate(x, y);
+	        canvas.drawBitmap(texture, matrix, mPaint);*/
+	        canvas.drawBitmap(texture, x, y, mPaint);
     	}
 
         final boolean clipToPadding = (mGroupFlags & CLIP_TO_PADDING_MASK) == CLIP_TO_PADDING_MASK;

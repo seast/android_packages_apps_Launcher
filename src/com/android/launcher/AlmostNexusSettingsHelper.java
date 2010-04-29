@@ -101,5 +101,10 @@ public final class AlmostNexusSettingsHelper {
 		boolean newD = sp.getBoolean("uiRAB", true);
 		return newD;
 	}
+	public static boolean getUITint(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("uiTint", true);
+		return newD;
+	}
 	
 }

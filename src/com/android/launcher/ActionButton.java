@@ -34,7 +34,6 @@ public class ActionButton extends ImageView implements DropTarget, DragListener 
 		setHapticFeedbackEnabled(true);
 		TypedArray a=context.obtainStyledAttributes(attrs,R.styleable.ActionButton,defStyle,0);
 		mIdent=a.getInt(R.styleable.ActionButton_ident, mIdent);
-		Log.d("ACTIONBUTTON","Created actionbutton with type="+mIdent);
 	}
 
 	public boolean acceptDrop(DragSource source, int x, int y, int xOffset,
@@ -70,7 +69,6 @@ public class ActionButton extends ImageView implements DropTarget, DragListener 
 
 	public void onDrop(DragSource source, int x, int y, int xOffset,
 			int yOffset, Object dragInfo) {
-		Log.d("ACTIONBUTTON","ONDROP");
 		// TODO Auto-generated method stub
     	ItemInfo info = (ItemInfo) dragInfo;
         switch (info.itemType) {
@@ -151,16 +149,39 @@ public class ActionButton extends ImageView implements DropTarget, DragListener 
     }
 
 	@Override
-	protected void onFinishInflate() {
-		Log.d("ACTIONBUTTON","FINISHINFLATE");
-		// TODO Auto-generated method stub
-		super.onFinishInflate();
-	}
-
-	@Override
 	public Object getTag() {
 		// TODO Auto-generated method stub
 		return mCurrentInfo;
 	}
-
+	public void updateIcon(){
+    	if(mCurrentInfo!=null){
+			ItemInfo info=mCurrentInfo;
+			Drawable myIcon=null;
+	        switch (info.itemType) {
+	        case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
+	        case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
+	            if (info.container == NO_ID) {
+	                // Came from all apps -- make a copy
+	                info = new ApplicationInfo((ApplicationInfo) info);
+	            }
+	            myIcon = mLauncher.createSmallActionButtonIcon(info);
+	            break;
+	        case LauncherSettings.Favorites.ITEM_TYPE_LIVE_FOLDER:
+	        case LauncherSettings.Favorites.ITEM_TYPE_USER_FOLDER:
+	            myIcon = mLauncher.createSmallActionButtonIcon(info);
+	        	break;
+	        case LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET:
+	        	//Toast t=Toast.makeText(getContext(), "Widgets not supported... sorry :-)", Toast.LENGTH_SHORT);
+	        	//t.show();
+	        	return;
+	        default:
+	        	//Toast t2=Toast.makeText(getContext(), "Unknown item. We can't add unknown item types :-)", Toast.LENGTH_SHORT);
+	        	//t2.show();
+	        	return;
+	            //throw new IllegalStateException("Unknown item type: " + info.itemType);
+	        }
+	        setImageDrawable(myIcon);
+	        invalidate();
+    	}
+	}
 }

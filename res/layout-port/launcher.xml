@@ -96,7 +96,7 @@
 		android:layout_gravity="bottom|right"
 		android:onClick="nextScreen"/>
 	<com.android.launcher.ActionButton
-		android:src="@drawable/pager_dot_selected"
+		android:src="@drawable/rab_empty"
 		android:background="@drawable/rab_bg"
         android:scaleType="center"
 		android:layout_marginRight="60dip"
@@ -107,7 +107,7 @@
 		android:layout_gravity="bottom|right"
 		/>
 	<com.android.launcher.ActionButton
-		android:src="@drawable/pager_dot_selected"
+		android:src="@drawable/lab_empty"
 		android:background="@drawable/lab_bg"
 		android:scaleType="center"
 		android:layout_marginLeft="60dip"
