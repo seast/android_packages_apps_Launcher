@@ -22,6 +22,7 @@ import android.content.ComponentName;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Rect;
@@ -510,7 +511,43 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
     public boolean isOpaque() {
         return !mWallpaper.hasAlpha();
     }
-
+    public Bitmap getWallpaperSection(){
+    	CellLayout cell = ((CellLayout) getChildAt(mCurrentScreen));
+        LightingColorFilter cf=new LightingColorFilter(0xFF777777, 0);
+        Paint paint = new Paint();
+        paint.setDither(false);
+        paint.setColorFilter(cf);
+        int width = (cell.getMeasuredWidth()>0)?cell.getMeasuredWidth():0;
+        int height = (cell.getMeasuredHeight()>0)?cell.getMeasuredHeight():0;
+    	//TODO:ADW check screen width&height when cell layout not rendered, so measured w&h are 0
+        if(width==0 || height==0){
+        	Display display = mLauncher.getWindowManager().getDefaultDisplay(); 
+        	int w = display.getWidth();
+        	int h = display.getHeight();
+            this.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY));
+            width=getMeasuredWidth();
+            height=getMeasuredHeight();
+        }
+    	float percent=(float)mCurrentScreen/(float)(mHomeScreens-1);
+    	float x=(float)(mWallpaperWidth/2)*percent;
+        float y=(mWallpaperHeight-height)/2;
+        
+        /*Bitmap b=Bitmap.createBitmap((int) width, (int) height,
+                Bitmap.Config.ARGB_8888);*/
+        Bitmap b=Bitmap.createBitmap((int) width, (int) height,
+                Bitmap.Config.RGB_565);
+        Canvas canvas=new Canvas(b);
+        canvas.drawARGB(255, 0, 255, 0);
+        Rect src=new Rect((int)x, (int)y, (int)x+width, (int)y+height);
+        Rect dst=new Rect(0,0,width,height);
+		canvas.drawBitmap(mWallpaper, src, dst, mPaint);
+        cell.dispatchDraw(canvas);
+        canvas.drawBitmap(b, 0, 0, paint);
+        b=Bitmap.createScaledBitmap(b, width/3, height/3, true);
+        b=Bitmap.createScaledBitmap(b, width, height, true);
+        
+		return b;
+    }
     @Override
     protected void dispatchDraw(Canvas canvas) {
         boolean restore = false;
@@ -544,14 +581,13 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         if (x + mWallpaperWidth < mRight - mLeft) {
             x = mRight - mLeft - mWallpaperWidth;
         }
-
         canvas.drawBitmap(mWallpaper, x, (mBottom - mTop - mWallpaperHeight) / 2, mPaint);
 
         // ViewGroup.dispatchDraw() supports many features we don't need:
         // clip to padding, layout animation, animation listener, disappearing
         // children, etc. The following implementation attempts to fast-track
         // the drawing dispatch by drawing only what we know needs to be drawn.
-
+        if(mLauncher.isFullScreenPreviewing()) return;
         boolean fastDraw = mTouchState != TOUCH_STATE_SCROLLING && mNextScreen == INVALID_SCREEN;
         // If we are not scrolling or flinging, draw only the current screen
         if (fastDraw) {
@@ -948,12 +984,20 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
 
     @Override
     protected void onRestoreInstanceState(Parcelable state) {
-        SavedState savedState = (SavedState) state;
-        super.onRestoreInstanceState(savedState.getSuperState());
-        if (savedState.currentScreen != -1) {
-            mCurrentScreen = savedState.currentScreen;
-            Launcher.setScreen(mCurrentScreen);
-        }
+        try {
+	    	SavedState savedState = (SavedState) state;
+	        super.onRestoreInstanceState(savedState.getSuperState());
+	        if (savedState.currentScreen != -1) {
+	            mCurrentScreen = savedState.currentScreen;
+	            Launcher.setScreen(mCurrentScreen);
+	        }
+		} catch (Exception e) {
+			// TODO ADW: Weird bug http://code.google.com/p/android/issues/detail?id=3981
+			//Should be completely fixed on eclair
+			super.onRestoreInstanceState(null);
+			Log.d("WORKSPACE","Google bug http://code.google.com/p/android/issues/detail?id=3981 found, bypassing...");
+		}
+	        
     }
 
     void addApplicationShortcut(ApplicationInfo info, CellLayout.CellInfo cellInfo) {

@@ -70,7 +70,7 @@ public interface DragController {
     /**
      * Sets the drag listner which will be notified when a drag starts or ends.
      */
-    void setDragListener(DragListener l);
+    void addDragListener(DragListener l);
     
     /**
      * Remove a previously installed drag listener.

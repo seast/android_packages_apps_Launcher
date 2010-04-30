@@ -34,10 +34,16 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
         defaultScreen.setOnPreferenceChangeListener(this);
         Preference drawerFast = (Preference) findPreference("drawerFast");
         drawerFast.setOnPreferenceChangeListener(this);
+        Preference drawerNew = (Preference) findPreference("drawerNew");
+        drawerNew.setOnPreferenceChangeListener(this);
         dlgSeekBarPreference columnsPortrait= (dlgSeekBarPreference) findPreference("drawerColumnsPortrait");
         columnsPortrait.setMin(1);
+        dlgSeekBarPreference rowsPortrait= (dlgSeekBarPreference) findPreference("drawerRowsPortrait");
+        rowsPortrait.setMin(1);
         dlgSeekBarPreference columnsLandscape= (dlgSeekBarPreference) findPreference("drawerColumnsLandscape");
         columnsLandscape.setMin(1);
+        dlgSeekBarPreference rowsLandscape= (dlgSeekBarPreference) findPreference("drawerRowsLandscape");
+        rowsLandscape.setMin(1);
     }
 	@Override
 	protected void onPause(){
@@ -83,11 +89,23 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
 			       });
 			AlertDialog alert = builder.create();
 			alert.show();		
+		}else if(preference.getKey().equals("drawerNew")){
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setMessage("This setting will cause launcher to restart")
+			       .setCancelable(false)
+			       .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			           public void onClick(DialogInterface dialog, int id) {
+							shouldRestart=true;
+			           }
+			       });
+			AlertDialog alert = builder.create();
+			alert.show();
 		}else if(preference.getKey().equals("drawerFast")){
 			boolean val=Boolean.parseBoolean(newValue.toString());
-			if(!val){
+			boolean newDrawer=AlmostNexusSettingsHelper.getDrawerNew(getApplicationContext());
+			if(!val && !newDrawer){
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setMessage("Setting this to off will cause launcher to restart")
+				builder.setMessage("Setting this to OFF will cause launcher to restart")
 				       .setCancelable(false)
 				       .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				           public void onClick(DialogInterface dialog, int id) {
@@ -96,9 +114,7 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
 				       });
 				AlertDialog alert = builder.create();
 				alert.show();
-			}else{
-				shouldRestart=false;
-			}			
+			}
 		}
         return true;  
 	}
