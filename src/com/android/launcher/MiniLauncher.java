@@ -93,7 +93,7 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
     public void onDrop(DragSource source, int x, int y, int xOffset, int yOffset, Object dragInfo) {
         //TODO:ADW Limit to X items till i manage to add scroll, removing, etc
         if(getChildCount()>=mNumCells){
-        	Toast t=Toast.makeText(getContext(), "sorry, 5 items max... atm :-)", Toast.LENGTH_SHORT);
+        	Toast t=Toast.makeText(getContext(), "sorry, "+mNumCells+" items max... atm :-)", Toast.LENGTH_SHORT);
         	t.show();
         	return;
         }
