@@ -43,44 +43,13 @@ public class WallpaperChooser extends Activity implements AdapterView.OnItemSele
         OnClickListener {
 
     private static final Integer[] THUMB_IDS = {
-	    R.drawable.wallpaper_skate_small,
-        R.drawable.wallpaper_prash_nexus_surf_small,
-	    R.drawable.wallpaper_cyan_small,
-	    R.drawable.wallpaper_prash_arrowd_blue_small,
-	    R.drawable.wallpaper_prash_arrowd_green_small,
-	    R.drawable.wallpaper_prash_arrowd_pink_small,
-	    R.drawable.wallpaper_cm_nexus_08_small,
-	    R.drawable.wallpaper_grass_night_small,
-	    R.drawable.wallpaper_galaxy_small,
-	    R.drawable.wallpaper_nexusrain_small,
-	    R.drawable.wallpaper_nexuspattern_small,
-	    R.drawable.wallpaper_nexuswallpaper1_small,
-	    R.drawable.wallpaper_brown_small,
-	    R.drawable.wallpaper_bluedotgrid_small,
-	    R.drawable.wallpaper_hazybluedots_small,
-	    R.drawable.wallpaper_ropelights_small,
-	    R.drawable.wallpaper_prash_cm_girls_small
+	    R.drawable.wallpaper_nexuspattern_small
+
 
     };
 
     private static final Integer[] IMAGE_IDS = {
-	    R.drawable.wallpaper_skate,
-        R.drawable.wallpaper_prash_nexus_surf,
-	    R.drawable.wallpaper_cyan,
-	    R.drawable.wallpaper_prash_arrowd_blue,
-	    R.drawable.wallpaper_prash_arrowd_green,
-	    R.drawable.wallpaper_prash_arrowd_pink,
-	    R.drawable.wallpaper_cm_nexus_08,
-	    R.drawable.wallpaper_grass_night,
-	    R.drawable.wallpaper_galaxy,
-	    R.drawable.wallpaper_nexusrain,
-	    R.drawable.wallpaper_nexuspattern,
-	    R.drawable.wallpaper_nexuswallpaper1,
-	    R.drawable.wallpaper_brown,
-	    R.drawable.wallpaper_bluedotgrid,
-	    R.drawable.wallpaper_hazybluedots,
-	    R.drawable.wallpaper_ropelights,
-	    R.drawable.wallpaper_prash_cm_girls
+	    R.drawable.wallpaper_nexuspattern
     };
 
     private Gallery mGallery;

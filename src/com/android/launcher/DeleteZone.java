@@ -17,11 +17,21 @@
 package com.android.launcher;
 
 import android.widget.ImageView;
+import android.widget.Toast;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.view.animation.TranslateAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
@@ -34,6 +44,7 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
     private static final int ORIENTATION_HORIZONTAL = 1;
     private static final int TRANSITION_DURATION = 250;
     private static final int ANIMATION_DURATION = 200;
+	private static final String LOG_TAG = "DeleteZone";
 
     private final int[] mLocation = new int[2];
     
@@ -51,7 +62,12 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
     private final RectF mRegion = new RectF();
     private TransitionDrawable mTransition;
     private View mHandle;
-
+    private boolean shouldUninstall=false;
+    private Handler mHandler = new Handler();
+	private boolean mUninstallTarget=false;
+	private int mCustomPadding=60;
+	String UninstallPkg = null;
+	private boolean mTrickyLocation=false;
     public DeleteZone(Context context) {
         super(context);
     }
@@ -118,7 +134,14 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
 
     public void onDragEnter(DragSource source, int x, int y, int xOffset, int yOffset,
             Object dragInfo) {
-        mTransition.reverseTransition(TRANSITION_DURATION);
+    	//ADW: show uninstall message
+    	final ItemInfo item = (ItemInfo) dragInfo;
+    	if (item instanceof ApplicationInfo){
+	    	mTransition.reverseTransition(TRANSITION_DURATION);
+	    	mUninstallTarget = true;
+	        mHandler.removeCallbacks(mShowUninstaller);
+	        mHandler.postDelayed(mShowUninstaller, 1000);
+    	}
     }
 
     public void onDragOver(DragSource source, int x, int y, int xOffset, int yOffset,
@@ -128,22 +151,93 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
     public void onDragExit(DragSource source, int x, int y, int xOffset, int yOffset,
             Object dragInfo) {
         mTransition.reverseTransition(TRANSITION_DURATION);
+        //ADW: not show uninstall message
+        //ADW We need to call this delayed cause onDragExit is always called just before onDragEnd :(
+    	mHandler.removeCallbacks(mShowUninstaller);
+        if(shouldUninstall){
+	        mUninstallTarget = false;
+	        mHandler.postDelayed(mShowUninstaller, 100);
+        }
     }
 
     public void onDragStart(View v, DragSource source, Object info, int dragAction) {
         final ItemInfo item = (ItemInfo) info;
+        mCustomPadding=mLauncher.getTrashPadding();
         if (item != null) {
-            mTrashMode = true;
+        	mTrashMode = true;
             createAnimations();
             final int[] location = mLocation;
             getLocationOnScreen(location);
-            mRegion.set(location[0], location[1], location[0] + mRight - mLeft,
-                    location[1] + mBottom - mTop);
+            if(mLauncher.isDockBarOpen()){
+            	MarginLayoutParams tmp=(MarginLayoutParams) getLayoutParams();
+            	if(mOrientation==ORIENTATION_HORIZONTAL){
+            		tmp.bottomMargin=mCustomPadding;
+            		tmp.rightMargin=0;
+            	}else{
+            		tmp.bottomMargin=0;
+            		tmp.rightMargin=mCustomPadding;
+            	}
+            	setLayoutParams(tmp);
+                //TODO: ADW we need to hack the real location the first time we move the trash can
+                if(!mTrickyLocation){
+                    if(mOrientation==ORIENTATION_HORIZONTAL){
+                    	mRegion.set(location[0], location[1]-mCustomPadding, location[0] + mRight - mLeft,
+                            location[1] + mBottom - mTop-mCustomPadding);
+                    }else{
+                    	mRegion.set(location[0]-mCustomPadding, location[1], location[0] + mRight - mLeft -mCustomPadding,
+                                location[1] + mBottom - mTop);
+                    }
+                    mTrickyLocation=true;
+                }else{
+                    mRegion.set(location[0], location[1], location[0] + mRight - mLeft,
+                            location[1] + mBottom - mTop);
+                }
+            }else{
+            	MarginLayoutParams tmp=(MarginLayoutParams) getLayoutParams();
+        		tmp.bottomMargin=0;
+        		tmp.rightMargin=0;
+            	setLayoutParams(tmp);
+                //TODO: ADW we need to hack the real location the first time we move the trash can
+                if(mTrickyLocation){
+                	if(mOrientation==ORIENTATION_HORIZONTAL){
+                		mRegion.set(location[0], location[1]+mCustomPadding, location[0] + mRight - mLeft,
+                            location[1] + mBottom - mTop+mCustomPadding);
+                	}else{
+                		mRegion.set(location[0]+mCustomPadding, location[1], location[0] + mRight - mLeft+mCustomPadding,
+                                location[1] + mBottom - mTop);
+                	}
+                    mTrickyLocation=false;
+                }else{
+                    mRegion.set(location[0], location[1], location[0] + mRight - mLeft,
+                            location[1] + mBottom - mTop);
+                }            	
+            }
             mDragLayer.setDeleteRegion(mRegion);
             mTransition.resetTransition();
             startAnimation(mInAnimation);
-            mHandle.startAnimation(mHandleOutAnimation);
+            if(!mLauncher.isDockBarOpen()){
+            	mHandle.startAnimation(mHandleOutAnimation);
+            }
+            
             setVisibility(VISIBLE);
+            //ADW Store app data for uninstall if its an Application
+            //ADW Thanks to irrenhaus@xda & Rogro82@xda :)
+			if(item instanceof ApplicationInfo){
+				try{
+					final ApplicationInfo appInfo=(ApplicationInfo) item;
+		            if(appInfo.iconResource != null)
+						UninstallPkg = appInfo.iconResource.packageName;
+					else
+					{
+						PackageManager mgr = DeleteZone.this.getContext().getPackageManager();
+						ResolveInfo res = mgr.resolveActivity(appInfo.intent, 0);
+						UninstallPkg = res.activityInfo.packageName;
+					}
+				}catch (Exception e) {
+					Log.w(LOG_TAG, "Could not load shortcut icon: " + item);
+					UninstallPkg=null;
+				}
+			}            
         }
     }
 
@@ -152,9 +246,29 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
             mTrashMode = false;
             mDragLayer.setDeleteRegion(null);
             startAnimation(mOutAnimation);
-            mHandle.startAnimation(mHandleInAnimation);
+            if(!mLauncher.isDockBarOpen()){
+            	mHandle.startAnimation(mHandleInAnimation);
+            }
+            
+            if(mLauncher.isDockBarOpen()){
+            	MarginLayoutParams tmp=(MarginLayoutParams) getLayoutParams();
+            	//Log.d("DELETEZONE","We already have a bottom margin of:"+tmp.bottomMargin);
+            	if(mOrientation==ORIENTATION_HORIZONTAL){
+            		tmp.bottomMargin=0;
+            	}else{
+            		tmp.rightMargin=0;
+            	}
+            	//Log.d("DELETEZONE","We changed bottom margin to:"+tmp.bottomMargin);
+            	setLayoutParams(tmp);
+            	//set(getLeft(), getTop(), getRight(), getBottom()+60);
+            }            
             setVisibility(GONE);
         }
+        if(shouldUninstall && UninstallPkg!=null){
+			Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, Uri.parse("package:"+UninstallPkg));
+			DeleteZone.this.getContext().startActivity(uninstallIntent);
+        }
+        
     }
 
     private void createAnimations() {
@@ -262,4 +376,14 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
             return false;
         }
     }
+    //ADW Runnable to show the uninstall message (or reset the uninstall status)
+    private Runnable mShowUninstaller = new Runnable() {
+		public void run() {
+    	       shouldUninstall=mUninstallTarget;
+    	       CharSequence msg="Drop to Uninstall";
+    	       if(shouldUninstall){
+    	    	   Toast.makeText(mContext, msg, 500).show();
+    	       }
+		}
+    };
 }

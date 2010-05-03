@@ -16,6 +16,8 @@
 
 package com.android.launcher;
 
+import java.util.ArrayList;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -93,7 +95,10 @@ public class DragLayer extends FrameLayout implements DragController {
 
     private final Vibrator mVibrator = new Vibrator();
 
-    private DragListener mListener;
+    //private DragListener mListener;
+    // Faruq: utilize array list instead
+    private ArrayList<DragListener> mListener = new ArrayList<DragListener>();
+    //private DragListener mListener;
 
     private DragScroller mDragScroller;
 
@@ -179,8 +184,12 @@ public class DragLayer extends FrameLayout implements DragController {
         }
         mInputMethodManager.hideSoftInputFromWindow(getWindowToken(), 0);
 
-        if (mListener != null) {
+        /*if (mListener != null) {
             mListener.onDragStart(v, source, dragInfo, dragAction);
+        }*/
+        // Faruq: ArrayList For Each
+        for (DragListener l : mListener) {
+        	l.onDragStart(v, source, dragInfo, dragAction);
         }
 
         Rect r = mDragRect;
@@ -311,9 +320,13 @@ public class DragLayer extends FrameLayout implements DragController {
             if (mOriginator != null) {
                 mOriginator.setVisibility(VISIBLE);
             }
-            if (mListener != null) {
+            /*if (mListener != null) {
                 mListener.onDragEnd();
-            }
+            }*/
+            // Faruq: ArrayList For Each
+            for (DragListener l : mListener) {
+            	l.onDragEnd();
+            }            
         }
     }
 
@@ -580,13 +593,22 @@ public class DragLayer extends FrameLayout implements DragController {
         mDragScroller = scroller;
     }
 
-    public void setDragListener(DragListener l) {
+    /*public void setDragListener(DragListener l) {
         mListener = l;
     }
-
+    
     public void removeDragListener(DragListener l) {
         mListener = null;
+    }*/
+    // Faruq: utilize array list instead
+    public void addDragListener(DragListener l) {
+    	mListener.add(l);
     }
+
+    @SuppressWarnings({"UnusedDeclaration"})
+    public void removeDragListener(DragListener l) {
+    	mListener.remove(l);
+    }    
 
     /**
      * Specifies the view that must be ignored when looking for a drop target.

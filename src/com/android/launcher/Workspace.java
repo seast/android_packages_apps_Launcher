@@ -22,12 +22,14 @@ import android.content.ComponentName;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -116,7 +118,9 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
     final Rect mClipBounds = new Rect();
     int mDrawerContentHeight;
     int mDrawerContentWidth;
-
+    //rogro82@xda
+    int mHomeScreens = 0;
+    int mHomeScreensLoaded = 0;
     /**
      * Used to inflate the Workspace from XML.
      *
@@ -138,9 +142,14 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         super(context, attrs, defStyle);
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.Workspace, defStyle, 0);
-        mDefaultScreen = a.getInt(R.styleable.Workspace_defaultScreen, 1);
-        a.recycle();
+        /* Rogro82@xda Extended : Load the default and number of homescreens from the settings database */
+        mHomeScreens = AlmostNexusSettingsHelper.getDesktopScreens(context);
+        mDefaultScreen = AlmostNexusSettingsHelper.getDefaultScreen(context);
+        if(mDefaultScreen>mHomeScreens-1) mDefaultScreen=0;
+        Launcher.DEFAULT_SCREN = mDefaultScreen;
+        Launcher.SCREEN_COUNT = mHomeScreens;
 
+        a.recycle();
         initWorkspace();
     }
 
@@ -175,7 +184,12 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         if (!(child instanceof CellLayout)) {
             throw new IllegalArgumentException("A Workspace can only have CellLayout children.");
         }
-        super.addView(child, index, params);
+        /* Rogro82@xda Extended : Only load the number of home screens set */
+        if(mHomeScreensLoaded < mHomeScreens)
+        {
+            mHomeScreensLoaded++;
+            super.addView(child, index, params);
+        }
     }
 
     @Override
@@ -284,7 +298,8 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         scrollTo(mCurrentScreen * getWidth(), 0);
 	//BY ADW 
 	indicatorLevels(mCurrentScreen);
-	//EOF ADW        invalidate();
+	//EOF ADW
+        invalidate();
     }
 
     /**
@@ -352,7 +367,9 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
      */
     void addInScreen(View child, int screen, int x, int y, int spanX, int spanY, boolean insert) {
         if (screen < 0 || screen >= getChildCount()) {
-            throw new IllegalStateException("The screen must be >= 0 and < " + getChildCount());
+               /* Rogro82@xda Extended : Do not throw an exception else it will crash when there is an item on a hidden homescreen */
+               return;
+               //throw new IllegalStateException("The screen must be >= 0 and < " + getChildCount());
         }
 
         clearVacantCache();
@@ -481,9 +498,9 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
             postInvalidate();
         } else if (mNextScreen != INVALID_SCREEN) {
             mCurrentScreen = Math.max(0, Math.min(mNextScreen, getChildCount() - 1));
-	    //BY ADW 
-	    indicatorLevels(mCurrentScreen);
-	    //EOF ADW
+            //BY ADW 
+        	indicatorLevels(mCurrentScreen);
+        	//EOF ADW
             Launcher.setScreen(mCurrentScreen);
             mNextScreen = INVALID_SCREEN;
             clearChildrenCache();
@@ -494,7 +511,43 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
     public boolean isOpaque() {
         return !mWallpaper.hasAlpha();
     }
-
+    public Bitmap getWallpaperSection(){
+    	CellLayout cell = ((CellLayout) getChildAt(mCurrentScreen));
+        LightingColorFilter cf=new LightingColorFilter(0xFF777777, 0);
+        Paint paint = new Paint();
+        paint.setDither(false);
+        paint.setColorFilter(cf);
+        int width = (cell.getMeasuredWidth()>0)?cell.getMeasuredWidth():0;
+        int height = (cell.getMeasuredHeight()>0)?cell.getMeasuredHeight():0;
+    	//TODO:ADW check screen width&height when cell layout not rendered, so measured w&h are 0
+        if(width==0 || height==0){
+        	Display display = mLauncher.getWindowManager().getDefaultDisplay(); 
+        	int w = display.getWidth();
+        	int h = display.getHeight();
+            this.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY));
+            width=getMeasuredWidth();
+            height=getMeasuredHeight();
+        }
+    	float percent=(float)mCurrentScreen/(float)(mHomeScreens-1);
+    	float x=(float)(mWallpaperWidth/2)*percent;
+        float y=(mWallpaperHeight-height)/2;
+        
+        /*Bitmap b=Bitmap.createBitmap((int) width, (int) height,
+                Bitmap.Config.ARGB_8888);*/
+        Bitmap b=Bitmap.createBitmap((int) width, (int) height,
+                Bitmap.Config.RGB_565);
+        Canvas canvas=new Canvas(b);
+        canvas.drawARGB(255, 0, 255, 0);
+        Rect src=new Rect((int)x, (int)y, (int)x+width, (int)y+height);
+        Rect dst=new Rect(0,0,width,height);
+		canvas.drawBitmap(mWallpaper, src, dst, mPaint);
+        cell.dispatchDraw(canvas);
+        canvas.drawBitmap(b, 0, 0, paint);
+        b=Bitmap.createScaledBitmap(b, width/3, height/3, true);
+        b=Bitmap.createScaledBitmap(b, width, height, true);
+        
+		return b;
+    }
     @Override
     protected void dispatchDraw(Canvas canvas) {
         boolean restore = false;
@@ -502,7 +555,11 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         // If the all apps drawer is open and the drawing region for the workspace
         // is contained within the drawer's bounds, we skip the drawing. This requires
         // the drawer to be fully opaque.
-        if (mLauncher.isDrawerUp()) {
+        //TODO: ADW-little hack to force redrawing
+        if(mLauncher.isDrawerUp() && mLauncher.isAllAppsOpaque()){
+        	return;
+        }
+        /*if (mLauncher.isDrawerUp()) {
             final Rect clipBounds = mClipBounds;
             canvas.getClipBounds(clipBounds);
             clipBounds.offset(-mScrollX, -mScrollY);
@@ -518,20 +575,19 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
 
             canvas.clipRect(mScrollX, top, mScrollX + mDrawerContentWidth,
                     top + mDrawerContentHeight, Region.Op.DIFFERENCE);
-        }
+        }*/
 
         float x = mScrollX * mWallpaperOffset;
         if (x + mWallpaperWidth < mRight - mLeft) {
             x = mRight - mLeft - mWallpaperWidth;
         }
-
         canvas.drawBitmap(mWallpaper, x, (mBottom - mTop - mWallpaperHeight) / 2, mPaint);
 
         // ViewGroup.dispatchDraw() supports many features we don't need:
         // clip to padding, layout animation, animation listener, disappearing
         // children, etc. The following implementation attempts to fast-track
         // the drawing dispatch by drawing only what we know needs to be drawn.
-
+        if(mLauncher.isFullScreenPreviewing()) return;
         boolean fastDraw = mTouchState != TOUCH_STATE_SCROLLING && mNextScreen == INVALID_SCREEN;
         // If we are not scrolling or flinging, draw only the current screen
         if (fastDraw) {
@@ -928,12 +984,20 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
 
     @Override
     protected void onRestoreInstanceState(Parcelable state) {
-        SavedState savedState = (SavedState) state;
-        super.onRestoreInstanceState(savedState.getSuperState());
-        if (savedState.currentScreen != -1) {
-            mCurrentScreen = savedState.currentScreen;
-            Launcher.setScreen(mCurrentScreen);
-        }
+        try {
+	    	SavedState savedState = (SavedState) state;
+	        super.onRestoreInstanceState(savedState.getSuperState());
+	        if (savedState.currentScreen != -1) {
+	            mCurrentScreen = savedState.currentScreen;
+	            Launcher.setScreen(mCurrentScreen);
+	        }
+		} catch (Exception e) {
+			// TODO ADW: Weird bug http://code.google.com/p/android/issues/detail?id=3981
+			//Should be completely fixed on eclair
+			super.onRestoreInstanceState(null);
+			Log.d("WORKSPACE","Google bug http://code.google.com/p/android/issues/detail?id=3981 found, bypassing...");
+		}
+	        
     }
 
     void addApplicationShortcut(ApplicationInfo info, CellLayout.CellInfo cellInfo) {
@@ -1358,11 +1422,11 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         snapToScreen(mDefaultScreen);
         getChildAt(mDefaultScreen).requestFocus();
     }
-    
+    //TODO: ADW-indicators for screen pager
     void setIndicators(Drawable previous, Drawable next) {
         mPreviousIndicator = previous;
         mNextIndicator = next;
-	indicatorLevels(mCurrentScreen);
+    	indicatorLevels(mCurrentScreen);
     }
     void indicatorLevels(int mCurrent){
     	int numScreens=getChildCount();
