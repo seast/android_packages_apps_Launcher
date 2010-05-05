@@ -527,8 +527,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		}else{
 			((AllAppsGridView) mAllAppsGrid).setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
 		}
-		if(!mIsNewIntent)
-			updateUIConfiguration();
+		//if(!mIsNewIntent)
+		updateUIConfiguration();
         mIsNewIntent = false;
     }
 
@@ -2237,7 +2237,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
     private void updateUIConfiguration(){
     	fullScreen(hideStatusBar);
-    	if(!mDockBar.isOpen()){
+    	if(!mDockBar.isOpen() && !showingPreviews){
 	    	mNextView.setVisibility(showDots?View.VISIBLE:View.GONE);
 	    	mPreviousView.setVisibility(showDots?View.VISIBLE:View.GONE);
 	    	mRAB.setVisibility(showRAB?View.VISIBLE:View.GONE);
