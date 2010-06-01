@@ -19,9 +19,8 @@
 -->
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.adw.launcher"
-    android:versionCode="6" android:versionName="0.7.5 standalone"
-    android:installLocation="internalOnly">
+    package="org.adw.launcher_donut"
+    android:versionCode="6" android:versionName="0.7.5 standalone donut">
 
     <permission
         android:name="com.android.launcher.permission.INSTALL_SHORTCUT"
@@ -36,13 +35,13 @@
         android:label="@string/permlab_uninstall_shortcut"
         android:description="@string/permdesc_uninstall_shortcut"/>
     <permission
-        android:name="org.adw.launcher.permission.READ_SETTINGS"
+        android:name="org.adw.launcher_donut.permission.READ_SETTINGS"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
         android:protectionLevel="normal"
         android:label="@string/permlab_read_settings"
         android:description="@string/permdesc_read_settings"/>
     <permission
-        android:name="org.adw.launcher.permission.WRITE_SETTINGS"
+        android:name="org.adw.launcher_donut.permission.WRITE_SETTINGS"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
         android:protectionLevel="normal"
         android:label="@string/permlab_write_settings"
@@ -57,8 +56,8 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.BIND_APPWIDGET" />
-    <uses-permission android:name="org.adw.launcher.permission.READ_SETTINGS" />
-    <uses-permission android:name="org.adw.launcher.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="org.adw.launcher_donut.permission.READ_SETTINGS" />
+    <uses-permission android:name="org.adw.launcher_donut.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.RESTART_PACKAGES" />
 
     <application
@@ -72,7 +71,7 @@
             android:launchMode="singleTask"
             android:clearTaskOnLaunch="true"
             android:stateNotNeeded="true"
-            android:theme="@android:style/Theme.Wallpaper.NoTitleBar"
+            android:theme="@style/Theme"
             android:screenOrientation="nosensor"
             android:windowSoftInputMode="stateUnspecified|adjustPan">
             <intent-filter>
@@ -86,8 +85,7 @@
         <activity
             android:name="WallpaperChooser"
             android:label="@string/pick_wallpaper"
-            android:icon="@drawable/ic_launcher_wallpaper"
-            android:finishOnCloseSystemDialogs="true">
+            android:icon="@drawable/ic_launcher_wallpaper">
             <intent-filter>
                 <action android:name="android.intent.action.SET_WALLPAPER" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -120,12 +118,14 @@
         <!-- The settings provider contains Home's data, like the workspace favorites -->
         <provider
             android:name="LauncherProvider"
-            android:authorities="org.adw.launcher.settings"
-            android:writePermission="org.adw.launcher.permission.WRITE_SETTINGS"
-            android:readPermission="org.adw.launcher.permission.READ_SETTINGS" />
+            android:authorities="org.adw.launcher_donut.settings"
+            android:writePermission="org.adw.launcher_donut.permission.WRITE_SETTINGS"
+            android:readPermission="org.adw.launcher_donut.permission.READ_SETTINGS" />
 
     </application>
-    <uses-sdk android:minSdkVersion="5"/>
+    <uses-sdk android:minSdkVersion="4"
+    android:targetSdkVersion="4"
+    android:maxSdkVersion="4"/>
 	<supports-screens
 		android:largeScreens="true"
 		android:normalScreens="true"

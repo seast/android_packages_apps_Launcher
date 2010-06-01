@@ -14,5 +14,5 @@
      limitations under the License.
 -->
 
-<org.adw.launcher.BubbleTextView xmlns:android="http://schemas.android.com/apk/res/android"
+<org.adw.launcher_donut.BubbleTextView xmlns:android="http://schemas.android.com/apk/res/android"
  	style="@style/WorkspaceIcon.Portrait" />
