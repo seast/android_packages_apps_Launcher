@@ -229,6 +229,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 				// TODO Auto-generated method stub
 				if(Status==OnFadingListener.CLOSE){
 					setVisibility(View.GONE);
+					mLauncher.getWorkspace().clearChildrenCache();
 				}else{
 					isAnimating=false;
 					mBgAlpha=255;
@@ -874,16 +875,18 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     		return false;
     	}
     	final HolderLayout h=(HolderLayout) getChildAt(mCurrentHolder);
-        final int childCount = h.getChildCount();
-
-        if (childCount <= 0) {
-            return false;
-        }
-        for(int i=0;i<childCount;i++){
-        	h.getChildAt(i).setPressed(false);
-        }
-        positionSelector(h.getChildAt(0));
-        setSelection(0);
+    	if(h!=null && h instanceof HolderLayout){
+	        final int childCount = h.getChildCount();
+	
+	        if (childCount <= 0) {
+	            return false;
+	        }
+	        for(int i=0;i<childCount;i++){
+	        	h.getChildAt(i).setPressed(false);
+	        }
+	        positionSelector(h.getChildAt(0));
+	        setSelection(0);
+    	}
         return true;
     } 
     public View getViewAtPosition(int pos){
@@ -1596,7 +1599,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         public void run() {
             final int motionPosition = mCheckTapPosition;
             final View child = getViewAtPosition(motionPosition);
-            if (child != null) {
+            if (child != null && mAdapter!=null) {
                 final int longPressPosition = motionPosition;
                 final long longPressId = mAdapter.getItemId(motionPosition);
 
@@ -1858,9 +1861,11 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     		if(holder!=null){
     			holder.close(animate, mAnimationDuration);
     		}else{
+    			mLauncher.getWorkspace().clearChildrenCache();
     			setVisibility(View.GONE);
     		}
     	}else{
+    		mLauncher.getWorkspace().clearChildrenCache();
     		setVisibility(View.GONE);
     	}
 	}
