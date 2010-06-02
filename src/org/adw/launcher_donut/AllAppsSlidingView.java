@@ -229,6 +229,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 				// TODO Auto-generated method stub
 				if(Status==OnFadingListener.CLOSE){
 					setVisibility(View.GONE);
+					mLauncher.getWorkspace().clearChildrenCache();
 				}else{
 					isAnimating=false;
 					mBgAlpha=255;
@@ -1860,9 +1861,11 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     		if(holder!=null){
     			holder.close(animate, mAnimationDuration);
     		}else{
+    			mLauncher.getWorkspace().clearChildrenCache();
     			setVisibility(View.GONE);
     		}
     	}else{
+    		mLauncher.getWorkspace().clearChildrenCache();
     		setVisibility(View.GONE);
     	}
 	}
