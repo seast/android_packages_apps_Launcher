@@ -2786,7 +2786,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         //check first if it's already open
         final PopupWindow window = (PopupWindow) anchor.getTag();
         if (window != null) return;
-        showingPreviews=true;
     	Resources resources = getResources();
 
         Workspace workspace = mWorkspace;
@@ -2819,6 +2818,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         //width -= (x + cell.getRightPadding());
         //height -= (y + cell.getBottomPadding());
         if(width!=0 && height!=0){
+            showingPreviews=true;
 	        float scale = w / width;
 	
 	        int count = end - start;
