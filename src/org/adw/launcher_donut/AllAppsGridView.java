@@ -189,7 +189,7 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 			isAnimating=false;
 			if(mStatus==OPENING){
 				mStatus=OPEN;
-				clearChildrenCache();
+				//clearChildrenCache();
 				if(forceOpaque){
 					//setCacheColorHint(0xFF000000);
 					//setDrawingCacheBackgroundColor(0xFF000000);
@@ -201,6 +201,7 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 				//setChildrenDrawnWithCacheEnabled(true);
 			}else if(mStatus==CLOSING){
 				mStatus=CLOSED;
+				mLauncher.getWorkspace().clearChildrenCache();
 				setVisibility(View.GONE);
 			}
 		}
@@ -299,7 +300,7 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 	public void open(boolean animate){
 		//setCacheColorHint(0);
         //setDrawingCacheBackgroundColor(0);
-		clearChildrenCache();
+		//clearChildrenCache();
 		//setChildrenDrawingCacheEnabled(true);
         //setHorizontalFadingEdgeEnabled(false);
         //setVerticalFadingEdgeEnabled(false);
@@ -345,6 +346,7 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 		}else{
 			mStatus=CLOSED;
 			isAnimating=false;
+			mLauncher.getWorkspace().clearChildrenCache();
 			setVisibility(View.GONE);
 		}
 		startTime=0;
