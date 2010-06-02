@@ -142,4 +142,9 @@ public final class AlmostNexusSettingsHelper {
 		boolean newD = sp.getBoolean("uiHideLabels", false);
 		return newD;
 	}
+	public static int getDrawerAlpha(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, context.MODE_PRIVATE);
+		int newD = sp.getInt("drawerAlpha", 255);
+		return newD;
+	}
 }
