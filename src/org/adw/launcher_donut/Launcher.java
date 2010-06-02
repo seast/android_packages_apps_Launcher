@@ -2569,11 +2569,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 			mRAB.updateIcon();
 			mLAB.updateIcon();
 		}
-		if(newDrawer){
-			((AllAppsSlidingView) mAllAppsGrid).setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
-		}else{
-			((AllAppsGridView) mAllAppsGrid).setForceOpaque(AlmostNexusSettingsHelper.getDrawerFast(Launcher.this));
-		}
 		
     	fullScreen(hideStatusBar);
     	if(!mDockBar.isOpen() && !showingPreviews){
@@ -2972,7 +2967,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		}    	
     }
     boolean isAllAppsVisible() {
-    	return allAppsOpen;
+    	//return allAppsOpen;
+    	if(mAllAppsGrid!=null)
+    		return mAllAppsGrid.getVisibility()==View.VISIBLE;
+    	else
+    		return false;
     }
     boolean isAllAppsOpaque() {
     	if(newDrawer)
@@ -2985,14 +2984,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
     protected int getTrashPadding(){
 		return mDockBar.getSize();
-    }
-    /**
-     * Obtain a fast blurred copy of background+current screen
-     * @return
-     */
-    protected Bitmap getBlurredBg(){
-        Workspace workspace = mWorkspace;
-    	return workspace.getWallpaperSection();
     }
     /**
      * ADW: wallpaper intent receiver for proper trackicng of wallpaper changes 
