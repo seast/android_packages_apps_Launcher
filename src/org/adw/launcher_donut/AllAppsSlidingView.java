@@ -180,6 +180,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 		super(context, attrs, defStyle);
         TypedArray a = context.obtainStyledAttributes(attrs,
                 R.styleable.AllAppsSlidingView, defStyle, 0);
+        a.recycle();
 
         Drawable d = a.getDrawable(R.styleable.AllAppsSlidingView_listSelector);
         if (d != null) {
