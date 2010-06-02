@@ -136,12 +136,6 @@
     <string name="pref_title_screen_preferences">Screen preferences</string>
     <string name="pref_summary_screen_preferences">Screen count, default screen...</string>
 
-    <string name="pref_title_wallpaper_hack">Wallpaper Hack</string>
-    <string name="pref_summary_wallpaper_hack">Disable thisif you get FCs using LARGE wallpapers.Leaving it enabled inproves the scrolling speed.</string>
-
-    <string name="pref_title_lwp_support">LWP Support</string>
-    <string name="pref_summary_lwp_support">Activate support for live wallpapers</string>
-
     <string name="pref_title_orientation_sensor">Orientation sensor</string>
     <string name="pref_summary_orientation_sensor">Rotate desktop on sensor rotation</string>
 

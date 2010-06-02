@@ -7,10 +7,6 @@
 		android:key="screenPreferences"
 		android:title="@string/pref_title_screen_preferences"
 		android:summary="@string/pref_summary_screen_preferences">
-		<CheckBoxPreference android:title="@string/pref_title_lwp_support"
-			android:defaultValue="true"
-			android:summary="@string/pref_summary_lwp_support"
-			android:key="lwpSupport" />
 		<CheckBoxPreference android:title="@string/pref_title_orientation_sensor"
 			android:defaultValue="true"
 			android:summary="@string/pref_summary_orientation_sensor"
