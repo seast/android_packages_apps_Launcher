@@ -26,5 +26,5 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Please, donate if you like my work :-)" />
+            android:text="@string/adw_donate" />
 </LinearLayout>
