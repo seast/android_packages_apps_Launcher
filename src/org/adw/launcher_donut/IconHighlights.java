@@ -1,8 +1,6 @@
 package org.adw.launcher_donut;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
 

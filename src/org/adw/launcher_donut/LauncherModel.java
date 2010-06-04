@@ -1167,7 +1167,6 @@ public class LauncherModel {
         if (desktopItems != null) {
             final int count = desktopItems.size();
             for (int i = 0; i < count; i++) {
-                ItemInfo item = desktopItems.get(i);
                 addOccupiedCells(occupied, screen, desktopItems.get(i));
             }
         }

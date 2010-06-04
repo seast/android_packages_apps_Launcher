@@ -16,19 +16,18 @@
 
 package org.adw.launcher_donut;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ComponentName;
-import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
-import android.graphics.Region;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
@@ -38,10 +37,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.widget.Scroller;
 import android.widget.TextView;
-import android.os.Parcelable;
-import android.os.Parcel;
 
 import java.util.ArrayList;
 
@@ -499,24 +495,24 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
             getChildAt(i).measure(widthMeasureSpec, heightMeasureSpec);
         }
         //ADW: measure wallpaper when using old rendering
-		if (mWallpaperLoaded) {
-		    mWallpaperLoaded = false;
+	if (mWallpaperLoaded) {
+	    mWallpaperLoaded = false;
 
-		    Display display = mLauncher.getWindowManager().getDefaultDisplay();
-		    boolean isPortrait = display.getWidth() < display.getHeight();
+	    Display display = mLauncher.getWindowManager().getDefaultDisplay();
+	    boolean isPortrait = display.getWidth() < display.getHeight();
 
-		    final int _width = isPortrait ? display.getWidth() : display.getHeight();
-		    final int _height = isPortrait ? display.getHeight() : display.getWidth();
-		    
-		    mWallpaper = Utilities.centerToFit(mWallpaper, _width * Launcher.WALLPAPER_SCREENS_SPAN,
-		            _height, mLauncher);
-		    mWallpaperWidth = mWallpaper.getWidth();
-		    mWallpaperHeight = mWallpaper.getHeight();
-		}
+	    final int _width = isPortrait ? display.getWidth() : display.getHeight();
+	    final int _height = isPortrait ? display.getHeight() : display.getWidth();
+	    
+	    mWallpaper = Utilities.centerToFit(mWallpaper, _width * Launcher.WALLPAPER_SCREENS_SPAN,
+	            _height, mLauncher);
+	    mWallpaperWidth = mWallpaper.getWidth();
+	    mWallpaperHeight = mWallpaper.getHeight();
+	}
 
-		final int wallpaperWidth = mWallpaperWidth;
-		mWallpaperOffset = wallpaperWidth > width ? (count * width - wallpaperWidth) /
-		        ((count - 1) * (float) width) : 1.0f;
+	final int wallpaperWidth = mWallpaperWidth;
+	mWallpaperOffset = wallpaperWidth > width ? (count * width - wallpaperWidth) /
+	        ((count - 1) * (float) width) : 1.0f;
         if (mFirstLayout) {
             scrollTo(mCurrentScreen * width, 0);
             mFirstLayout = false;

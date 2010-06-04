@@ -16,11 +16,17 @@
 
 package org.adw.launcher_donut;
 
+import static android.util.Log.d;
+import static android.util.Log.e;
+import static android.util.Log.w;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.app.Dialog;
 import android.app.SearchManager;
+import android.appwidget.AppWidgetManager;
+import android.appwidget.AppWidgetProviderInfo;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -43,7 +49,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -56,7 +61,6 @@ import android.text.Selection;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.method.TextKeyListener;
-import static android.util.Log.*;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Display;
@@ -78,18 +82,15 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.appwidget.AppWidgetManager;
-import android.appwidget.AppWidgetProviderInfo;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.DataInputStream;
-
 import org.adw.launcher_donut.DockBar.DockBarListener;
 import org.adw.launcher_donut.SliderView.OnTriggerListener;
 
@@ -101,7 +102,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     static final boolean LOGD = true;
 
     private static final boolean PROFILE_STARTUP = false;
-    private static final boolean PROFILE_DRAWER = false;
     private static final boolean PROFILE_ROTATE = false;
     private static final boolean DEBUG_USER_INTERFACE = false;
 
@@ -137,7 +137,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     static final int DIALOG_RENAME_FOLDER = 2;
 
     private static final String PREFERENCES = "launcher.preferences";
-    private static final String ALMOSTNEXUS_PREFERENCES = "launcher.preferences.almostnexus";
 
     // Type: int
     private static final String RUNTIME_STATE_CURRENT_SCREEN = "launcher.current_screen";
@@ -659,7 +658,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         final DeleteZone deleteZone = (DeleteZone) dragLayer.findViewById(R.id.delete_zone);
 
         mHandleView = (SliderView) dragLayer.findViewById(R.id.all_apps);
-        mHandleView.setLauncher(this);
         mHandleIcon = (TransitionDrawable) mHandleView.getDrawable();
         mHandleIcon.setCrossFadeEnabled(true);
         mHandleView.setOnTriggerListener(new OnTriggerListener() {
@@ -2812,8 +2810,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         int width = cell.getWidth();
         int height = cell.getHeight();
-        int x = cell.getLeftPadding();
-        int y = cell.getTopPadding();
         //width -= (x + cell.getRightPadding());
         //height -= (y + cell.getBottomPadding());
         if(width!=0 && height!=0){

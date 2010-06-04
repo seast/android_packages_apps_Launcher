@@ -16,8 +16,6 @@
 
 package org.adw.launcher_donut;
 
-import android.graphics.Rect;
-
 /**
  * Interface defining an object that can receive a drag.
  *
