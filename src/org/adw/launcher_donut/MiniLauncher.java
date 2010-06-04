@@ -177,6 +177,7 @@ public class MiniLauncher extends ViewGroup implements View.OnLongClickListener,
         }
         view.setLongClickable(true);
         view.setOnLongClickListener(this);
+        view.setBackgroundDrawable(new IconHighlights(mLauncher));
         addView(view);
         invalidate();
     }
