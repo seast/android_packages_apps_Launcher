@@ -25,7 +25,7 @@ import android.util.Log;
 public class MyLauncherSettings extends PreferenceActivity implements OnPreferenceChangeListener {
     private static final String ALMOSTNEXUS_PREFERENCES = "launcher.preferences.almostnexus";
     private boolean shouldRestart=false;
-    private static final String FROYOMSG="YOU NEED TO GO ANDROID SETTINGS/APPLICATIONS/MANAGE APPLICATIONS AND RESTART ADW.LAUNCHER AS SOON AS POSSIBLE OR IT WILL FORCECLOSE!!!";
+    private static final String FROYOMSG="Changing this setting will make the Launcher restart itself";
     private static final String NORMALMSG="Changing this setting will make the Launcher restart itself";
     private String mMsg;
     private Context mContext;
@@ -78,18 +78,18 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
 	protected void onPause(){
 		if(shouldRestart){
 			Intent intent = new Intent(getApplicationContext(), Launcher.class);
-            PendingIntent sender = PendingIntent.getBroadcast(getApplicationContext(),0, intent, 0);
+			PendingIntent sender = PendingIntent.getBroadcast(getApplicationContext(),0, intent, 0);
 
-            // We want the alarm to go off 30 seconds from now.
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis());
-            calendar.add(Calendar.SECOND, 1);
+			// We want the alarm to go off 30 seconds from now.
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTimeInMillis(System.currentTimeMillis());
+			calendar.add(Calendar.SECOND, 1);
 
-            // Schedule the alarm!
-            AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
-            am.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), sender);
-   			ActivityManager acm = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
-	        acm.restartPackage("org.adw.launcher_donut");
+			// Schedule the alarm!
+			AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+			am.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), sender);
+			ActivityManager acm = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+			acm.restartPackage("org.adw.launcher_donut");
 		}
 		super.onPause();
 	}
