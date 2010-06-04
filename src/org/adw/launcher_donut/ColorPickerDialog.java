@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.adw.launcher;
+package org.adw.launcher_donut;
 
 import android.R;
 import android.os.Bundle;
