@@ -228,7 +228,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     
     void setLauncher(Launcher launcher) {
         mLauncher = launcher;
-        setSelector(new IconHighlights(mLauncher));
+        setSelector(IconHighlights.getDrawable(mLauncher));
     }
 	@Override
 	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
@@ -1073,7 +1073,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
             Log.d("APPPSSS","DRAWME!!");
         	final Drawable selector = mSelector;
             selector.setBounds(mSelectorRect);
-            selector.setState(PRESSED_ENABLED_STATE_SET);
+            selector.setState(getDrawableState());
             selector.draw(canvas);
         }
     }
@@ -1460,6 +1460,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 
                     if (!mDataChanged) {
                         child.setPressed(true);
+                        setPressed(true);
                         setSelection(mCheckTapPosition);
                         positionSelector(child);
                         final int longPressTimeout = ViewConfiguration.getLongPressTimeout();
