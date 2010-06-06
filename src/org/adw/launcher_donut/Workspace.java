@@ -40,21 +40,27 @@ import android.view.ViewParent;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-
-
+import demo.multitouch.controller.MultiTouchController;
+import demo.multitouch.controller.MultiTouchController.MultiTouchObjectCanvas;
+import demo.multitouch.controller.MultiTouchController.PointInfo;
+import demo.multitouch.controller.MultiTouchController.PositionAndScale;
 
 /**
  * The workspace is a wide area with a wallpaper and a finite number of screens. Each
  * screen contains a number of icons, folders or widgets the user can interact with.
  * A workspace is meant to be used with a fixed width only.
  */
-public class Workspace extends ViewGroup implements DropTarget, DragSource, DragScroller {
+public class Workspace extends ViewGroup implements DropTarget, DragSource, DragScroller, MultiTouchObjectCanvas<Object> {
     private static final int INVALID_SCREEN = -1;
     
     /**
      * The velocity at which a fling gesture will cause us to snap to the next screen
      */
     private static final int SNAP_VELOCITY = 500;
+    
+    // Wysie: Values taken from CyanogenMod (Donut era) Browser
+	private static final double ZOOM_SENSITIVITY = 1.6;
+	private static final double ZOOM_LOG_BASE_INV = 1.0 / Math.log(2.0 / ZOOM_SENSITIVITY);
 
     private int mDefaultScreen;
 
@@ -87,6 +93,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
 
     private Launcher mLauncher;
     private DragController mDragger;
+	private MultiTouchController<Object> multiTouchController;
     
     /**
      * Cache of vacant cells, used during drag events and invalidated as needed.
@@ -151,6 +158,9 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         if(mDefaultScreen>mHomeScreens-1) mDefaultScreen=0;
 
         initWorkspace();
+        
+        // Use MultiTouchController only for multitouch events
+        multiTouchController = new MultiTouchController<Object>(this, getResources(), false);  
     }
 
     /**
@@ -607,6 +617,11 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         if (mLocked || mLauncher.isAllAppsVisible()) {
             return true;
         }
+        
+        // If multitouch event is detected
+        if (multiTouchController.onTouchEvent(ev)) {
+            return false;
+        }
 
         /*
          * This method JUST determines whether we want to intercept the motion.
@@ -701,6 +716,37 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
          */
         return mTouchState != TOUCH_STATE_REST;
     }
+    
+    // MultiTouchObjectCanvas implementations
+     
+    // Do nothing, but cannot return null    
+    public Object getDraggableObjectAtPoint(PointInfo pt) {
+        return this;
+    }
+
+    public void getPositionAndScale(Object obj, PositionAndScale objPosAndScaleOut) {
+        objPosAndScaleOut.set(0.0f, 0.0f, 1.0f);
+    }
+    
+    // Do nothing
+    public void selectObject(Object obj, PointInfo pt) {
+    }
+    
+    // Do nothing
+    public boolean setPositionAndScale(Object obj, PositionAndScale update, PointInfo touchPoint) {
+        float newRelativeScale = update.getScale();
+        int targetZoom = (int) Math.round(Math.log(newRelativeScale) * ZOOM_LOG_BASE_INV);        
+        
+        // Only works for pinch in
+        if (targetZoom < 0) { // Change to > 0 for pinch out, != 0 for both pinch in and out.
+            mLauncher.showPreviews();
+            return true;
+        }
+         
+        return false;
+    }
+    
+    // End of MultiTouchObjectCanvas implementations
 
     void enableChildrenCache() {
         final int count = getChildCount();
