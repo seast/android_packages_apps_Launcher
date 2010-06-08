@@ -569,6 +569,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
 	        ((count - 1) * (float) width) : 1.0f;
         if (mFirstLayout) {
             scrollTo(mCurrentScreen * width, 0);
+            mScroller.startScroll(0, 0, mCurrentScreen * width, 0, 0);
             mFirstLayout = false;
         }
     	int max = 3;
