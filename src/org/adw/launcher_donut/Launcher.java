@@ -1622,6 +1622,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                     } else {
                         closeFolder();
                     }
+                    if(isPreviewing()){
+                    	dismissPreviews();
+                    }
                     return true;
                 case KeyEvent.KEYCODE_HOME:
                     return true;
@@ -2728,7 +2731,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	        showingPreviews=false;
 	        mWorkspace.unlock();
 	        mWorkspace.invalidate();
-	        mDesktopLocked=false;
+	        //mDesktopLocked=false;
 	        mWorkspace.openSense(false);
     	}else{
 	    	dismissPreview(mNextView);
@@ -2788,12 +2791,12 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         }
     }
 
-    private void showPreviews(final View anchor, int start, int end) {
+    public void showPreviews(final View anchor, int start, int end) {
     	if(newPreviews){
 	    	showingPreviews=true;
 	    	hideDesktop(true);
 	        mWorkspace.lock();
-	        mDesktopLocked=true;
+	        //mDesktopLocked=true;
 	        mWorkspace.invalidate();
 	    	mWorkspace.openSense(true);
     	}else{
