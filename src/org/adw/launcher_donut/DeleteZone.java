@@ -379,9 +379,8 @@ public class DeleteZone extends ImageView implements DropTarget, DragController.
     private Runnable mShowUninstaller = new Runnable() {
 		public void run() {
     	       shouldUninstall=mUninstallTarget;
-    	       CharSequence msg="Drop to Uninstall";
     	       if(shouldUninstall){
-    	    	   Toast.makeText(mLauncher, msg, 500).show();
+    	    	   Toast.makeText(mLauncher, R.string.drop_to_uninstall, 500).show();
     	       }
 		}
     };
