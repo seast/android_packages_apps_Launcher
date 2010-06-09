@@ -309,8 +309,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         // For handling default keys
         mDefaultKeySsb = new SpannableStringBuilder();
-        Selection.setSelection(mDefaultKeySsb, 0);
-        
+        Selection.setSelection(mDefaultKeySsb, 0);        
     }
 
     private void checkForLocaleChange() {
@@ -2010,7 +2009,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         return mDesktopLocked;
     }
 
-    public boolean onLongClick(View v) {
+    public boolean onLongClick(View v) {        
         if (mDesktopLocked) {
             return false;
         }
@@ -2789,6 +2788,10 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         }else{
         	showPreviews(anchor, 0, mWorkspace.getChildCount());
         }
+    }
+    
+    public void showPreviews() {
+        showPreviews(mHandleView, 0, mWorkspace.mHomeScreens);    
     }
 
     public void showPreviews(final View anchor, int start, int end) {
