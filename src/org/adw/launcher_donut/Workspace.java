@@ -39,6 +39,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.animation.BounceInterpolator;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -151,6 +152,8 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
 	// Wysie: Values taken from CyanogenMod (Donut era) Browser
 	private static final double ZOOM_SENSITIVITY = 1.6;
 	private static final double ZOOM_LOG_BASE_INV = 1.0 / Math.log(2.0 / ZOOM_SENSITIVITY);
+	//ADW: we don't need bouncing while using the previews
+	private boolean mRevertInterpolatorOnScrollFinish=false;
     /**
      * Used to inflate the Workspace from XML.
      *
@@ -431,7 +434,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
 
     @Override
     public void computeScroll() {
-        if (mScroller.computeScrollOffset() ||mStatus==SENSE_CLOSING) {
+        if (mScroller.computeScrollOffset()) {
             scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
             postInvalidate();
         } else if (mNextScreen != INVALID_SCREEN) {
@@ -441,6 +444,8 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
             Launcher.setScreen(mCurrentScreen);
             mNextScreen = INVALID_SCREEN;
             clearChildrenCache();
+            //ADW: Revert back the interpolator when needed
+            if(mRevertInterpolatorOnScrollFinish)setBounceAmount(mScrollingBounce);
         }
     }
 
@@ -513,6 +518,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
     			}else if(mStatus==SENSE_CLOSING){
     				mStatus=SENSE_CLOSED;
     				mSensemode=false;
+    				unlock();
     				postInvalidate();
     			}
     		}else{
@@ -668,11 +674,11 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
     		if(ev.getAction()==MotionEvent.ACTION_DOWN){
     			findClickedPreview(ev.getX(),ev.getY());
     		}
-    		return true;
+    		return false;
     	}
         //Wysie: If multitouch event is detected
         if (multiTouchController.onTouchEvent(ev)) {
-            return false;
+            return true;
         }
         if (mLocked || mLauncher.isAllAppsVisible()) {
             return true;
@@ -910,7 +916,10 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         final int newX = whichScreen * getWidth();
         final int delta = newX - getScrollX();
         //mScroller.startScroll(mScrollX, 0, delta, 0, Math.abs(delta) * 2);
-        mScroller.startScroll(getScrollX(), 0, delta, 0, duration);
+        if(!mSensemode)
+        	mScroller.startScroll(getScrollX(), 0, delta, 0, duration);
+        else
+        	mScroller.startScroll(getScrollX(), 0, delta, 0, mAnimationDuration);
         invalidate();
     }
 
@@ -1466,6 +1475,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
 		mScroller.setInterpolator(new ElasticInterpolator(mScrollingBounce/10));
 	}
 	public void openSense(boolean open){
+		mScroller.abortAnimation();
 		enableChildrenCache();
 		if(open){
 			mSensemode=true;
@@ -1592,6 +1602,8 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
 			RectF tmp=getScaledChild(getChildAt(i));
 			if (tmp.contains(x+getScrollX(), y+getScrollY())){
 		        mLauncher.dismissPreviews();
+		        mScroller.setInterpolator(new ElasticInterpolator(0));
+		        mRevertInterpolatorOnScrollFinish=true;
 		        snapToScreen(i);
 		        postInvalidate();
 			}
