@@ -7,7 +7,7 @@ public class LauncherIntent extends Intent {
     /**
      * 
      */
-    public static final String PNAME = "org.adw.launcher.";
+    public static final String PNAME = "mobi.intuitit.android.hpp.";
 
     /**
      * 
