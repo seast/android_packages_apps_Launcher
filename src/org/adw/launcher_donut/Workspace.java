@@ -195,7 +195,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         mTouchSlop = configuration.getScaledTouchSlop();
         mMaximumVelocity = configuration.getScaledMaximumFlingVelocity();
         //Wysie: Use MultiTouchController only for multitouch events
-        multiTouchController = new MultiTouchController<Object>(this, getResources(), false); 
+        multiTouchController = new MultiTouchController<Object>(this, false); 
     }
 
     @Override
