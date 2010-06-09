@@ -16,6 +16,7 @@
 
 package org.adw.launcher;
 
+import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -44,6 +45,9 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import mobi.intuitit.android.widget.WidgetCellLayout;
+import mobi.intuitit.android.widget.WidgetSpace;
+
 import org.metalev.multitouch.controller.MultiTouchController;
 import org.metalev.multitouch.controller.MultiTouchController.MultiTouchObjectCanvas;
 import org.metalev.multitouch.controller.MultiTouchController.PointInfo;
@@ -55,7 +59,7 @@ import org.metalev.multitouch.controller.MultiTouchController.PositionAndScale;
  * screen contains a number of icons, folders or widgets the user can interact with.
  * A workspace is meant to be used with a fixed width only.
  */
-public class Workspace extends ViewGroup implements DropTarget, DragSource, DragScroller, MultiTouchObjectCanvas<Object> {
+public class Workspace extends WidgetSpace implements DropTarget, DragSource, DragScroller, MultiTouchObjectCanvas<Object> {
     private static final int INVALID_SCREEN = -1;
     
     /**
@@ -455,6 +459,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
             if(lwpSupport)updateWallpaperOffset();
             postInvalidate();
         } else if (mNextScreen != INVALID_SCREEN) {
+        	int lastScreen = mCurrentScreen;
             mCurrentScreen = Math.max(0, Math.min(mNextScreen, getChildCount() - 1));
             //ADW: dots
             indicatorLevels(mCurrentScreen);
@@ -463,6 +468,18 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
             clearChildrenCache();
             //ADW: Revert back the interpolator when needed
             if(mRevertInterpolatorOnScrollFinish)setBounceAmount(mScrollingBounce);
+            //ADW: use intuit code to allow extended widgets
+            // notify widget about screen changed
+            View changedView;
+            if (lastScreen != mCurrentScreen) {
+                changedView = getChildAt(lastScreen); // A screen get out
+                if (changedView instanceof WidgetCellLayout)
+                    ((WidgetCellLayout) changedView).onViewportOut();
+            }
+            changedView = getChildAt(mCurrentScreen); // A screen get in
+            if (changedView instanceof WidgetCellLayout)
+                ((WidgetCellLayout) changedView).onViewportIn();
+
         }
     }
 
@@ -1674,5 +1691,11 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
             return true;
         }
         return false;
+	}
+
+	@Override
+	public Activity getLauncherActivity() {
+		// TODO Auto-generated method stub
+		return mLauncher;
 	}
 }
