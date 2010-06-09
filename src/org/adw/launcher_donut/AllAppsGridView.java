@@ -20,6 +20,7 @@ package org.adw.launcher_donut;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -51,6 +52,7 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 	private Paint mLabelPaint;
 	private boolean shouldDrawLabels=false;
 	private int mAnimationDuration=800;
+	private int mBgColor=0xFF000000;
     public AllAppsGridView(Context context) {
         super(context);
     }
@@ -107,7 +109,7 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 
     void setLauncher(Launcher launcher) {
         mLauncher = launcher;
-        setSelector(new IconHighlights(mLauncher));
+        setSelector(IconHighlights.getDrawable(mLauncher));
     }
     /**
      * ADW: easing functions for animation
@@ -162,7 +164,7 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 		}
 		mPaint.setAlpha(mBgAlpha);
 		if(getVisibility()==View.VISIBLE){
-    		canvas.drawARGB((int)(porcentajeScale*mTargetAlpha),0, 0, 0);
+			canvas.drawARGB((int)(porcentajeScale*mTargetAlpha), Color.red(mBgColor), Color.green(mBgColor), Color.blue(mBgColor));
 			super.draw(canvas);
 		}
 
@@ -219,6 +221,7 @@ public class AllAppsGridView extends GridView implements AdapterView.OnItemClick
 	 * Open/close public methods
 	 */
 	public void open(boolean animate){
+		mBgColor=AlmostNexusSettingsHelper.getDrawerColor(mLauncher);
 		mTargetAlpha=AlmostNexusSettingsHelper.getDrawerAlpha(mLauncher);
 		if(animate){
 			mBgAlpha=0;

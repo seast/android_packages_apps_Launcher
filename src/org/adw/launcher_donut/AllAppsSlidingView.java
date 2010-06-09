@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -154,6 +155,8 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     private int mScrollingSpeed=600;
     //ADW: bounce scroll
     private int mScrollingBounce=50;
+    //ADW:Bg color
+    private int mBgColor=0xFF000000;
 	public AllAppsSlidingView(Context context) {
 		super(context);
 		initWorkspace();
@@ -207,7 +210,6 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 					setVisibility(View.GONE);
 					mLauncher.getWorkspace().clearChildrenCache();
 				}else{
-					Log.d("AllApps","Who tracks this?");
 					isAnimating=false;
 					mBgAlpha=mTargetAlpha;
 				}
@@ -228,7 +230,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     
     void setLauncher(Launcher launcher) {
         mLauncher = launcher;
-        setSelector(new IconHighlights(mLauncher));
+        setSelector(IconHighlights.getDrawable(mLauncher));
     }
 	@Override
 	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
@@ -263,8 +265,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     @Override
     protected void dispatchDraw(Canvas canvas) {
         int saveCount = 0;
-		canvas.drawARGB(mBgAlpha, 0, 0, 0);
-
+		canvas.drawARGB(mBgAlpha, Color.red(mBgColor), Color.green(mBgColor), Color.blue(mBgColor));
         /*final boolean clipToPadding = (mGroupFlags & CLIP_TO_PADDING_MASK) == CLIP_TO_PADDING_MASK;
         if (clipToPadding) {
             saveCount = canvas.save();
@@ -1070,10 +1071,9 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 
     private void drawSelector(Canvas canvas) {
         if (shouldShowSelector() && mSelectorRect != null && !mSelectorRect.isEmpty()) {
-            Log.d("APPPSSS","DRAWME!!");
         	final Drawable selector = mSelector;
             selector.setBounds(mSelectorRect);
-            selector.setState(PRESSED_ENABLED_STATE_SET);
+            selector.setState(getDrawableState());
             selector.draw(canvas);
         }
     }
@@ -1460,6 +1460,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 
                     if (!mDataChanged) {
                         child.setPressed(true);
+                        setPressed(true);
                         setSelection(mCheckTapPosition);
                         positionSelector(child);
                         final int longPressTimeout = ViewConfiguration.getLongPressTimeout();
@@ -1790,6 +1791,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 		}
 	}
 	public void open(boolean animate) {
+		mBgColor=AlmostNexusSettingsHelper.getDrawerColor(mLauncher);
 		mTargetAlpha=AlmostNexusSettingsHelper.getDrawerAlpha(mLauncher);
 		mScroller.forceFinished(true);
 		setVisibility(View.VISIBLE);
@@ -1811,6 +1813,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 		}
 	}
 	public void close(boolean animate){
+		setPressed(false);
     	if(animate){
     		findCurrentHolder();
     		HolderLayout holder=(HolderLayout) getChildAt(mCurrentHolder);

@@ -21,14 +21,17 @@ import java.util.Calendar;
 public class MyLauncherSettings extends PreferenceActivity implements OnPreferenceChangeListener {
     private static final String ALMOSTNEXUS_PREFERENCES = "launcher.preferences.almostnexus";
     private boolean shouldRestart=false;
-    private static final String FROYOMSG="Changing this setting will make the Launcher restart itself";
-    private static final String NORMALMSG="Changing this setting will make the Launcher restart itself";
+//    private static final String FROYOMSG="Changing this setting will make the Launcher restart itself";
+//    private static final String NORMALMSG="Changing this setting will make the Launcher restart itself";
     private String mMsg;
     private Context mContext;
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
 		//TODO: ADW should i read stored values after addPreferencesFromResource?
-		mMsg=(Build.VERSION.SDK_INT>=8)?FROYOMSG:NORMALMSG;
+        if (Build.VERSION.SDK_INT >= 8)
+            mMsg = getString(R.string.pref_message_restart_froyo);
+        else
+            mMsg = getString(R.string.pref_message_restart_normal);
         super.onCreate(savedInstanceState);
         getPreferenceManager().setSharedPreferencesName(ALMOSTNEXUS_PREFERENCES);
         addPreferencesFromResource(R.xml.launcher_settings);
@@ -67,6 +70,8 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
 		});
         Preference uiHideLabels = (Preference) findPreference("uiHideLabels");
         uiHideLabels.setOnPreferenceChangeListener(this);
+        Preference uiNewSelectors = (Preference) findPreference("uiNewSelectors");
+        uiNewSelectors.setOnPreferenceChangeListener(this);
         mContext=this;
     }
 	@Override
@@ -135,7 +140,7 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
 			       });
 			AlertDialog alert = builder.create();
 			alert.show();
-		}else if(preference.getKey().equals("highlights_color")){
+		}else if(preference.getKey().equals("uiNewSelectors")){
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage(mMsg)
 			       .setCancelable(false)
@@ -153,6 +158,12 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
         if (preference.getKey().equals("highlights_color")) {
         	ColorPickerDialog cp = new ColorPickerDialog(this,mHighlightsColorListener,readHighlightsColor());
+        	cp.show();
+        }else if(preference.getKey().equals("highlights_color_focus")) {
+        	ColorPickerDialog cp = new ColorPickerDialog(this,mHighlightsColorFocusListener,readHighlightsColorFocus());
+        	cp.show();
+        }else if(preference.getKey().equals("drawer_color")) {
+        	ColorPickerDialog cp = new ColorPickerDialog(this,mDrawerColorListener,readDrawerColor());
         	cp.show();
         }
         return false;
@@ -176,5 +187,36 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
 			alert.show();
     		getPreferenceManager().getSharedPreferences().edit().putInt("highlights_color", color).commit();
     	}
-};
+    };
+    private int readHighlightsColorFocus() {
+    	return AlmostNexusSettingsHelper.getHighlightsColor(this);
+    }
+
+    ColorPickerDialog.OnColorChangedListener mHighlightsColorFocusListener =
+    	new ColorPickerDialog.OnColorChangedListener() {
+    	public void colorChanged(int color) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+			builder.setMessage(mMsg)
+			       .setCancelable(false)
+			       .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			           public void onClick(DialogInterface dialog, int id) {
+							shouldRestart=true;
+			           }
+			       });
+			AlertDialog alert = builder.create();
+			alert.show();
+    		getPreferenceManager().getSharedPreferences().edit().putInt("highlights_color_focus", color).commit();
+    	}
+    };
+    private int readDrawerColor() {
+    	return AlmostNexusSettingsHelper.getDrawerColor(this);
+    }
+
+    ColorPickerDialog.OnColorChangedListener mDrawerColorListener =
+    	new ColorPickerDialog.OnColorChangedListener() {
+    	public void colorChanged(int color) {
+    		getPreferenceManager().getSharedPreferences().edit().putInt("drawer_color", color).commit();
+    	}
+    };
+
 }
