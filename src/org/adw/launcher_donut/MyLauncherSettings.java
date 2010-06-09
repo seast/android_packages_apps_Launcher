@@ -35,7 +35,7 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
     private Context mContext;
     private static final String PREF_BACKUP_FILENAME = "adw_settings.xml";
     private static final String CONFIG_BACKUP_FILENAME = "adw_launcher.db";
-    private static final String NAMESPACE = "com.android.launcher_donut";    
+    private static final String NAMESPACE = "org.adw.launcher_donut";    
     
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
