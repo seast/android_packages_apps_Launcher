@@ -159,12 +159,14 @@ public class MultiTouchController<T> {
 
 			// Android 2.2 stuff (optional here, the original Android 2.2 consts are declared above,
 			// and these actions aren't used previous to Android 2.2):
+			/*
 			Field up = MotionEvent.class.getField("ACTION_POINTER_UP");
 			if (up != null)
 				ACTION_POINTER_UP = up.getInt(null);
 			Field shift = MotionEvent.class.getField("ACTION_POINTER_INDEX_SHIFT");
 			if (shift != null)
 				ACTION_POINTER_INDEX_SHIFT = shift.getInt(null);
+			*/
 
 			succeeded = true;
 		} catch (Exception e) {
