@@ -20,6 +20,8 @@ import static android.util.Log.d;
 import static android.util.Log.e;
 import static android.util.Log.w;
 
+import mobi.intuitit.android.content.LauncherIntent;
+
 import org.adw.launcher.DockBar.DockBarListener;
 import org.adw.launcher.SliderView.OnTriggerListener;
 
@@ -1882,6 +1884,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                     item.cellY, item.spanX, item.spanY, !desktopLocked);
 
             workspace.requestLayout();
+            // finish load a widget, send it an intent
+        	if(appWidgetInfo!=null)
+            appwidgetReadyBroadcast(appWidgetId, appWidgetInfo.provider);
         }
 
         if (appWidgets.isEmpty()) {
@@ -3027,5 +3032,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     	}
     	
     }
-
+    private void appwidgetReadyBroadcast(int appWidgetId, ComponentName cname) {
+        Intent ready = new Intent(LauncherIntent.Action.ACTION_READY).putExtra(
+                        AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId).setComponent(cname);
+        sendBroadcast(ready);
+    }
 }

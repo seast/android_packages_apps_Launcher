@@ -364,6 +364,7 @@ public abstract class WidgetSpace extends ViewGroup {
                 int aid = widgetView.getAppWidgetId();
                 WidgetCursorAdapter wca = new WidgetCursorAdapter(a, remoteContext, cursor, intent,
                         appWidgetProvider, aid, dummyViewId);
+                lv.setFocusableInTouchMode(false);
                 lv.setOnScrollListener(this);
                 lv.setAdapter(wca);
                 if (!wca.mItemChildrenClickable)
