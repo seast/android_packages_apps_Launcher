@@ -73,7 +73,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
     private boolean mFirstLayout = true;
 
-    private int mCurrentScreen;
+    //private int mCurrentScreen;
     private int mNextScreen = INVALID_SCREEN;
     private CustomScroller mScroller;
     private VelocityTracker mVelocityTracker;
@@ -109,7 +109,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     private int[] mTempCell = new int[2];
     private int[] mTempEstimate = new int[2];
 
-    private boolean mAllowLongPress;
+    //private boolean mAllowLongPress;
     private boolean mLocked;
 
     private int mTouchSlop;
@@ -464,8 +464,6 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
             //ADW: dots
             indicatorLevels(mCurrentScreen);
             Launcher.setScreen(mCurrentScreen);
-            mNextScreen = INVALID_SCREEN;
-            clearChildrenCache();
             //ADW: Revert back the interpolator when needed
             if(mRevertInterpolatorOnScrollFinish)setBounceAmount(mScrollingBounce);
             //ADW: use intuit code to allow extended widgets
@@ -480,6 +478,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
             if (changedView instanceof WidgetCellLayout)
                 ((WidgetCellLayout) changedView).onViewportIn();
 
+            mNextScreen = INVALID_SCREEN;
+            clearChildrenCache();
         }
     }
 
