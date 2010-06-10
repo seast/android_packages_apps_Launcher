@@ -1175,6 +1175,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         getContentResolver().unregisterContentObserver(mWidgetObserver);
         unregisterReceiver(mApplicationsReceiver);
         unregisterReceiver(mCloseSystemDialogsReceiver);
+        mWorkspace.unregisterProvider();
     }
 
     @Override

@@ -1176,6 +1176,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     
     void setLauncher(Launcher launcher) {
         mLauncher = launcher;
+        registerProvider();
     }
 
     public void setDragger(DragController dragger) {
