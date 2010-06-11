@@ -35,7 +35,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.Intent.ShortcutIconResource;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -56,6 +58,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.MessageQueue;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.provider.LiveFolders;
 import android.text.Selection;
 import android.text.SpannableStringBuilder;
@@ -97,7 +100,7 @@ import org.adw.launcher_donut.SliderView.OnTriggerListener;
 /**
  * Default launcher application.
  */
-public final class Launcher extends Activity implements View.OnClickListener, OnLongClickListener {
+public final class Launcher extends Activity implements View.OnClickListener, OnLongClickListener, OnSharedPreferenceChangeListener {
     static final String LOG_TAG = "Launcher";
     static final boolean LOGD = true;
 
@@ -267,6 +270,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	 * ADW:Wallpaper intent receiver
 	 */
 	private static WallpaperIntentReceiver sWallpaperReceiver;
+	private boolean mShouldRestart=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
@@ -309,7 +313,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         // For handling default keys
         mDefaultKeySsb = new SpannableStringBuilder();
-        Selection.setSelection(mDefaultKeySsb, 0);        
+        Selection.setSelection(mDefaultKeySsb, 0);
+        
+        //ADW: register a sharedpref listener
+        getSharedPreferences("launcher.preferences.almostnexus", Context.MODE_PRIVATE)
+        .registerOnSharedPreferenceChangeListener(this);
     }
 
     private void checkForLocaleChange() {
@@ -488,6 +496,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     @Override
     protected void onResume() {
         super.onResume();
+        if(shouldRestart())
+        	return;
         //ADW: Use custom settings to set the rotation
         this.setRequestedOrientation(
         		AlmostNexusSettingsHelper.getDesktopRotation(this)?
@@ -1164,6 +1174,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     @Override
     public void onDestroy() {
         mDestroyed = true;
+        //ADW: unregister the sharedpref listener
+        getSharedPreferences("launcher.preferences.almostnexus", Context.MODE_PRIVATE)
+        .unregisterOnSharedPreferenceChangeListener(this);
 
         super.onDestroy();
 
@@ -3021,5 +3034,23 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     	}
     	
     }
+    private boolean shouldRestart(){
+        try {
+        	if(mShouldRestart){
+        		finish();
+				startActivity(getIntent());
+            return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+	public void onSharedPreferenceChanged(SharedPreferences sp, String key) {
+		//ADW: Try to add the restart flag here instead on preferences activity
+		d("LAUNCHER","Preference "+key+ " changed!!!");
+		if(AlmostNexusSettingsHelper.needsRestart(key))
+			mShouldRestart=true;
+	}
 
 }
