@@ -885,6 +885,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         } else if (sModel.isDesktopLoaded()) {
             sModel.addDesktopAppWidget(launcherInfo);
         }
+        // finish load a widget, send it an intent
+    	if(appWidgetInfo!=null)
+        appwidgetReadyBroadcast(appWidgetId, appWidgetInfo.provider);
     }
 
     public LauncherAppWidgetHost getAppWidgetHost() {
