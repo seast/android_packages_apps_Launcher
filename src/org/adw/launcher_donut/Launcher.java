@@ -123,7 +123,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private static final int REQUEST_PICK_SHORTCUT = 7;
     private static final int REQUEST_PICK_LIVE_FOLDER = 8;
     private static final int REQUEST_PICK_APPWIDGET = 9;
-    private static final int REQUEST_UPDATE_ALMOSTNEXUS = 10;
 
     static final String EXTRA_SHORTCUT_DUPLICATE = "duplicate";
 
@@ -487,9 +486,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             if (appWidgetId != -1) {
                 mAppWidgetHost.deleteAppWidgetId(appWidgetId);
             }
-        }else if (requestCode==REQUEST_UPDATE_ALMOSTNEXUS){
-        	//ADW: Update from custom settings
-        	updateAlmostNexusUI();
         }
     }
 
@@ -2540,7 +2536,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
      */
     private void showCustomConfig(){
     	Intent launchPreferencesIntent = new Intent().setClass(this, MyLauncherSettings.class);
-        startActivityForResult(launchPreferencesIntent,REQUEST_UPDATE_ALMOSTNEXUS);    	   	
+        startActivity(launchPreferencesIntent);    	   	
     }
     private void updateAlmostNexusVars(){
 		allowDrawerAnimations=AlmostNexusSettingsHelper.getDrawerAnimated(Launcher.this);
@@ -3051,6 +3047,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		d("LAUNCHER","Preference "+key+ " changed!!!");
 		if(AlmostNexusSettingsHelper.needsRestart(key))
 			mShouldRestart=true;
+		else{
+			updateAlmostNexusUI();
+		}
 	}
 
 }
