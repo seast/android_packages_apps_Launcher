@@ -684,7 +684,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
     		if(ev.getAction()==MotionEvent.ACTION_DOWN){
     			findClickedPreview(ev.getX(),ev.getY());
     		}
-    		return false;
+    		return true;
     	}
     	
         //Wysie: If multitouch event is detected
@@ -816,7 +816,7 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
         /*if (multiTouchController.onTouchEvent(ev)) {
             return false;
         }*/
-        if (mLocked || mLauncher.isAllAppsVisible()) {
+        if (mLocked || mLauncher.isAllAppsVisible() || mSensemode) {
             return true;
         }
 
