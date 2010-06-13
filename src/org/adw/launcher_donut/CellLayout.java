@@ -62,6 +62,9 @@ public class CellLayout extends ViewGroup {
     private boolean mDirtyTag;
     private boolean mLastDownOnOccupiedCell = false;
     
+    //ADW: We'll have fixed rows/columns
+    private int mRows;
+    private int mColumns;
 
     public CellLayout(Context context) {
         this(context, null);
@@ -86,22 +89,22 @@ public class CellLayout extends ViewGroup {
             a.getDimensionPixelSize(R.styleable.CellLayout_shortAxisStartPadding, 10);
         mShortAxisEndPadding = 
             a.getDimensionPixelSize(R.styleable.CellLayout_shortAxisEndPadding, 10);
-        
-        mShortAxisCells = a.getInt(R.styleable.CellLayout_shortAxisCells, 4);
-        mLongAxisCells = a.getInt(R.styleable.CellLayout_longAxisCells, 4);
+        mRows=AlmostNexusSettingsHelper.getDesktopRows(context);
+        mColumns=AlmostNexusSettingsHelper.getDesktopColumns(context);
+        //mShortAxisCells = a.getInt(R.styleable.CellLayout_shortAxisCells, 4);
+        //mLongAxisCells = a.getInt(R.styleable.CellLayout_longAxisCells, 4);
 
         a.recycle();
 
         setAlwaysDrawnWithCacheEnabled(false);
 
-        if (mOccupied == null) {
+        /*if (mOccupied == null) {
             if (mPortrait) {
                 mOccupied = new boolean[mShortAxisCells][mLongAxisCells];
             } else {
                 mOccupied = new boolean[mLongAxisCells][mShortAxisCells];
             }
-        }
-              
+        }*/
     }
 
     @Override
@@ -285,7 +288,6 @@ public class CellLayout extends ViewGroup {
         }
 
         cellInfo.current.set(x, y, x, y);
-
         findVacantCell(cellInfo.current, xCount, yCount, occupied, cellInfo);
     }
 
@@ -293,7 +295,6 @@ public class CellLayout extends ViewGroup {
             CellInfo cellInfo) {
 
         addVacantCell(current, cellInfo);
-
         if (current.left > 0) {
             if (isColumnEmpty(current.left - 1, current.top, current.bottom, occupied)) {
                 current.left--;
@@ -476,7 +477,25 @@ public class CellLayout extends ViewGroup {
         if (widthSpecMode == MeasureSpec.UNSPECIFIED || heightSpecMode == MeasureSpec.UNSPECIFIED) {
             throw new RuntimeException("CellLayout cannot have UNSPECIFIED dimensions");
         }
-
+        mPortrait = heightSpecSize > widthSpecSize;
+        if(mPortrait){
+        	mLongAxisCells=mRows;
+        	mShortAxisCells=mColumns;
+        	mCellWidth=(widthSpecSize-mShortAxisStartPadding-mShortAxisEndPadding)/mColumns;
+        	mCellHeight=(heightSpecSize-mLongAxisStartPadding-mLongAxisEndPadding)/mRows;
+        }else{
+        	mLongAxisCells=mColumns;
+        	mShortAxisCells=mRows;
+        	mCellWidth=(widthSpecSize-mLongAxisStartPadding-mLongAxisEndPadding)/mColumns;
+        	mCellHeight=(heightSpecSize-mShortAxisStartPadding-mShortAxisEndPadding)/mRows;
+        }
+        if (mOccupied == null) {
+            if (mPortrait) {
+                mOccupied = new boolean[mShortAxisCells][mLongAxisCells];
+            } else {
+                mOccupied = new boolean[mLongAxisCells][mShortAxisCells];
+            }
+        }
         final int shortAxisCells = mShortAxisCells;
         final int longAxisCells = mLongAxisCells;
         final int longAxisStartPadding = mLongAxisStartPadding;
@@ -874,11 +893,13 @@ out:            for (int i = x; i < x + spanX - 1 && x < xCount; i++) {
             final int myCellX = cellX;
             final int myCellY = cellY;
             
-            width = myCellHSpan * cellWidth + ((myCellHSpan - 1) * widthGap) -
+            /*width = myCellHSpan * cellWidth + ((myCellHSpan - 1) * widthGap) -
                     leftMargin - rightMargin;
             height = myCellVSpan * cellHeight + ((myCellVSpan - 1) * heightGap) -
-                    topMargin - bottomMargin;
-
+                    topMargin - bottomMargin;*/
+            width=cellWidth*myCellHSpan;
+            height=cellHeight*myCellVSpan;
+            
             x = hStartPadding + myCellX * (cellWidth + widthGap) + leftMargin;
             y = vStartPadding + myCellY * (cellHeight + heightGap) + topMargin;
         }
@@ -901,7 +922,17 @@ out:            for (int i = x; i < x + spanX - 1 && x < xCount; i++) {
             // like a reasonable compromise given the size of a VacantCell and
             // the fact that the user is not likely to touch an empty 4x4 grid
             // very often 
-            private static final int POOL_LIMIT = 100;
+            //TODO: ADW.
+            /**
+             * I don't understand at all why the "findVacantCell" recursive method
+             * do what it does, but seems there's something wrong with it
+             * actually works cause default launchers use a 4x4 grid, but as soon as we rise
+             * it to 6x6 or 7x7 (please, think on tablets!!!!) it starts to ANR and act weird
+             * 
+             * Tried a lot of things, but leaving POOL_LIMIT=1 instead of initial 100 seems
+             * to mitigate the ANR.... but I DON'T KNOW WHAT SIDE EFECTS WILL ADD!!!
+             */
+            private static final int POOL_LIMIT = 1;
             private static final Object sLock = new Object();
 
             private static int sAcquiredCount = 0;
