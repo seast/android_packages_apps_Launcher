@@ -231,6 +231,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private DockBar mDockBar;
 	private ActionButton mLAB;
 	private ActionButton mRAB;
+	private ActionButton mLAB2;
+	private ActionButton mRAB2;
 	/**
 	 * ADW: variables to store actual status of elements
 	 */
@@ -256,6 +258,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private boolean hideABBg=false;
 	private float uiScaleAB=0.5f;
 	private boolean uiHideLabels=false;
+	private boolean showAB2=false;
 	/**
 	 * ADW: Home binding constants
 	 */
@@ -714,6 +717,15 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         dragLayer.addDragListener(mRAB);
         mLAB.setOnClickListener(this);
         mRAB.setOnClickListener(this);
+        //ADW: secondary aActionButtons
+        mLAB2 = (ActionButton) dragLayer.findViewById(R.id.btn_lab2);
+        mLAB2.setLauncher(this);
+        dragLayer.addDragListener(mLAB2);
+        mRAB2 = (ActionButton) dragLayer.findViewById(R.id.btn_rab2);
+        mRAB2.setLauncher(this);
+        dragLayer.addDragListener(mRAB2);
+        mLAB2.setOnClickListener(this);
+        mRAB2.setOnClickListener(this);
 		//ADW: Dots ImageViews
         mPreviousView = (ImageView)findViewById(R.id.btn_scroll_left);
 		mNextView = (ImageView)findViewById(R.id.btn_scroll_right);
@@ -1765,6 +1777,12 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	            case LauncherSettings.Favorites.CONTAINER_RAB:
 	            	mRAB.UpdateLaunchInfo(item);
 	            	break;
+	            case LauncherSettings.Favorites.CONTAINER_LAB2:
+	            	mLAB2.UpdateLaunchInfo(item);
+	            	break;
+	            case LauncherSettings.Favorites.CONTAINER_RAB2:
+	            	mRAB2.UpdateLaunchInfo(item);
+	            	break;
 				case LauncherSettings.Favorites.CONTAINER_DOCKBAR:
 					miniLauncher.addItemInDockBar(item);
 					break;
@@ -2549,6 +2567,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		autoCloseDockbar=AlmostNexusSettingsHelper.getUICloseDockbar(this);
 		showLAB=AlmostNexusSettingsHelper.getUILAB(this);
 		showRAB=AlmostNexusSettingsHelper.getUIRAB(this);    	
+		showAB2=AlmostNexusSettingsHelper.getUIAB2(this);
 		hideAppsBg=AlmostNexusSettingsHelper.getUIAppsBg(this);
 		hideABBg=AlmostNexusSettingsHelper.getUIABBg(this);
 		uiHideLabels=AlmostNexusSettingsHelper.getUIHideLabels(this);
@@ -2577,6 +2596,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 			uiScaleAB=scale;
 			mRAB.updateIcon();
 			mLAB.updateIcon();
+			mRAB2.updateIcon();
+			mLAB2.updateIcon();
 		}
 		
     	fullScreen(hideStatusBar);
@@ -2585,11 +2606,15 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	    	mPreviousView.setVisibility(showDots?View.VISIBLE:View.GONE);
 	    	mRAB.setVisibility(showRAB?View.VISIBLE:View.INVISIBLE);
 	    	mLAB.setVisibility(showLAB?View.VISIBLE:View.INVISIBLE);
+	    	mRAB2.setVisibility((showAB2 && !showDots)?View.VISIBLE:View.GONE);
+	    	mLAB2.setVisibility((showAB2 && !showDots)?View.VISIBLE:View.GONE);
 	    	mHandleView.setSlidingEnabled(showDockBar);
 	    	View appsBg=findViewById(R.id.appsBg);
 	    	appsBg.setVisibility(hideAppsBg?View.INVISIBLE:View.VISIBLE);
 	    	mRAB.hideBg(hideABBg);
 	    	mLAB.hideBg(hideABBg);
+	    	mRAB2.hideBg(hideABBg);
+	    	mLAB2.hideBg(hideABBg);
     	}
     }
     /**
