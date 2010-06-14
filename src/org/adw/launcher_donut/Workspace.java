@@ -481,7 +481,8 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
     	if(getScrollX()>getChildAt(getChildCount() - 1).getRight() - (getRight() - getLeft())){
     		x=(getScrollX()-mWallpaperWidth+(getRight()-getLeft()));
     	}
-		canvas.drawBitmap(mWallpaper, x, (getBottom() - mWallpaperHeight) / 2, mPaint);
+	if(getChildCount()==1)x=getScrollX();
+	canvas.drawBitmap(mWallpaper, x, (getBottom() - mWallpaperHeight) / 2, mPaint);
         if(!mSensemode){
 			// If the all apps drawer is open and the drawing region for the workspace
 	        // is contained within the drawer's bounds, we skip the drawing. This requires
