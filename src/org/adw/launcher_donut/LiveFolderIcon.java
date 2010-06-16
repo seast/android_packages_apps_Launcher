@@ -48,7 +48,7 @@ public class LiveFolderIcon extends FolderIcon {
             folderInfo.filtered = true;
         }
         icon.setCompoundDrawablesWithIntrinsicBounds(null, d, null, null);
-        icon.setText(folderInfo.title);
+        if(!AlmostNexusSettingsHelper.getUIHideLabels(launcher))icon.setText(folderInfo.title);
         icon.setTag(folderInfo);
         icon.setOnClickListener(launcher);
         
