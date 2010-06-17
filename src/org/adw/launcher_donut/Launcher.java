@@ -261,6 +261,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private float uiScaleAB=0.5f;
 	private boolean uiHideLabels=false;
 	private boolean showAB2=false;
+	private boolean scrollableSupport=true;
 	/**
 	 * ADW: Home binding constants
 	 */
@@ -2553,6 +2554,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		        ((AllAppsGridView) mAllAppsGrid).setAnimationSpeed(animationSpeed);
 	        }
         }
+        scrollableSupport=AlmostNexusSettingsHelper.getUIScrollableWidgets(this);
     }
     /**
      * ADW: Refresh UI status variables and elements after changing settings.
@@ -3048,9 +3050,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		}
 	}
 	private void appwidgetReadyBroadcast(int appWidgetId, ComponentName cname) {
-		Intent ready = new Intent(LauncherIntent.Action.ACTION_READY).putExtra(
-				AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId).setComponent(cname);
-		sendBroadcast(ready);
+		if(isScrollableAllowed()){
+			Intent ready = new Intent(LauncherIntent.Action.ACTION_READY).putExtra(
+					AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId).setComponent(cname);
+			sendBroadcast(ready);
+		}
 	}
 	/**
 	 * ADW: Home binding actions
@@ -3127,5 +3131,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		default:
 			break;
 		}
+	}
+	public boolean isScrollableAllowed(){
+		return scrollableSupport;
 	}
 }
