@@ -145,11 +145,6 @@ public final class AlmostNexusSettingsHelper {
 		boolean newD = sp.getBoolean("uiHideLabels", context.getResources().getBoolean(R.bool.config_uiHideLabels));
 		return newD;
 	}
-	public static int getDrawerAlpha(Context context) {
-		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, Context.MODE_PRIVATE);
-		int newD = sp.getInt("drawerAlpha", context.getResources().getInteger(R.integer.config_drawerAlpha));
-		return newD;
-	}
 	public static int getHighlightsColor(Context context) {
 		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, Context.MODE_PRIVATE);
 		int newD = sp.getInt("highlights_color", context.getResources().getInteger(R.integer.config_highlights_color));
