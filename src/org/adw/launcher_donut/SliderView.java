@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
+import android.os.Vibrator;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
@@ -272,8 +273,7 @@ public class SliderView extends ImageView {
      * @param whichHandle the handle that triggered the event.
      */
     private void dispatchTriggerEvent(int whichHandle) {
-    	performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
-    		    HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+    	((Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE)).vibrate(35);
         if (mOnTriggerListener != null) {
             mOnTriggerListener.onTrigger(this, whichHandle);
         }
