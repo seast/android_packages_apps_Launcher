@@ -227,9 +227,8 @@ public class DragLayer extends FrameLayout implements DragController {
         mDragSource = source;
         mDragInfo = dragInfo;
 
-    	performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
-    		    HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
-
+        ((Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE)).vibrate(VIBRATE_DURATION);
+        
         mEnteredRegion = false;
 
         invalidate();
