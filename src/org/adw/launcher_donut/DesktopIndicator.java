@@ -147,8 +147,6 @@ public class DesktopIndicator extends ViewGroup implements AnimationListener {
 			   if(mAnimation==null){
 				   mAnimation=AnimationUtils.loadAnimation(getContext(), R.anim.fade_out_fast);
 				   mAnimation.setAnimationListener(DesktopIndicator.this);
-			   }else{
-				   if(!mAnimation.hasEnded())mAnimation.cancel();
 			   }
 			   startAnimation(mAnimation);				   
 		   }
