@@ -262,6 +262,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private boolean uiHideLabels=false;
 	private boolean showAB2=false;
 	private boolean scrollableSupport=false;
+	private DesktopIndicator mDesktopIndicator;
 	/**
 	 * ADW: Home binding constants
 	 */
@@ -766,6 +767,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 				
 			}
 		});
+		if(AlmostNexusSettingsHelper.getDesktopIndicator(this)){
+			mDesktopIndicator=(DesktopIndicator) (findViewById(R.id.desktop_indicator));
+		}
 		updateAlmostNexusUI();
     }
 
@@ -2599,6 +2603,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	    	mRAB2.hideBg(hideABBg);
 	    	mLAB2.hideBg(hideABBg);
     	}
+    	if(mDesktopIndicator!=null){
+    		mDesktopIndicator.setType(AlmostNexusSettingsHelper.getDesktopIndicatorType(this));
+    		mDesktopIndicator.setAutoHide(AlmostNexusSettingsHelper.getDesktopIndicatorAutohide(this));
+    		if(mWorkspace!=null){
+    			mDesktopIndicator.setItems(mWorkspace.getChildCount());
+    		}
+    	}
+
     }
     /**
      * ADW: Create a copy of an application icon/shortcut with a reflection
@@ -3200,5 +3212,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	public static int getScreenCount(Context context){
 		return AlmostNexusSettingsHelper.getDesktopScreens(context);
 	}
-
+	public DesktopIndicator getDesktopIndicator(){
+		return mDesktopIndicator;
+	}
 }

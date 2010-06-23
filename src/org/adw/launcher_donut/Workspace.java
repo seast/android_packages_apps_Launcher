@@ -455,6 +455,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     public void computeScroll() {
         if (mScroller.computeScrollOffset()) {
             scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
+            if(mLauncher.getDesktopIndicator()!=null)mLauncher.getDesktopIndicator().indicate((float)mScroller.getCurrX()/(float)(getChildCount()*getWidth()));
             postInvalidate();
         } else if (mNextScreen != INVALID_SCREEN) {
         	int lastScreen = mCurrentScreen;
@@ -464,6 +465,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
             Launcher.setScreen(mCurrentScreen);
             mNextScreen = INVALID_SCREEN;
             clearChildrenCache();
+            if(mLauncher.getDesktopIndicator()!=null)mLauncher.getDesktopIndicator().fullIndicate(mCurrentScreen);
             //ADW: Revert back the interpolator when needed
             if(mRevertInterpolatorOnScrollFinish)setBounceAmount(mScrollingBounce);
 			//ADW: use intuit code to allow extended widgets
@@ -879,12 +881,14 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                 if (deltaX < 0) {
                     if (getScrollX() > -mScrollingBounce) {
                         scrollBy(Math.min(deltaX,mScrollingBounce), 0);
+                        if(mLauncher.getDesktopIndicator()!=null)mLauncher.getDesktopIndicator().indicate((float)getScrollX()/(float)(getChildCount()*getWidth()));
                     }
                 } else if (deltaX > 0) {
                     final int availableToScroll = getChildAt(getChildCount() - 1).getRight() -
                             getScrollX() - getWidth()+mScrollingBounce;
                     if (availableToScroll > 0) {
                         scrollBy(deltaX, 0);
+                        if(mLauncher.getDesktopIndicator()!=null)mLauncher.getDesktopIndicator().indicate((float)getScrollX()/(float)(getChildCount()*getWidth()));
                     }
                 }
             }
@@ -1172,6 +1176,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     void setLauncher(Launcher launcher) {
         mLauncher = launcher;
         if(mLauncher.isScrollableAllowed())registerProvider();
+        if(mLauncher.getDesktopIndicator()!=null)mLauncher.getDesktopIndicator().setItems(mHomeScreens);
     }
 
     public void setDragger(DragController dragger) {
