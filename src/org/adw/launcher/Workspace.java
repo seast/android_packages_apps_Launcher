@@ -271,7 +271,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         for (int i = 0; i < count; i++) {
             View child = currentScreen.getChildAt(i);
             CellLayout.LayoutParams lp = (CellLayout.LayoutParams) child.getLayoutParams();
-            if (lp.cellHSpan == 4 && lp.cellVSpan == 4 && child instanceof Folder) {
+            if (lp.cellHSpan == mDesktopColumns && lp.cellVSpan == mDesktopRows && child instanceof Folder) {
                 return (Folder) child;
             }
         }
@@ -288,7 +288,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
             for (int i = 0; i < count; i++) {
                 View child = currentScreen.getChildAt(i);
                 CellLayout.LayoutParams lp = (CellLayout.LayoutParams) child.getLayoutParams();
-                if (lp.cellHSpan == 4 && lp.cellVSpan == 4 && child instanceof Folder) {
+                if (lp.cellHSpan == mDesktopColumns && lp.cellVSpan == mDesktopRows && child instanceof Folder) {
                     folders.add((Folder) child);
                     break;
                 }
@@ -1297,7 +1297,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
             for (int i = 0; i < count; i++) {
                 View child = currentScreen.getChildAt(i);
                 CellLayout.LayoutParams lp = (CellLayout.LayoutParams) child.getLayoutParams();
-                if (lp.cellHSpan == 4 && lp.cellVSpan == 4 && child instanceof Folder) {
+                if (lp.cellHSpan == mDesktopColumns && lp.cellVSpan == mDesktopRows && child instanceof Folder) {
                     Folder f = (Folder) child;
                     if (f.getInfo() == tag) {
                         return f;
