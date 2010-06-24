@@ -212,6 +212,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 					mLauncher.getWorkspace().clearChildrenCache();
 				}else{
 					isAnimating=false;
+					mPager.setVisibility(VISIBLE);
 					mBgAlpha=mTargetAlpha;
 				}
 			}
@@ -1821,8 +1822,10 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 		findCurrentHolder();
         final HolderLayout holder=(HolderLayout) getChildAt(mCurrentHolder);
         if(animate){
+        	mPager.setVisibility(INVISIBLE);
     		mBgAlpha=0;
     	}else{
+    		mPager.setVisibility(VISIBLE);
     		mBgAlpha=mTargetAlpha;
     	}
 		if(holder==null){
@@ -1837,6 +1840,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
 	}
 	public void close(boolean animate){
 		setPressed(false);
+		mPager.setVisibility(INVISIBLE);
     	if(animate){
     		findCurrentHolder();
     		HolderLayout holder=(HolderLayout) getChildAt(mCurrentHolder);
