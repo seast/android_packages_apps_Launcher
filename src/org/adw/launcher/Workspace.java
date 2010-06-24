@@ -107,7 +107,6 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     
     private boolean mTouchedScrollableWidget = false;
     
-    private String mScrollableWidgetKey;
     
     /**
      * Cache of vacant cells, used during drag events and invalidated as needed.
@@ -204,7 +203,6 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         /* Rogro82@xda Extended : Load the default and number of homescreens from the settings database */
         mHomeScreens = AlmostNexusSettingsHelper.getDesktopScreens(context);
         mDefaultScreen = AlmostNexusSettingsHelper.getDefaultScreen(context);
-        mScrollableWidgetKey = context.getString(R.string.scrollablewidgets_key);
         
         if(mDefaultScreen>mHomeScreens-1) mDefaultScreen=0;
 
@@ -283,7 +281,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         for (int i = 0; i < count; i++) {
             View child = currentScreen.getChildAt(i);
             CellLayout.LayoutParams lp = (CellLayout.LayoutParams) child.getLayoutParams();
-            if (lp.cellHSpan == 4 && lp.cellVSpan == 4 && child instanceof Folder) {
+            if (lp.cellHSpan == mDesktopColumns && lp.cellVSpan == mDesktopRows && child instanceof Folder) {
                 return (Folder) child;
             }
         }
@@ -300,7 +298,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
             for (int i = 0; i < count; i++) {
                 View child = currentScreen.getChildAt(i);
                 CellLayout.LayoutParams lp = (CellLayout.LayoutParams) child.getLayoutParams();
-                if (lp.cellHSpan == 4 && lp.cellVSpan == 4 && child instanceof Folder) {
+                if (lp.cellHSpan == mDesktopColumns && lp.cellVSpan == mDesktopRows && child instanceof Folder) {
                     folders.add((Folder) child);
                     break;
                 }
@@ -484,6 +482,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         if (mScroller.computeScrollOffset()) {
             scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
             if(lwpSupport)updateWallpaperOffset();
+            if(mLauncher.getDesktopIndicator()!=null)mLauncher.getDesktopIndicator().indicate((float)mScroller.getCurrX()/(float)(getChildCount()*getWidth()));
             postInvalidate();
         } else if (mNextScreen != INVALID_SCREEN) {
         	int lastScreen = mCurrentScreen;
@@ -493,6 +492,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
             Launcher.setScreen(mCurrentScreen);
             mNextScreen = INVALID_SCREEN;
             clearChildrenCache();
+            if(mLauncher.getDesktopIndicator()!=null)mLauncher.getDesktopIndicator().fullIndicate(mCurrentScreen);
             //ADW: Revert back the interpolator when needed
             if(mRevertInterpolatorOnScrollFinish)setBounceAmount(mScrollingBounce);
 			//ADW: use intuit code to allow extended widgets
@@ -971,6 +971,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                     if (getScrollX() > -mScrollingBounce) {
                         scrollBy(Math.min(deltaX,mScrollingBounce), 0);
                         if(lwpSupport)updateWallpaperOffset();
+                        if(mLauncher.getDesktopIndicator()!=null)mLauncher.getDesktopIndicator().indicate((float)getScrollX()/(float)(getChildCount()*getWidth()));
                     }
                 } else if (deltaX > 0) {
                     final int availableToScroll = getChildAt(getChildCount() - 1).getRight() -
@@ -978,6 +979,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                     if (availableToScroll > 0) {
                         scrollBy(deltaX, 0);
                         if(lwpSupport)updateWallpaperOffset();
+                        if(mLauncher.getDesktopIndicator()!=null)mLauncher.getDesktopIndicator().indicate((float)getScrollX()/(float)(getChildCount()*getWidth()));
                     }
                 }
             }
@@ -1273,6 +1275,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     void setLauncher(Launcher launcher) {
         mLauncher = launcher;
         if(mLauncher.isScrollableAllowed())registerProvider();
+        if(mLauncher.getDesktopIndicator()!=null)mLauncher.getDesktopIndicator().setItems(mHomeScreens);
     }
 
     public void setDragger(DragController dragger) {
@@ -1367,7 +1370,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
             for (int i = 0; i < count; i++) {
                 View child = currentScreen.getChildAt(i);
                 CellLayout.LayoutParams lp = (CellLayout.LayoutParams) child.getLayoutParams();
-                if (lp.cellHSpan == 4 && lp.cellVSpan == 4 && child instanceof Folder) {
+                if (lp.cellHSpan == mDesktopColumns && lp.cellVSpan == mDesktopRows && child instanceof Folder) {
                     Folder f = (Folder) child;
                     if (f.getInfo() == tag) {
                         return f;

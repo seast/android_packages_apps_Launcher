@@ -130,10 +130,10 @@
     <!-- Text to show user in place of a gadget when we can't display it properly -->
     <string name="gadget_error_text">Problem loading widget</string>
     <!-- ADW Version Information -->
-    <string name="adw_version">0.8.6 Standalone</string>
+    <string name="adw_version">0.8.8 Standalone</string>
 	<string name="adw_donate">Please, donate if you like my work :-)</string>
     <!-- ADW Settings -->
-    <string name="pref_label_settings">AlmostNexus Settings</string>
+    <string name="pref_label_settings">ADW Settings</string>
     <!-- Screen preferences -->
     <string name="pref_title_screen_preferences">Screen preferences</string>
     <string name="pref_summary_screen_preferences">Screen count, default screen...</string>
@@ -341,4 +341,25 @@
     
     <string name="pref_title_screen_cache">Use screen cache</string>
     <string name="pref_summary_screen_cache">Smoother scrolling. Disable if you use TONS of widgets.</string>
+
+    <string name="pref_title_desktop_indicator">Show desktop indicator</string>
+    <string name="pref_summary_desktop_indicator">Show a visual hint on scrolling desktop</string>
+    <string name="pref_title_desktop_indicator_autohide">Autohide desktop indicator</string>
+    <string name="pref_summary_desktop_indicator_autohide">Hide the indicator after a small period</string>
+    <string name="pref_title_desktop_indicator_type">Indicator type</string>
+    <string name="pref_summary_desktop_indicator_type">Select between different indicator styles</string>
+
+	<!-- Category titles -->
+	<string name="pref_title_system_preferences">System Preferences</string>
+	<string name="pref_summary_system_preferences">General system preferences for ADW.Launcher</string>
+	<string name="pref_title_screens_preferencecategory">Dekstop screens</string>
+	<string name="pref_title_screens_layout_preferencecategory">Dekstop layout</string>
+	<string name="pref_title_screens_behaviour_preferencecategory">Dekstop behaviour</string>
+	<string name="pref_title_drawer_preferencecategory">Applications drawer</string>
+	<string name="pref_title_drawer_visuals_preferencecategory">Application drawer visuals</string>
+	<string name="pref_title_highlights_preferencecategory">Icon highlights</string>
+	<string name="pref_title_indicators_preferencecategory">Screen indicator</string>
+
+    <string name="pref_title_system_persistent">System persistent</string>
+    <string name="pref_summary_system_persistent">Enable this to avoid system killing the launcher</string>
 </resources>

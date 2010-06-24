@@ -11,6 +11,11 @@
                 <item>Open/close DockBar</item>
                 <item>Open App...</item>
        </string-array>
+       <string-array name="desktop_indicator_entries">
+                <item>Dot paginator top</item>
+                <item>Sliding paginator top</item>
+                <item>Sliding paginator bottom</item>
+       </string-array>
 
        <!-- Do not translate. -->
        <string-array name="menu_binding_values">
@@ -23,5 +28,10 @@
                 <item>7</item>
                 <item>8</item>
                 <item>9</item>
+       </string-array>
+       <string-array name="desktop_indicator_values">
+                <item>1</item>
+                <item>2</item>
+                <item>3</item>
        </string-array>
 </resources>

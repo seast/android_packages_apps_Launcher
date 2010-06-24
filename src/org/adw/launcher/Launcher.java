@@ -265,6 +265,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private boolean wallpaperHack=true;
 	private boolean showAB2=false;
 	private boolean scrollableSupport=false;
+	private DesktopIndicator mDesktopIndicator;
+	private int savedOrientation;
 	/**
 	 * ADW: Home/Swype down binding constants
 	 */
@@ -295,6 +297,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private boolean mShouldRestart=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        int orientation = getResources().getConfiguration().orientation;
+		savedOrientation=orientation;
     	super.onCreate(savedInstanceState);
         mInflater = getLayoutInflater();
 
@@ -509,7 +513,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         int orientation = getResources().getConfiguration().orientation;
 		if(orientation==Configuration.ORIENTATION_PORTRAIT){
 			if(newDrawer){
-				Log.d("LAUNCHER","SET COLUMNS");
 				((AllAppsSlidingView) mAllAppsGrid).setNumColumns(AlmostNexusSettingsHelper.getColumnsPortrait(Launcher.this));
 				((AllAppsSlidingView) mAllAppsGrid).setNumRows(AlmostNexusSettingsHelper.getRowsPortrait(Launcher.this));
 				((AllAppsSlidingView) mAllAppsGrid).setPageHorizontalMargin(AlmostNexusSettingsHelper.getPageHorizontalMargin(Launcher.this));
@@ -566,7 +569,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         if (mBinder != null) {
             mBinder.mTerminate = true;
         }
-
+        setPersistent(false);
         if (PROFILE_ROTATE) {
             android.os.Debug.startMethodTracing("/sdcard/launcher-rotate");
         }
@@ -763,6 +766,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 				
 			}
 		});
+		if(AlmostNexusSettingsHelper.getDesktopIndicator(this)){
+			mDesktopIndicator=(DesktopIndicator) (findViewById(R.id.desktop_indicator));
+		}
 		updateAlmostNexusUI();
     }
 
@@ -1017,7 +1023,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                 if(!isAllAppsVisible() || mHomeBinding==BIND_APPS)
                 	fireHomeBinding();
             	if(mHomeBinding!=BIND_APPS){
-                	closeDrawer();
+                	closeDrawer(false);
                 }
                 final View v = getWindow().peekDecorView();
                 if (v != null && v.getWindowToken() != null) {
@@ -1143,6 +1149,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     @Override
     public void onDestroy() {
         mDestroyed = true;
+    	//setPersistent(false);
         //ADW: unregister the sharedpref listener
         getSharedPreferences("launcher.preferences.almostnexus", Context.MODE_PRIVATE)
         .unregisterOnSharedPreferenceChangeListener(this);
@@ -2013,9 +2020,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         		folderInfo.container==LauncherSettings.Favorites.CONTAINER_RAB ||
         		folderInfo.container==LauncherSettings.Favorites.CONTAINER_LAB2 ||
         		folderInfo.container==LauncherSettings.Favorites.CONTAINER_RAB2){
-        	mWorkspace.addInScreen(openFolder, mWorkspace.getCurrentScreen(), 0, 0, 4, 4);
+        	mWorkspace.addInScreen(openFolder, mWorkspace.getCurrentScreen(), 0, 0, mWorkspace.currentDesktopColumns(), mWorkspace.currentDesktopRows());
         }else{
-        	mWorkspace.addInScreen(openFolder, folderInfo.screen, 0, 0, 4, 4);
+        	mWorkspace.addInScreen(openFolder, folderInfo.screen, 0, 0, mWorkspace.currentDesktopColumns(), mWorkspace.currentDesktopRows());
         }
         openFolder.onOpen();
         //ADW: closing drawer, removed from onpause
@@ -2627,6 +2634,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     	if(mWorkspace!=null){
     		mWorkspace.setWallpaperHack(wallpaperHack);
     	}
+    	if(mDesktopIndicator!=null){
+    		mDesktopIndicator.setType(AlmostNexusSettingsHelper.getDesktopIndicatorType(this));
+    		mDesktopIndicator.setAutoHide(AlmostNexusSettingsHelper.getDesktopIndicatorAutohide(this));
+    		if(mWorkspace!=null){
+    			mDesktopIndicator.setItems(mWorkspace.getChildCount());
+    		}
+    	}
+
     }
     /**
      * ADW: Create a copy of an application icon/shortcut with a reflection
@@ -2981,7 +2996,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             }
 			mHandleIcon.startTransition(150);
     	    mPreviousView.setVisibility(View.GONE);
-    	    mNextView.setVisibility(View.GONE);			
+    	    mNextView.setVisibility(View.GONE);	
+    	    if(mDesktopIndicator!=null)mDesktopIndicator.hide();
 		}
 
     }
@@ -2999,6 +3015,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 				mPreviousView.setVisibility(View.GONE);
 	    	    mNextView.setVisibility(View.GONE);
 			}
+			if(mDesktopIndicator!=null)mDesktopIndicator.show();
             if(newDrawer){
     	        ((AllAppsSlidingView) mAllAppsGrid).close(animated && allowDrawerAnimations);
             }else{
@@ -3061,7 +3078,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         		android.os.Process.killProcess(android.os.Process.myPid());
         		finish();
 				startActivity(getIntent());
-            return true;
+				return true;
+            }else{
+        		int currentOrientation=getResources().getConfiguration().orientation;
+        		if(currentOrientation!=savedOrientation){
+        			mShouldRestart=true;
+        			finish();
+        			startActivity(getIntent());
+        		}            	
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -3070,7 +3094,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
 	public void onSharedPreferenceChanged(SharedPreferences sp, String key) {
 		//ADW: Try to add the restart flag here instead on preferences activity
-		d("LAUNCHER","Preference "+key+ " changed!!!");
 		if(AlmostNexusSettingsHelper.needsRestart(key))
 			mShouldRestart=true;
 		else{
@@ -3420,10 +3443,36 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	public static int getScreenCount(Context context){
 		return AlmostNexusSettingsHelper.getDesktopScreens(context);
 	}
+
 	// Return AppWidgetManager
 	public AppWidgetManager getAppWidgetManager()
 	{
 		return mAppWidgetManager;
 	}
 
+	public DesktopIndicator getDesktopIndicator(){
+		return mDesktopIndicator;
+	}
+
+	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+    	setPersistent(false);
+		super.onStart();
+		//int currentOrientation=getResources().getConfiguration().orientation;
+		//if(currentOrientation!=savedOrientation){
+			//mShouldRestart=true;
+		//}
+	}
+
+	@Override
+	protected void onStop() {
+		if(!mShouldRestart){
+			savedOrientation=getResources().getConfiguration().orientation;
+	    	boolean persist=AlmostNexusSettingsHelper.getSystemPersistent(this);
+	    	setPersistent(persist);
+		}
+		// TODO Auto-generated method stub
+		super.onStop();
+	}
 }
