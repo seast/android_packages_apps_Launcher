@@ -3420,5 +3420,10 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	public static int getScreenCount(Context context){
 		return AlmostNexusSettingsHelper.getDesktopScreens(context);
 	}
+	// Return AppWidgetManager
+	public AppWidgetManager getAppWidgetManager()
+	{
+		return mAppWidgetManager;
+	}
 
 }

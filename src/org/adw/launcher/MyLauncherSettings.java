@@ -98,7 +98,7 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
         
         Preference donateLink = (Preference) findPreference("donatePref");
         donateLink.setOnPreferenceClickListener(new OnPreferenceClickListener() {
-			@Override 
+			@Override
 			public boolean onPreferenceClick(Preference preference) {
 				// TODO Auto-generated method stub
 				String url = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9S8WKFETUYRHG";

@@ -18,6 +18,8 @@ package org.adw.launcher;
 
 import android.app.Activity;
 import android.app.WallpaperManager;
+import android.appwidget.AppWidgetHostView;
+import android.appwidget.AppWidgetProviderInfo;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -103,6 +105,10 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     private Launcher mLauncher;
     private DragController mDragger;
     
+    private boolean mTouchedScrollableWidget = false;
+    
+    private String mScrollableWidgetKey;
+    
     /**
      * Cache of vacant cells, used during drag events and invalidated as needed.
      */
@@ -171,6 +177,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 	//cause of their screen sizes, so the bitmaps are... huge...
 	//And as those devices can perform pretty well without cache... let's add an option... one more...
 	private boolean mDesktopCache=true;
+	
+	
     /**
      * Used to inflate the Workspace from XML.
      *
@@ -196,6 +204,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         /* Rogro82@xda Extended : Load the default and number of homescreens from the settings database */
         mHomeScreens = AlmostNexusSettingsHelper.getDesktopScreens(context);
         mDefaultScreen = AlmostNexusSettingsHelper.getDefaultScreen(context);
+        mScrollableWidgetKey = context.getString(R.string.scrollablewidgets_key);
+        
         if(mDefaultScreen>mHomeScreens-1) mDefaultScreen=0;
 
         initWorkspace();
@@ -778,6 +788,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                 boolean xMoved = xDiff > touchSlop;
                 boolean yMoved = yDiff > touchSlop;
                 
+                // In order to be flexible enough for future complex gestures, we should check here is the movement belongs to a given pattern
+                // However in order to not spend cpu time (speed) in checking this, it is preferable to leave the x scrolling as untouched and light as possible
                 if (xMoved || yMoved) {
                     
                     if (xMoved) {
@@ -786,12 +798,18 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                         enableChildrenCache();
                     } else if (yMoved)
                     {
-                    	// Only y axis movement. So may be a Swipe down or up gesture
-                    	if ((y - mLastMotionY) > 0)
-                    		mTouchState = TOUCH_SWIPE_DOWN_GESTURE;
-                    	else
+                    	// As x scrolling is left untouched, every gesture should start by dragging in Y axis. In fact I only consider useful, swipe up and down.
+                    	// Guess if the first Pointer where the user click belongs to where a scrollable widget is. 
+                		mTouchedScrollableWidget = isWidgetAtLocationScrollable((int)mLastMotionX,(int)mLastMotionY);
+                    	if (!mTouchedScrollableWidget)
                     	{
-                    		mTouchState = TOUCH_SWIPE_UP_GESTURE;
+	                    	// Only y axis movement. So may be a Swipe down or up gesture
+	                    	if ((y - mLastMotionY) > 0)
+	                    		mTouchState = TOUCH_SWIPE_DOWN_GESTURE;
+	                    	else
+	                    	{
+	                    		mTouchState = TOUCH_SWIPE_UP_GESTURE;
+	                    	}
                     	}
                     }
                     
@@ -812,6 +830,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                 mLastMotionX = x;
                 mLastMotionY = y;
                 mAllowLongPress = true;
+                
+                //mTouchedScrollableWidget = isWidgetAtLocationScrollable((int)x,(int)y);
 
                 /*
                  * If being flinged and user touches the screen, initiate drag;
@@ -849,7 +869,44 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         return mTouchState != TOUCH_STATE_REST;
     }
 
-    void enableChildrenCache() {
+    private boolean isWidgetAtLocationScrollable(int x, int y) {
+		// will return true if widget at this position is scrollable.
+    	// Get current screen from the whole desktop
+    	CellLayout currentScreen = (CellLayout) getChildAt(mCurrentScreen);
+    	int[] cell_xy = new int[2];
+    	// Get the cell where the user started the touch event
+    	currentScreen.pointToCellExact(x, y, cell_xy);
+        int count = currentScreen.getChildCount();
+        
+        // Iterate to find which widget is located at that cell
+        // Find widget backwards from a cell does not work with (View)currentScreen.getChildAt(cell_xy[0]*currentScreen.getCountX etc etc); As the widget is positioned at the very first cell of the widgetspace
+        for (int i = 0; i < count; i++) {
+            View child = (View)currentScreen.getChildAt(i);
+            if ( child !=null)
+            {
+            	// Get Layount graphical info about this widget
+	            CellLayout.LayoutParams lp = (CellLayout.LayoutParams) child.getLayoutParams();
+	            // Calculate Cell Margins
+	            int left_cellmargin = lp.cellX;
+	            int rigth_cellmargin = lp.cellX+lp.cellHSpan;
+	            int top_cellmargin = lp.cellY;
+	            int botton_cellmargin = lp.cellY + lp.cellVSpan;
+	            // See if the cell where we touched is inside the Layout of the widget beeing analized
+	            if (cell_xy[0] >= left_cellmargin && cell_xy[0] < rigth_cellmargin && cell_xy[1] >= top_cellmargin && cell_xy[1] < botton_cellmargin)  {
+	            	try {
+		            	// Get Widget ID
+		            	int id = ((AppWidgetHostView)child).getAppWidgetId();
+		            	// Ask to WidgetSpace if the Widget identified itself when created as 'Scrollable'
+		            	return isWidgetScrollable(id);
+	            	} catch (Exception e)
+	            	{}
+	            }
+           }
+        }
+        return false;
+	}
+
+	void enableChildrenCache() {
         if(mDesktopCache){
 	    	final int count = getChildCount();
 	        for (int i = 0; i < count; i++) {
@@ -960,7 +1017,9 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
         return true;
     }
-
+    
+    
+    
     private void snapToDestination() {
         final int screenWidth = getWidth();
         final int whichScreen = (getScrollX() + (screenWidth / 2)) / screenWidth;
