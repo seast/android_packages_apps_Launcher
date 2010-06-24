@@ -158,6 +158,6 @@
 	android:id="@+id/desktop_indicator"
 	android:visibility="gone"
 	android:layout_width="fill_parent"
-    	android:layout_height="fill_parent"
+    	android:layout_height="wrap_content"
 	/>
 </org.adw.launcher_donut.DragLayer>
