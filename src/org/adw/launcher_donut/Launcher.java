@@ -263,6 +263,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private boolean showAB2=false;
 	private boolean scrollableSupport=false;
 	private DesktopIndicator mDesktopIndicator;
+	private int savedOrientation;
 	/**
 	 * ADW: Home binding constants
 	 */
@@ -282,9 +283,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private boolean mShouldRestart=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        int orientation = getResources().getConfiguration().orientation;
+		savedOrientation=orientation;
     	super.onCreate(savedInstanceState);
-    	boolean persist=AlmostNexusSettingsHelper.getSystemPersistent(this);
-    	setPersistent(persist);
         mInflater = getLayoutInflater();
 
         mAppWidgetManager = AppWidgetManager.getInstance(this);
@@ -515,7 +516,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         int orientation = getResources().getConfiguration().orientation;
 		if(orientation==Configuration.ORIENTATION_PORTRAIT){
 			if(newDrawer){
-				Log.d("LAUNCHER","SET COLUMNS");
 				((AllAppsSlidingView) mAllAppsGrid).setNumColumns(AlmostNexusSettingsHelper.getColumnsPortrait(Launcher.this));
 				((AllAppsSlidingView) mAllAppsGrid).setNumRows(AlmostNexusSettingsHelper.getRowsPortrait(Launcher.this));
 				((AllAppsSlidingView) mAllAppsGrid).setPageHorizontalMargin(AlmostNexusSettingsHelper.getPageHorizontalMargin(Launcher.this));
@@ -572,7 +572,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         if (mBinder != null) {
             mBinder.mTerminate = true;
         }
-
+        setPersistent(false);
         if (PROFILE_ROTATE) {
             android.os.Debug.startMethodTracing("/sdcard/launcher-rotate");
         }
@@ -1152,7 +1152,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     @Override
     public void onDestroy() {
         mDestroyed = true;
-    	setPersistent(false);
+    	//setPersistent(false);
         //ADW: unregister the sharedpref listener
         getSharedPreferences("launcher.preferences.almostnexus", Context.MODE_PRIVATE)
         .unregisterOnSharedPreferenceChangeListener(this);
@@ -3061,7 +3061,14 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         		android.os.Process.killProcess(android.os.Process.myPid());
         		finish();
 				startActivity(getIntent());
-            return true;
+				return true;
+            }else{
+        		int currentOrientation=getResources().getConfiguration().orientation;
+        		if(currentOrientation!=savedOrientation){
+        			mShouldRestart=true;
+        			finish();
+        			startActivity(getIntent());
+        		}            	
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -3070,7 +3077,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     }
 	public void onSharedPreferenceChanged(SharedPreferences sp, String key) {
 		//ADW: Try to add the restart flag here instead on preferences activity
-		d("LAUNCHER","Preference "+key+ " changed!!!");
 		if(AlmostNexusSettingsHelper.needsRestart(key))
 			mShouldRestart=true;
 		else{
@@ -3219,5 +3225,27 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	}
 	public DesktopIndicator getDesktopIndicator(){
 		return mDesktopIndicator;
+	}
+
+	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+    	setPersistent(false);
+		super.onStart();
+		//int currentOrientation=getResources().getConfiguration().orientation;
+		//if(currentOrientation!=savedOrientation){
+			//mShouldRestart=true;
+		//}
+	}
+
+	@Override
+	protected void onStop() {
+		if(!mShouldRestart){
+			savedOrientation=getResources().getConfiguration().orientation;
+	    	boolean persist=AlmostNexusSettingsHelper.getSystemPersistent(this);
+	    	setPersistent(persist);
+		}
+		// TODO Auto-generated method stub
+		super.onStop();
 	}
 }
