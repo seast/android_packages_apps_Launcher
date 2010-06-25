@@ -11,6 +11,11 @@
                 <item>ドックバーを開く/閉じる</item>
                 <item>アプリケーションを起動...</item>
        </string-array>
+       <string-array name="desktop_indicator_entries">
+                <item>上部にドットページ</item>
+                <item>上部にスライディングページ</item>
+                <item>下部にスライディングページ</item>
+       </string-array>
        <!-- Do not translate. -->
        <string-array name="menu_binding_values">
                 <item>1</item>
@@ -22,10 +27,5 @@
                 <item>7</item>
                 <item>8</item>
                 <item>9</item>
-       </string-array>
-       <string-array name="desktop_indicator_entries">
-                <item>上部にドットページ</item>
-                <item>上部にスライディングページ</item>
-                <item>下部にスライディングページ</item>
        </string-array>
 </resources>

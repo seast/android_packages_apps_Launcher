@@ -13,7 +13,6 @@ public final class AlmostNexusSettingsHelper {
 		for(int i=0;i<restart_keys.length;i++){
 			if(restart_keys[i].equals(key))
 			{
-				android.util.Log.d("LAUNCHER","Reset needed by wjax");
 				return true;
 			}
 		}

@@ -184,7 +184,6 @@
 		android:key="buttonPrerefences"
 		android:summary="@string/pref_summary_ui_settings"
 		android:title="@string/pref_title_ui_settings">
->>>>>>> upstream/standalone
 		<CheckBoxPreference android:title="@string/pref_title_desktop_dots"
 			android:defaultValue="true"
 			android:summary="@string/pref_summary_desktop_dots"

@@ -16,7 +16,6 @@
                 <item>Sliding paginator top</item>
                 <item>Sliding paginator bottom</item>
        </string-array>
-
        <!-- Do not translate. -->
        <string-array name="menu_binding_values">
                 <item>1</item>
@@ -29,6 +28,7 @@
                 <item>8</item>
                 <item>9</item>
        </string-array>
+       <!-- Do not translate. -->
        <string-array name="desktop_indicator_values">
                 <item>1</item>
                 <item>2</item>
