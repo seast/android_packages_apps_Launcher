@@ -3448,12 +3448,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		return AlmostNexusSettingsHelper.getDesktopScreens(context);
 	}
 
-	// Return AppWidgetManager
-	public AppWidgetManager getAppWidgetManager()
-	{
-		return mAppWidgetManager;
-	}
-
 	public DesktopIndicator getDesktopIndicator(){
 		return mDesktopIndicator;
 	}
