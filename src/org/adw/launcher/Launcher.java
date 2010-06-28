@@ -270,6 +270,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	/**
 	 * ADW: Home/Swype down binding constants
 	 */
+	protected static final int BIND_NONE=0;
 	protected static final int BIND_DEFAULT=1;
 	protected static final int BIND_HOME_PREVIEWS=2;
 	protected static final int BIND_PREVIEWS=3;
