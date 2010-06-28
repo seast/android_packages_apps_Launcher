@@ -1024,7 +1024,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             if ((intent.getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) !=
                     Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) {
                 if(!isAllAppsVisible() || mHomeBinding==BIND_APPS)
-                	fireHomeBinding(mHomeBinding);
+                	fireHomeBinding(mHomeBinding, 1);
             	if(mHomeBinding!=BIND_APPS){
                 	closeDrawer(false);
                 }
@@ -3150,7 +3150,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	/**
 	 * ADW: Home binding actions
 	 */
-	private void fireHomeBinding(int bindingValue){
+	private void fireHomeBinding(int bindingValue, int type){
     	//ADW: switch home button binding user selection
         switch (bindingValue) {
 		case BIND_DEFAULT:
@@ -3224,17 +3224,35 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		case BIND_APP_LAUNCHER:
 			// Launch or bring to front selected app
 			// Get PackageName and ClassName of selected App
-			String package_name = AlmostNexusSettingsHelper.getHomeBindingAppToLaunchPackageName(this);
-			String name = AlmostNexusSettingsHelper.getHomeBindingAppToLaunchName(this);
+			String package_name="";
+			String name=""; 
+			switch (type) {
+			case 1:
+				package_name = AlmostNexusSettingsHelper.getHomeBindingAppToLaunchPackageName(this);
+				name = AlmostNexusSettingsHelper.getHomeBindingAppToLaunchName(this);
+				break;
+			case 2:
+				package_name = AlmostNexusSettingsHelper.getSwipeUpAppToLaunchPackageName(this);
+				name = AlmostNexusSettingsHelper.getSwipeUpAppToLaunchName(this);
+				break;
+			case 3:
+				package_name = AlmostNexusSettingsHelper.getSwipeDownAppToLaunchPackageName(this);
+				name = AlmostNexusSettingsHelper.getSwipeDownAppToLaunchName(this);
+				break;
+			default:
+				break;
+			}
 			// Create Intent to Launch App
-			Intent i = new Intent();
-			i.setAction(Intent.ACTION_MAIN);
-			i.addCategory(Intent.CATEGORY_LAUNCHER);
-			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-			i.setComponent(new ComponentName(package_name, name));
-			try {
-				startActivity(i);
-			} catch (Exception e) {}
+			if(package_name!="" && name!=""){
+				Intent i = new Intent();
+				i.setAction(Intent.ACTION_MAIN);
+				i.addCategory(Intent.CATEGORY_LAUNCHER);
+				i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+				i.setComponent(new ComponentName(package_name, name));
+				try {
+					startActivity(i);
+				} catch (Exception e) {}
+			}
 			break;
 		default:
 			break;
@@ -3247,7 +3265,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	 */
 	public void fireSwipeDownAction(){
     	//wjax: switch SwipeDownAction button binding user selection
-		fireHomeBinding(mSwipedownAction);
+		fireHomeBinding(mSwipedownAction,3);
 	}
 	
 	/**
@@ -3255,7 +3273,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	 */
 	public void fireSwipeUpAction(){
     	//wjax: switch SwipeUpAction button binding user selection
-		fireHomeBinding(mSwipeupAction);
+		fireHomeBinding(mSwipeupAction,2);
 	}
 	
 	
