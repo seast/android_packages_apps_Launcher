@@ -270,6 +270,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	/**
 	 * ADW: Home/Swype down binding constants
 	 */
+	protected static final int BIND_NONE=0;
 	protected static final int BIND_DEFAULT=1;
 	protected static final int BIND_HOME_PREVIEWS=2;
 	protected static final int BIND_PREVIEWS=3;
@@ -1023,7 +1024,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             if ((intent.getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) !=
                     Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) {
                 if(!isAllAppsVisible() || mHomeBinding==BIND_APPS)
-                	fireHomeBinding();
+                	fireHomeBinding(mHomeBinding, 1);
             	if(mHomeBinding!=BIND_APPS){
                 	closeDrawer(false);
                 }
@@ -2649,7 +2650,10 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 			mRAB2.updateIcon();
 			mLAB2.updateIcon();
 		}
-		
+		if(!showDockBar){
+			mDockBar.close();
+		}
+		mHandleView.setSlidingEnabled(showDockBar);
     	fullScreen(hideStatusBar);
     	if(!mDockBar.isOpen() && !showingPreviews){
 	    	mNextView.setVisibility(showDots?View.VISIBLE:View.GONE);
@@ -2658,7 +2662,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	    	mLAB.setVisibility(showLAB?View.VISIBLE:View.INVISIBLE);
 	    	mRAB2.setVisibility((showAB2 && !showDots)?View.VISIBLE:View.GONE);
 	    	mLAB2.setVisibility((showAB2 && !showDots)?View.VISIBLE:View.GONE);
-	    	mHandleView.setSlidingEnabled(showDockBar);
 	    	View appsBg=findViewById(R.id.appsBg);
 	    	appsBg.setVisibility(hideAppsBg?View.INVISIBLE:View.VISIBLE);
 	    	mRAB.hideBg(hideABBg);
@@ -3147,9 +3150,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	/**
 	 * ADW: Home binding actions
 	 */
-	private void fireHomeBinding(){
+	private void fireHomeBinding(int bindingValue, int type){
     	//ADW: switch home button binding user selection
-        switch (mHomeBinding) {
+        switch (bindingValue) {
 		case BIND_DEFAULT:
 			dismissPreviews();
 			if (!mWorkspace.isDefaultScreenShowing()) {
@@ -3210,26 +3213,46 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 			break;
 		case BIND_DOCKBAR:
 			dismissPreviews();
-			if(mDockBar.isOpen()){
-				mDockBar.close();
-			}else{
-				mDockBar.open();
+			if(showDockBar){
+				if(mDockBar.isOpen()){
+					mDockBar.close();
+				}else{
+					mDockBar.open();
+				}
 			}
 			break;
 		case BIND_APP_LAUNCHER:
 			// Launch or bring to front selected app
 			// Get PackageName and ClassName of selected App
-			String package_name = AlmostNexusSettingsHelper.getHomeBindingAppToLaunchPackageName(this);
-			String name = AlmostNexusSettingsHelper.getHomeBindingAppToLaunchName(this);
+			String package_name="";
+			String name=""; 
+			switch (type) {
+			case 1:
+				package_name = AlmostNexusSettingsHelper.getHomeBindingAppToLaunchPackageName(this);
+				name = AlmostNexusSettingsHelper.getHomeBindingAppToLaunchName(this);
+				break;
+			case 2:
+				package_name = AlmostNexusSettingsHelper.getSwipeUpAppToLaunchPackageName(this);
+				name = AlmostNexusSettingsHelper.getSwipeUpAppToLaunchName(this);
+				break;
+			case 3:
+				package_name = AlmostNexusSettingsHelper.getSwipeDownAppToLaunchPackageName(this);
+				name = AlmostNexusSettingsHelper.getSwipeDownAppToLaunchName(this);
+				break;
+			default:
+				break;
+			}
 			// Create Intent to Launch App
-			Intent i = new Intent();
-			i.setAction(Intent.ACTION_MAIN);
-			i.addCategory(Intent.CATEGORY_LAUNCHER);
-			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-			i.setComponent(new ComponentName(package_name, name));
-			try {
-				startActivity(i);
-			} catch (Exception e) {}
+			if(package_name!="" && name!=""){
+				Intent i = new Intent();
+				i.setAction(Intent.ACTION_MAIN);
+				i.addCategory(Intent.CATEGORY_LAUNCHER);
+				i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+				i.setComponent(new ComponentName(package_name, name));
+				try {
+					startActivity(i);
+				} catch (Exception e) {}
+			}
 			break;
 		default:
 			break;
@@ -3242,91 +3265,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	 */
 	public void fireSwipeDownAction(){
     	//wjax: switch SwipeDownAction button binding user selection
-        switch (mSwipedownAction) {
-		case BIND_DEFAULT:
-			dismissPreviews();
-			if (!mWorkspace.isDefaultScreenShowing()) {
-				mWorkspace.moveToDefaultScreen();
-			}
-			break;
-		case BIND_HOME_PREVIEWS:
-        	if (!mWorkspace.isDefaultScreenShowing()) {
-        		dismissPreviews();
-                mWorkspace.moveToDefaultScreen();
-            }else{
-            	if(!showingPreviews){
-            		showPreviews(mHandleView, 0, mWorkspace.mHomeScreens);
-            	}else{
-            		dismissPreviews();
-            	}
-            }
-			break;
-		case BIND_PREVIEWS:
-        	if(!showingPreviews){
-        		showPreviews(mHandleView, 0, mWorkspace.mHomeScreens);
-        	}else{
-        		dismissPreviews();
-        	}
-			break;
-		case BIND_APPS:
-			dismissPreviews();
-			if(isAllAppsVisible()){
-				closeDrawer();
-			}else{
-				showAllApps(true);
-			}
-			break;
-		case BIND_STATUSBAR:
-			WindowManager.LayoutParams attrs = getWindow().getAttributes();
-	    	if((attrs.flags & WindowManager.LayoutParams.FLAG_FULLSCREEN) == WindowManager.LayoutParams.FLAG_FULLSCREEN){
-		    	// go non-full screen
-		    	attrs.flags &= (~WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		    	getWindow().setAttributes(attrs);
-	    	}else{
-		    	// go full screen
-		    	attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
-		    	getWindow().setAttributes(attrs);
-	    	}
-			break;
-		case BIND_NOTIFICATIONS:
-			dismissPreviews();
-			showNotifications();
-			break;
-		case BIND_HOME_NOTIFICATIONS:
-        	if (!mWorkspace.isDefaultScreenShowing()) {
-        		dismissPreviews();
-                mWorkspace.moveToDefaultScreen();
-            }else{
-    			dismissPreviews();
-    			showNotifications();
-            }
-			break;
-		case BIND_DOCKBAR:
-			dismissPreviews();
-			if(mDockBar.isOpen()){
-				mDockBar.close();
-			}else{
-				mDockBar.open();
-			}
-			break;
-		case BIND_APP_LAUNCHER:
-			// Launch or bring to front selected app
-			// Get PackageName and ClassName of selected App
-			String package_name = AlmostNexusSettingsHelper.getSwipeDownAppToLaunchPackageName(this);
-			String name = AlmostNexusSettingsHelper.getSwipeDownAppToLaunchName(this);
-			// Create Intent to Launch App
-			Intent i = new Intent();
-			i.setAction(Intent.ACTION_MAIN);
-			i.addCategory(Intent.CATEGORY_LAUNCHER);
-			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-			i.setComponent(new ComponentName(package_name, name));
-			try {
-				startActivity(i);
-			} catch (Exception e) {}
-			break;
-		default:
-			break;
-		}
+		fireHomeBinding(mSwipedownAction,3);
 	}
 	
 	/**
@@ -3334,91 +3273,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	 */
 	public void fireSwipeUpAction(){
     	//wjax: switch SwipeUpAction button binding user selection
-        switch (mSwipeupAction) {
-		case BIND_DEFAULT:
-			dismissPreviews();
-			if (!mWorkspace.isDefaultScreenShowing()) {
-				mWorkspace.moveToDefaultScreen();
-			}
-			break;
-		case BIND_HOME_PREVIEWS:
-        	if (!mWorkspace.isDefaultScreenShowing()) {
-        		dismissPreviews();
-                mWorkspace.moveToDefaultScreen();
-            }else{
-            	if(!showingPreviews){
-            		showPreviews(mHandleView, 0, mWorkspace.mHomeScreens);
-            	}else{
-            		dismissPreviews();
-            	}
-            }
-			break;
-		case BIND_PREVIEWS:
-        	if(!showingPreviews){
-        		showPreviews(mHandleView, 0, mWorkspace.mHomeScreens);
-        	}else{
-        		dismissPreviews();
-        	}
-			break;
-		case BIND_APPS:
-			dismissPreviews();
-			if(isAllAppsVisible()){
-				closeDrawer();
-			}else{
-				showAllApps(true);
-			}
-			break;
-		case BIND_STATUSBAR:
-			WindowManager.LayoutParams attrs = getWindow().getAttributes();
-	    	if((attrs.flags & WindowManager.LayoutParams.FLAG_FULLSCREEN) == WindowManager.LayoutParams.FLAG_FULLSCREEN){
-		    	// go non-full screen
-		    	attrs.flags &= (~WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		    	getWindow().setAttributes(attrs);
-	    	}else{
-		    	// go full screen
-		    	attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
-		    	getWindow().setAttributes(attrs);
-	    	}
-			break;
-		case BIND_NOTIFICATIONS:
-			dismissPreviews();
-			showNotifications();
-			break;
-		case BIND_HOME_NOTIFICATIONS:
-        	if (!mWorkspace.isDefaultScreenShowing()) {
-        		dismissPreviews();
-                mWorkspace.moveToDefaultScreen();
-            }else{
-    			dismissPreviews();
-    			showNotifications();
-            }
-			break;
-		case BIND_DOCKBAR:
-			dismissPreviews();
-			if(mDockBar.isOpen()){
-				mDockBar.close();
-			}else{
-				mDockBar.open();
-			}
-			break;
-		case BIND_APP_LAUNCHER:
-			// Launch or bring to front selected app
-			// Get PackageName and ClassName of selected App
-			String package_name = AlmostNexusSettingsHelper.getSwipeUpAppToLaunchPackageName(this);
-			String name = AlmostNexusSettingsHelper.getSwipeUpAppToLaunchName(this);
-			// Create Intent to Launch App
-			Intent i = new Intent();
-			i.setAction(Intent.ACTION_MAIN);
-			i.addCategory(Intent.CATEGORY_LAUNCHER);
-			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-			i.setComponent(new ComponentName(package_name, name));
-			try {
-				startActivity(i);
-			} catch (Exception e) {}
-			break;
-		default:
-			break;
-		}
+		fireHomeBinding(mSwipeupAction,2);
 	}
 	
 	

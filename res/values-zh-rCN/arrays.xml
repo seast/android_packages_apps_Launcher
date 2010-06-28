@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
        <string-array name="menu_binding_entries">
+       			<item>NONE</item>
                 <item>显示默认桌面</item>
                 <item>显示默认桌面/显示预览</item>
                 <item>显示预览</item>
@@ -15,24 +16,6 @@
                 <item>顶部点状指示器</item>
                 <item>顶部滑动指示器</item>
                 <item>底部滑动指示器</item>
-       </string-array>
-       <!-- Do not translate. -->
-       <string-array name="menu_binding_values">
-                <item>1</item>
-                <item>2</item>
-                <item>3</item>
-                <item>4</item>
-                <item>5</item>
-                <item>6</item>
-                <item>7</item>
-                <item>8</item>
-                <item>9</item>
-       </string-array>
-       <!-- Do not translate. -->
-       <string-array name="desktop_indicator_values">
-                <item>1</item>
-                <item>2</item>
-                <item>3</item>
        </string-array>
 </resources>
 

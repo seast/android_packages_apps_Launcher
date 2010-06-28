@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
        <string-array name="menu_binding_entries">
+       			<item>Desactivado</item>
                 <item>Ir al escritorio por defecto</item>
                 <item>Ir al escritorio por defecto/mostrar previsualización</item>
                 <item>Mostrar previsualización</item>
@@ -11,16 +12,9 @@
                 <item>Abre/cierra el DockBar</item>
                 <item>Lanza Aplicación...</item>
        </string-array>
-       <!-- Do not translate. -->
-       <string-array name="menu_binding_values">
-                <item>1</item>
-                <item>2</item>
-                <item>3</item>
-                <item>4</item>
-                <item>5</item>
-                <item>6</item>
-                <item>7</item>
-                <item>8</item>
-                <item>9</item>
+       <string-array name="desktop_indicator_entries">
+                <item>Puntos, arriba</item>
+                <item>Línea superior</item>
+                <item>Línea inferior</item>
        </string-array>
 </resources>

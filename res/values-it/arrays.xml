@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
        <string-array name="menu_binding_entries">
+       			<item>NONE</item>
                 <item>Muovi al Desktop predefinito</item>
                 <item>Muovi al Desktop predefinito/visualizza anteprima</item>
                 <item>Visualizza anteprima</item>
@@ -10,19 +11,6 @@
                 <item>Move to default desktop/Open notifications</item>
                 <item>Open/close DockBar</item>
                 <item>Open App...</item>
-       </string-array>
-
-       <!-- Do not translate. -->
-       <string-array name="menu_binding_values">
-                <item>1</item>
-                <item>2</item>
-                <item>3</item>
-                <item>4</item>
-                <item>5</item>
-                <item>6</item>
-                <item>7</item>
-                <item>8</item>
-                <item>9</item>
        </string-array>
 </resources>
 
