@@ -232,7 +232,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
     
     void setLauncher(Launcher launcher) {
         mLauncher = launcher;
-        setSelector(IconHighlights.getDrawable(mLauncher));
+        setSelector(IconHighlights.getDrawable(mLauncher,false));
     }
 	@Override
 	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
@@ -1016,6 +1016,7 @@ public class AllAppsSlidingView extends AdapterView<ApplicationsAdapter> impleme
         } else {
             child = mAdapter.getView(position, null, this);
         }
+        child.setBackgroundDrawable(IconHighlights.getDrawable(mLauncher, false));
         return child;
     }
     public int getPageCount(){
