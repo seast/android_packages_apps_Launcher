@@ -304,5 +304,10 @@ public final class AlmostNexusSettingsHelper {
 		boolean newD = sp.getBoolean("systemPersistent", context.getResources().getBoolean(R.bool.config_system_persistent));
 		return newD;
 	}
+	public static String getThemePackageName(Context context, String default_theme)
+	{
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, Context.MODE_PRIVATE);
+		return sp.getString("ThemePackageName", default_theme);
+	}
 	
 }
