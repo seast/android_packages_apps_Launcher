@@ -255,6 +255,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private boolean showDots=true;
 	private boolean showDockBar=true;
 	private boolean autoCloseDockbar;
+	protected boolean autoCloseFolder;
 	private boolean showLAB=true;
 	private boolean showRAB=true;
 	private boolean tintActionIcons=true;
@@ -2614,6 +2615,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		showDots=AlmostNexusSettingsHelper.getUIDots(this);
 		showDockBar=AlmostNexusSettingsHelper.getUIDockbar(this);
 		autoCloseDockbar=AlmostNexusSettingsHelper.getUICloseDockbar(this);
+		autoCloseFolder=AlmostNexusSettingsHelper.getUICloseFolder(this);
 		showLAB=AlmostNexusSettingsHelper.getUILAB(this);
 		showRAB=AlmostNexusSettingsHelper.getUIRAB(this);    	
 		showAB2=AlmostNexusSettingsHelper.getUIAB2(this);
