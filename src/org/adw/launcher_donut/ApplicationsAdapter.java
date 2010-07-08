@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,6 +55,8 @@ public class ApplicationsAdapter extends ArrayAdapter<ApplicationInfo> {
     				mTextColor=themeResources.getColor(textColorId);
     			}
     			mBackground=IconHighlights.getDrawable(getContext(), IconHighlights.TYPE_DRAWER);
+    			//ADW: i only want the "normal" state
+    			mBackground=((StateListDrawable)mBackground).getCurrent();
     		}
         }
     }
@@ -80,7 +83,7 @@ public class ApplicationsAdapter extends ArrayAdapter<ApplicationInfo> {
         //TODO:ADW Loading the background drawable for the app drawer hogs the ram and cpu
         //so i'd better not use it, sorry themers
 		if(mBackground!=null)
-			convertView.setBackgroundDrawable(mBackground.mutate());
+			convertView.setBackgroundDrawable(mBackground);
         return convertView;
     }
 }
