@@ -55,8 +55,6 @@ public class ApplicationsAdapter extends ArrayAdapter<ApplicationInfo> {
     				mTextColor=themeResources.getColor(textColorId);
     			}
     			mBackground=IconHighlights.getDrawable(getContext(), IconHighlights.TYPE_DRAWER);
-    			//ADW: i only want the "normal" state
-    			mBackground=((StateListDrawable)mBackground).getCurrent();
     		}
         }
     }
