@@ -6,6 +6,7 @@ import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -23,16 +24,14 @@ import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.content.pm.*;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
 import android.content.*;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapFactory.Options;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -312,6 +311,27 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
     			if(config_desktop_indicator_typeId!=0){
     				String config_desktop_indicator_type=themeResources.getString(config_desktop_indicator_typeId);
     				editor.putString("uiDesktopIndicatorType", config_desktop_indicator_type);
+    			}
+    			//TODO:ADW We set the theme wallpaper. We should add this as optional...
+    			int wallpaperId=themeResources.getIdentifier("theme_wallpaper", "drawable", packageName.toString());
+    			if(wallpaperId!=0){
+    	            Options mOptions = new BitmapFactory.Options();
+    	            mOptions.inDither = false;
+    	            mOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
+    	            Bitmap wallpaper=null;
+    	            try {
+    	                wallpaper=BitmapFactory.decodeResource(themeResources,wallpaperId, mOptions);
+    	            } catch (OutOfMemoryError e) {
+    	            }            
+    	        	if(wallpaper!=null){
+            	        try {
+	        	            WallpaperManager wpm = (WallpaperManager)getSystemService(WALLPAPER_SERVICE);
+	        	            //wpm.setResource(mImages.get(position));
+	        	            wpm.setBitmap(wallpaper);
+	        	            wallpaper.recycle();
+	        	        } catch (Exception e) {
+	        	        }
+    	        	}
     			}
     		}
         }
