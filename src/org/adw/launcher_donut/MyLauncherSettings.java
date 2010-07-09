@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.util.Calendar;
 import java.util.List;
@@ -293,6 +294,20 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
     			if(config_desktop_indicator_typeId!=0){
     				String config_desktop_indicator_type=themeResources.getString(config_desktop_indicator_typeId);
     				editor.putString("uiDesktopIndicatorType", config_desktop_indicator_type);
+    			}
+    			//TODO:ADW We set the theme wallpaper. We should add this as optional...
+    			int wallpaperId=themeResources.getIdentifier("theme_wallpaper", "drawable", packageName.toString());
+    			if(wallpaperId!=0){
+    	        	if(wallpaperId!=0){
+    	                try {
+    	                    InputStream stream = themeResources.openRawResource(wallpaperId);
+    	                    setWallpaper(stream);
+    	                    setResult(RESULT_OK);
+    	                    finish();
+    	                } catch (IOException e) {
+    	                    Log.e(Launcher.LOG_TAG, "Failed to set wallpaper: " + e);
+    	                }
+    	        	}
     			}
     		}
         }
