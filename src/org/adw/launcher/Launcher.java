@@ -774,13 +774,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		}
     	//ADW: Load the specified theme
     	String themePackage=AlmostNexusSettingsHelper.getThemePackageName(this, THEME_DEFAULT);
-    	Log.d("SUPERLAUNCHER","We should load theme from:"+themePackage);
     	PackageManager pm=getPackageManager();
     	Resources themeResources=null;
     	if(!themePackage.equals(THEME_DEFAULT)){
 	    	try {
 				themeResources=pm.getResourcesForApplication(themePackage);
-				Log.d("ThemeLoader", "found a resource:"+themeResources);
 			} catch (NameNotFoundException e) {
 				//ADW The saved theme was uninstalled so we save the default one
 			    AlmostNexusSettingsHelper.setThemePackageName(this, Launcher.THEME_DEFAULT);
@@ -2492,7 +2490,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	            }
             } else {
                 if (Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE.equals(action)) {
-                	Log.d("FROYO","EXTERNAL AVAILABLE");
                      String packages[] = intent.getStringArrayExtra(
                              Intent.EXTRA_CHANGED_PACKAGE_LIST);
                      if (packages == null || packages.length == 0) {
