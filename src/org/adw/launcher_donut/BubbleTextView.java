@@ -92,7 +92,6 @@ public class BubbleTextView extends TextView {
     			int cornerId=themeResources.getIdentifier("bubble_radius", "integer", themePackage);
     			if(cornerId!=0){
     				mCustomCornerRadius=(float)themeResources.getInteger(cornerId);
-    				android.util.Log.d("BubbleTExtView","corner radius="+mCustomCornerRadius);
     			}
     		}
         }

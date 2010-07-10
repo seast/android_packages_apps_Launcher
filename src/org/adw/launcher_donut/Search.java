@@ -290,7 +290,6 @@ public class Search extends LinearLayout
         mVoiceButton.setOnLongClickListener(this);
     	//ADW: Load the specified theme
     	String themePackage=AlmostNexusSettingsHelper.getThemePackageName(getContext(), Launcher.THEME_DEFAULT);
-    	Log.d("SUPERLAUNCHER","SEARCH WIDGET:We should load theme from:"+themePackage);
     	PackageManager pm=getContext().getPackageManager();
     	Resources themeResources=null;
     	if(!themePackage.equals(Launcher.THEME_DEFAULT)){
