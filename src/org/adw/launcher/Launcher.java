@@ -57,6 +57,7 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LevelListDrawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -298,6 +299,11 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	private static WallpaperIntentReceiver sWallpaperReceiver;
 	private boolean mShouldRestart=false;
 	private boolean mMessWithPersistence=false;
+	//ADW Theme constants
+	public static final int THEME_ITEM_BACKGROUND=0;
+	public static final int THEME_ITEM_FOREGROUND=1;
+	public static final String THEME_DEFAULT="ADW.Default theme";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         int orientation = getResources().getConfiguration().orientation;
@@ -677,8 +683,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         final DeleteZone deleteZone = (DeleteZone) dragLayer.findViewById(R.id.delete_zone);
 
         mHandleView = (SliderView) dragLayer.findViewById(R.id.all_apps);
-        mHandleIcon = (TransitionDrawable) mHandleView.getDrawable();
-        mHandleIcon.setCrossFadeEnabled(true);
         mHandleView.setOnTriggerListener(new OnTriggerListener() {
 			public void onTrigger(View v, int whichHandle) {
 				mDockBar.open();
@@ -743,10 +747,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		mPreviousView.setOnLongClickListener(this);
 		mNextView.setOnLongClickListener(this);
 		
-		Drawable previous = mPreviousView.getDrawable();
-		Drawable next = mNextView.getDrawable();
-		mWorkspace.setIndicators(previous, next);
-		
 		//ADW linearlayout with apptray, lab and rab
 		final View drwToolbar=findViewById(R.id.drawer_toolbar);
 		//ADW add a listener to the dockbar to show/hide the app-drawer-button and the dots
@@ -781,6 +781,43 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         mPreviousView.setFocusable(true);
 		mNextView.setFocusable(true);
 		
+    	//ADW: Load the specified theme
+    	String themePackage=AlmostNexusSettingsHelper.getThemePackageName(this, THEME_DEFAULT);
+    	PackageManager pm=getPackageManager();
+    	Resources themeResources=null;
+    	if(!themePackage.equals(THEME_DEFAULT)){
+	    	try {
+				themeResources=pm.getResourcesForApplication(themePackage);
+			} catch (NameNotFoundException e) {
+				//ADW The saved theme was uninstalled so we save the default one
+			    AlmostNexusSettingsHelper.setThemePackageName(this, Launcher.THEME_DEFAULT);
+			}
+    	}
+		if(themeResources!=null){
+	    	//Action Buttons
+			loadThemeResource(themeResources,themePackage,"lab_bg",mLAB,THEME_ITEM_BACKGROUND);
+			loadThemeResource(themeResources,themePackage,"rab_bg",mRAB,THEME_ITEM_BACKGROUND);
+			loadThemeResource(themeResources,themePackage,"lab2_bg",mLAB2,THEME_ITEM_BACKGROUND);
+			loadThemeResource(themeResources,themePackage,"rab2_bg",mRAB2,THEME_ITEM_BACKGROUND);
+			//App drawer button
+			loadThemeResource(themeResources,themePackage,"handle_icon",mHandleView,THEME_ITEM_FOREGROUND);
+			View appsBg=findViewById(R.id.appsBg);
+			loadThemeResource(themeResources,themePackage,"handle",appsBg,THEME_ITEM_BACKGROUND);
+			//Deletezone
+			loadThemeResource(themeResources,themePackage,"ic_delete",deleteZone,THEME_ITEM_FOREGROUND);
+			loadThemeResource(themeResources,themePackage,"delete_zone_selector",deleteZone,THEME_ITEM_BACKGROUND);
+			//Desktop dots
+			loadThemeResource(themeResources,themePackage,"home_arrows_left",mPreviousView,THEME_ITEM_FOREGROUND);
+			loadThemeResource(themeResources,themePackage,"home_arrows_right",mNextView,THEME_ITEM_FOREGROUND);
+			//Dockbar
+			loadThemeResource(themeResources,themePackage,"dockbar_bg",mMiniLauncher,THEME_ITEM_BACKGROUND);
+		}
+        mHandleIcon = (TransitionDrawable) mHandleView.getDrawable();
+        mHandleIcon.setCrossFadeEnabled(true);
+		Drawable previous = mPreviousView.getDrawable();
+		Drawable next = mNextView.getDrawable();
+		mWorkspace.setIndicators(previous, next);
+		//ADW: EOF Themes
 		updateAlmostNexusUI();
     }
 
@@ -858,8 +895,21 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
             itemInfo.setActivity(component, Intent.FLAG_ACTIVITY_NEW_TASK |
                     Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-            itemInfo.icon = activityInfo.loadIcon(packageManager);
+            //itemInfo.icon = activityInfo.loadIcon(packageManager);
             itemInfo.container = ItemInfo.NO_ID;
+            //TODO:ADW Load icon from theme/iconpack
+            String themePackage=AlmostNexusSettingsHelper.getThemePackageName(context, Launcher.THEME_DEFAULT);
+            if(themePackage.equals(Launcher.THEME_DEFAULT)){
+            	itemInfo.icon =activityInfo.loadIcon(packageManager);
+            }else{
+            	//Drawable tmpIcon = LauncherModel.loadIconFromTheme(context, packageManager, themePackage,activityInfo.packageName+"_"+activityInfo.name);
+            	Drawable tmpIcon = LauncherModel.loadIconFromTheme(context, packageManager, themePackage,activityInfo.name);
+            	if(tmpIcon==null){
+            		itemInfo.icon = activityInfo.loadIcon(packageManager);
+            	}else{
+            		itemInfo.icon = tmpIcon;
+            	}
+            }
 
             return itemInfo;
         }
@@ -2447,7 +2497,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	            }
             } else {
                 if (Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE.equals(action)) {
-                	Log.d("FROYO","EXTERNAL AVAILABLE");
                      String packages[] = intent.getStringArrayExtra(
                              Intent.EXTRA_CHANGED_PACKAGE_LIST);
                      if (packages == null || packages.length == 0) {
@@ -2727,7 +2776,21 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         ImageView favorite = (ImageView) mInflater.inflate(layoutResId, parent, false);
 
         final Resources resources = getResources();
-        Drawable d = resources.getDrawable(R.drawable.ic_launcher_folder);
+        //Drawable d = resources.getDrawable(R.drawable.ic_launcher_folder);
+        Drawable d=null;
+        if(AlmostNexusSettingsHelper.getThemeIcons(this)){
+	        String packageName=AlmostNexusSettingsHelper.getThemePackageName(this, THEME_DEFAULT);
+	        if(packageName.equals(THEME_DEFAULT)){
+	        	d = resources.getDrawable(R.drawable.ic_launcher_folder);
+	        }else{
+	        	d=FolderIcon.loadFolderFromTheme(this, getPackageManager(), packageName, "ic_launcher_folder");
+	        	if(d==null){
+	        		d = resources.getDrawable(R.drawable.ic_launcher_folder);
+	        	}
+	        }
+        }else{
+        	d = resources.getDrawable(R.drawable.ic_launcher_folder);
+        }
         d=Utilities.drawReflection(d, this);
         favorite.setImageDrawable(d);
         favorite.setTag(info);
@@ -2747,8 +2810,20 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         final Resources resources = getResources();
         Drawable d = info.icon;
         if (d == null) {
-        	d = Utilities.createIconThumbnail(
-            resources.getDrawable(R.drawable.ic_launcher_folder), this);
+            if(AlmostNexusSettingsHelper.getThemeIcons(this)){
+	        	//Drawable d = resources.getDrawable(R.drawable.ic_launcher_folder);
+	            String packageName=AlmostNexusSettingsHelper.getThemePackageName(this, THEME_DEFAULT);
+	            if(packageName.equals(THEME_DEFAULT)){
+	            	d = resources.getDrawable(R.drawable.ic_launcher_folder);
+	            }else{
+	            	d=FolderIcon.loadFolderFromTheme(this, getPackageManager(), packageName, "ic_launcher_folder");
+	            	if(d==null){
+	            		d = resources.getDrawable(R.drawable.ic_launcher_folder);
+	            	}
+	            }
+            }else{
+            	d = resources.getDrawable(R.drawable.ic_launcher_folder);
+            }
         	info.filtered = true;
         }
         d=Utilities.drawReflection(d, this);
@@ -2774,12 +2849,27 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         }else if(info instanceof LiveFolderInfo){
         	d=((LiveFolderInfo)info).icon;
             if (d == null) {
-            	d = Utilities.createIconThumbnail(
-                resources.getDrawable(R.drawable.ic_launcher_folder), this);
+            	if(AlmostNexusSettingsHelper.getThemeIcons(this)){
+	            	//d = Utilities.createIconThumbnail(resources.getDrawable(R.drawable.ic_launcher_folder), this);
+	                String packageName=AlmostNexusSettingsHelper.getThemePackageName(this, THEME_DEFAULT);
+	                if(!packageName.equals(THEME_DEFAULT)){
+	                	d=FolderIcon.loadFolderFromTheme(this, getPackageManager(), packageName, "ic_launcher_folder");
+	                }
+            	}else{
+            		d = Utilities.createIconThumbnail(resources.getDrawable(R.drawable.ic_launcher_folder), this);
+            	}
             	((LiveFolderInfo)info).filtered = true;
             }        	
         }else if(info instanceof UserFolderInfo){
-        	d = resources.getDrawable(R.drawable.ic_launcher_folder);
+        	if(AlmostNexusSettingsHelper.getThemeIcons(this)){
+	        	//d = resources.getDrawable(R.drawable.ic_launcher_folder);
+	            String packageName=AlmostNexusSettingsHelper.getThemePackageName(this, THEME_DEFAULT);
+	            if(!packageName.equals(THEME_DEFAULT)){
+	            	d=FolderIcon.loadFolderFromTheme(this, getPackageManager(), packageName, "ic_launcher_folder");
+	            }
+        	}else{
+        		d = resources.getDrawable(R.drawable.ic_launcher_folder);
+        	}
         }
         if (d == null) {
         	d = Utilities.createIconThumbnail(
@@ -3376,4 +3466,41 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		// TODO Auto-generated method stub
 		super.onStop();
 	}
+	/**
+	 * ADW: Load the specified theme resource
+	 * @param themeResources Resources from the theme package
+	 * @param themePackage the theme's package name 
+	 * @param item_name the theme item name to load
+	 * @param item the View Item to apply the theme into
+	 * @param themeType Specify if the themed element will be a background or a foreground item
+	 */
+	public static void loadThemeResource(Resources themeResources,
+			String themePackage, String item_name, View item,
+			int themeType) {
+		Drawable d=null;
+		if(themeResources!=null){
+			int resource_id=themeResources.getIdentifier (item_name, "drawable", themePackage);
+			if(resource_id!=0){
+				d=themeResources.getDrawable(resource_id);
+				if(themeType==THEME_ITEM_FOREGROUND && item instanceof ImageView){
+					//ADW remove the old drawable
+					Drawable tmp=((ImageView)item).getDrawable();
+					if(tmp!=null){
+						tmp.setCallback(null);
+						tmp=null;
+					}
+					((ImageView)item).setImageDrawable(d);
+				}else{
+					//ADW remove the old drawable
+					Drawable tmp=item.getBackground();
+					if(tmp!=null){
+						tmp.setCallback(null);
+						tmp=null;
+					}
+					item.setBackgroundDrawable(d);
+				}
+			}
+		}
+	}
+	
 }

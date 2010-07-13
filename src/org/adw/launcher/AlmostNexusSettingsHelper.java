@@ -7,7 +7,7 @@ public final class AlmostNexusSettingsHelper {
 	private static final String ALMOSTNEXUS_PREFERENCES = "launcher.preferences.almostnexus";
 	private static final String[] restart_keys={"desktopScreens","drawerNew","uiHideLabels","highlights_color",
 		"highlights_color_focus","uiNewSelectors","desktopRows","desktopColumns","autosizeIcons","uiDesktopIndicatorType",
-		"uiScrollableWidgets","desktopCache","uiDesktopIndicator","systemPersistent"};
+		"uiScrollableWidgets","desktopCache","uiDesktopIndicator","systemPersistent","themePackageName","themeIcons"};
 
 	public static boolean needsRestart(String key){
 		for(int i=0;i<restart_keys.length;i++){
@@ -307,6 +307,23 @@ public final class AlmostNexusSettingsHelper {
 	public static boolean getSystemPersistent(Context context) {
 		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, Context.MODE_PRIVATE);
 		boolean newD = sp.getBoolean("systemPersistent", context.getResources().getBoolean(R.bool.config_system_persistent));
+		return newD;
+	}
+	public static String getThemePackageName(Context context, String default_theme)
+	{
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, Context.MODE_PRIVATE);
+		return sp.getString("themePackageName", default_theme);
+	}
+	public static void setThemePackageName(Context context, String packageName)
+	{
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, Context.MODE_PRIVATE);
+	    SharedPreferences.Editor editor = sp.edit();
+		editor.putString("themePackageName", packageName);
+	    editor.commit();
+	}
+	public static boolean getThemeIcons(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, Context.MODE_PRIVATE);
+		boolean newD = sp.getBoolean("themeIcons", true);
 		return newD;
 	}
 	
