@@ -294,7 +294,7 @@
 			  android:title="@string/pref_title_theme_package"
 			  android:summary="@string/pref_summary_theme_package"
 			  />
-    		<org.adw.launcher.PreviewPreference
+    		<org.adw.launcher_donut.PreviewPreference
     			android:layout="@layout/theme_preview"
 	    		android:key="themePreview" />
 		
