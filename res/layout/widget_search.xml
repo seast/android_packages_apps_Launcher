@@ -53,7 +53,7 @@
             android:layout_height="42dip"
             android:layout_marginLeft="4dip"
             android:background="@drawable/btn_search_dialog_voice"
-            android:src="@*android:drawable/ic_btn_speak_now"
+            android:src="@drawable/search_button_voice"
         />
 
     </LinearLayout>
