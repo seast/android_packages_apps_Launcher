@@ -20,7 +20,7 @@
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.adw.launcher_donut"
-    android:versionCode="19" android:versionName="0.9.0 standalone donut">
+    android:versionCode="20" android:versionName="1.0.0 standalone donut">
 
     <permission
         android:name="com.android.launcher.permission.INSTALL_SHORTCUT"
