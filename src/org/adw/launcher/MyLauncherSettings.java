@@ -1,5 +1,6 @@
 package org.adw.launcher;
 
+import static android.util.Log.e;
 import android.app.ActivityManager;
 import android.preference.ListPreference;
 import android.app.AlarmManager;
@@ -7,6 +8,7 @@ import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.WallpaperManager;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -682,7 +684,16 @@ public class MyLauncherSettings extends PreferenceActivity implements OnPreferen
     	//TODO:warn theme devs to use "ADWTheme" as keyword.
     	Uri marketUri = Uri.parse("market://search?q=ADWTheme");
         Intent marketIntent = new Intent(Intent.ACTION_VIEW).setData(marketUri);
-        startActivity(marketIntent);
+        try {
+            startActivity(marketIntent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, R.string.activity_not_found, Toast.LENGTH_SHORT).show();
+        } catch (SecurityException e) {
+            Toast.makeText(this, R.string.activity_not_found, Toast.LENGTH_SHORT).show();
+            e("ADW", "Launcher does not have the permission to launch " + marketIntent +
+                    ". Make sure to create a MAIN intent-filter for the corresponding activity " +
+                    "or use the exported attribute for this activity.", e);
+        }
         finish();
     }
 }
