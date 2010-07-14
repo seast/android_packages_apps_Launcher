@@ -52,6 +52,11 @@ public class Folder extends LinearLayout implements DragSource, OnItemLongClickL
      * Which item is being dragged
      */
     protected ApplicationInfo mDragItem;
+    /**
+     * ADW:Theme vars
+     */
+    private int mTextColor=0;
+    private boolean useThemeTextColor=false;
 
     /**
      * Used to inflate the Workspace from XML.
@@ -95,6 +100,12 @@ public class Folder extends LinearLayout implements DragSource, OnItemLongClickL
 			if(grid_selector_id!=0){
 				mContent.setSelector(themeResources.getDrawable(grid_selector_id));
 			}
+			int textColorId=themeResources.getIdentifier("folder_title_color", "color", themePackage);
+			if(textColorId!=0){
+				mTextColor=themeResources.getColor(textColorId);
+				mCloseButton.setTextColor(mTextColor);
+			}
+			
 		}
         
     }
