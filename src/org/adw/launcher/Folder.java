@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -112,6 +113,12 @@ public class Folder extends LinearLayout implements DragSource, OnItemLongClickL
     
     public void onItemClick(AdapterView parent, View v, int position, long id) {
         ApplicationInfo app = (ApplicationInfo) parent.getItemAtPosition(position);
+		// set bound
+		if (v != null) {
+		    Rect targetRect = new Rect();
+		    v.getGlobalVisibleRect(targetRect);
+		    app.intent.setSourceBounds(targetRect);
+		}        
         mLauncher.startActivitySafely(app.intent);
         if (mLauncher.autoCloseFolder) {
             mLauncher.closeFolder(this);
