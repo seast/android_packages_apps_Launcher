@@ -333,7 +333,6 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         setContentView(R.layout.launcher);
         setupViews();
         
-        mAppWidgetHost.setWorkspace(mWorkspace);
         registerIntentReceivers();
         registerContentObservers();
 
