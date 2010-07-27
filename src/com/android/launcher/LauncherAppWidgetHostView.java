@@ -18,113 +18,114 @@ package com.android.launcher;
 
 import android.appwidget.AppWidgetHostView;
 import android.content.Context;
-import android.util.Log;
+import android.os.Parcelable;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 
 /**
  * {@inheritDoc}
  */
 public class LauncherAppWidgetHostView extends AppWidgetHostView {
 
-	private static final long WIDGET_LONG_CLICK_TIMEOUT = 2000;
+    private static final long WIDGET_LONG_CLICK_TIMEOUT = 700;
 
-	private static final String TAG = "LauncherAppWidgetHostView";
+    private static final String TAG = "LauncherAppWidgetHostView";
 
-	private boolean mHasPerformedLongPress;
-	private CheckForLongPress mPendingCheckForLongPress;
+    private boolean mHasPerformedLongPress;
 
-	private LayoutInflater mInflater;
+    private CheckForLongPress mPendingCheckForLongPress;
 
-	private Workspace mWorkspace;
+    private LayoutInflater mInflater;
 
-	public LauncherAppWidgetHostView(Context context) {
-		super(context);
-		mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	}
+    public LauncherAppWidgetHostView(Context context) {
+        super(context);
+        mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    }
 
-	@Override
-	protected View getErrorView() {
-		return mInflater.inflate(R.layout.appwidget_error, this, false);
-	}
+    @Override
+    protected View getErrorView() {
+        return mInflater.inflate(R.layout.appwidget_error, this, false);
+    }
 
-	public boolean onInterceptTouchEvent(MotionEvent ev) {
-		// Consume any touch events for ourselves after longpress is triggered
-		if (mHasPerformedLongPress) {
-			mHasPerformedLongPress = false;
-			return true;
-		}
+    @Override
+    protected void dispatchRestoreInstanceState(SparseArray<Parcelable> container) {
+        try {
+            super.dispatchRestoreInstanceState(container);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-		// Watch for longpress events at this level to make sure
-		// users can always pick up this widget
-		switch (ev.getAction()) {
-		case MotionEvent.ACTION_DOWN: {
-			postCheckForLongClick((int) ev.getX(), (int) ev.getY());
-			break;
-		}
+    private float startY;
 
-		case MotionEvent.ACTION_UP:
-		case MotionEvent.ACTION_CANCEL:
-			mHasPerformedLongPress = false;
-			if (mPendingCheckForLongPress != null) {
-				removeCallbacks(mPendingCheckForLongPress);
-			}
-			break;
-		}
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        // Consume any touch events for ourselves after longpress is triggered
+        if (mHasPerformedLongPress) {
+            mHasPerformedLongPress = false;
+            return true;
+        }
 
-		// Otherwise continue letting touch events fall through to children
-		return false;
-	}
+        // Watch for longpress events at this level to make sure
+        // users can always pick up this widget
+        switch (ev.getAction()) {
+        case MotionEvent.ACTION_DOWN:
+            startY = ev.getY();
+            postCheckForLongClick();
+            break;
+        case MotionEvent.ACTION_MOVE:
+            if (Math.abs(ev.getY() - startY) < 5)
+                return false;
+        case MotionEvent.ACTION_UP:
+        case MotionEvent.ACTION_CANCEL:
+            mHasPerformedLongPress = false;
+            if (mPendingCheckForLongPress != null) {
+                removeCallbacks(mPendingCheckForLongPress);
+            }
+            break;
+        }
 
-	class CheckForLongPress implements Runnable {
-		private int mOriginalWindowAttachCount;
+        // Otherwise continue letting touch events fall through to children
+        return false;
+    }
 
-		public void run() {
-			if ((getParent() != null) && hasWindowFocus() && mOriginalWindowAttachCount == getWindowAttachCount()
-					&& !mHasPerformedLongPress) {
-				if (performLongClick()) {
-					mHasPerformedLongPress = true;
-				}
-			}
-		}
+    class CheckForLongPress implements Runnable {
+        private int mOriginalWindowAttachCount;
 
-		public void rememberWindowAttachCount() {
-			mOriginalWindowAttachCount = getWindowAttachCount();
-		}
-	}
+        public void run() {
+            if ((getParent() != null) && hasWindowFocus()
+                    && mOriginalWindowAttachCount == getWindowAttachCount()
+                    && !mHasPerformedLongPress) {
+                if (performLongClick()) {
+                    mHasPerformedLongPress = true;
+                }
+            }
+        }
 
-	private void postCheckForLongClick(int posX, int posY) {
-		mHasPerformedLongPress = false;
+        public void rememberWindowAttachCount() {
+            mOriginalWindowAttachCount = getWindowAttachCount();
+        }
+    }
 
-		if (mPendingCheckForLongPress == null) {
-			mPendingCheckForLongPress = new CheckForLongPress();
-		}
-		mPendingCheckForLongPress.rememberWindowAttachCount();
+    private void postCheckForLongClick() {
+        mHasPerformedLongPress = false;
 
-		boolean mTouchedScrollableWidget = false;
-		if (mWorkspace != null)
-			mTouchedScrollableWidget = mWorkspace.isWidgetAtLocationScrollable(posX, posY);
+        if (mPendingCheckForLongPress == null) {
+            mPendingCheckForLongPress = new CheckForLongPress();
+        }
+        mPendingCheckForLongPress.rememberWindowAttachCount();
+        postDelayed(mPendingCheckForLongPress, WIDGET_LONG_CLICK_TIMEOUT);
+    }
 
-		Log.d(TAG, "mTouchedScrollableWidget = " + mTouchedScrollableWidget);
-		if (mTouchedScrollableWidget)
-			postDelayed(mPendingCheckForLongPress, WIDGET_LONG_CLICK_TIMEOUT);
-		else
-			postDelayed(mPendingCheckForLongPress, ViewConfiguration.getLongPressTimeout());
-	}
+    @Override
+    public void cancelLongPress() {
+        super.cancelLongPress();
 
-	@Override
-	public void cancelLongPress() {
-		super.cancelLongPress();
+        mHasPerformedLongPress = false;
+        if (mPendingCheckForLongPress != null) {
+            removeCallbacks(mPendingCheckForLongPress);
+        }
+    }
 
-		mHasPerformedLongPress = false;
-		if (mPendingCheckForLongPress != null) {
-			removeCallbacks(mPendingCheckForLongPress);
-		}
-	}
-
-	public void setWorkspace(Workspace workspace) {
-		mWorkspace = workspace;
-	}
 }
