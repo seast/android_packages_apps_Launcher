@@ -512,7 +512,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     	if(getScrollX()>getChildAt(getChildCount() - 1).getRight() - (getRight() - getLeft())){
     		x=(getScrollX()-mWallpaperWidth+(getRight()-getLeft()));
     	}
-	if(getChildCount()==1)x=getScrollX();
+	if(getChildCount()==1)x=x=(getScrollX()-(mWallpaperWidth/2)+(getRight()/2));
 	canvas.drawBitmap(mWallpaper, x, (getBottom() - mWallpaperHeight) / 2, mPaint);
         if(!mSensemode){
 			// If the all apps drawer is open and the drawing region for the workspace
