@@ -588,6 +588,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     			}else if(mStatus==SENSE_CLOSING){
     				mStatus=SENSE_CLOSED;
     				mSensemode=false;
+    				clearChildrenCache();
     				unlock();
     				postInvalidate();
     			}
@@ -883,6 +884,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 	        	//ADW: create cache only for current screen/previous/next.
 	        	if(i>=mCurrentScreen-1 || i<=mCurrentScreen+1){
 	        		final CellLayout layout = (CellLayout) getChildAt(i);
+	        		layout.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
 	        		layout.setChildrenDrawnWithCacheEnabled(true);
 	        		layout.setChildrenDrawingCacheEnabled(true);
 	        	}
