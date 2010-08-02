@@ -49,10 +49,9 @@ import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LevelListDrawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -299,7 +298,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 	public static final int THEME_ITEM_BACKGROUND=0;
 	public static final int THEME_ITEM_FOREGROUND=1;
 	public static final String THEME_DEFAULT="ADW.Default theme";
-
+	private Typeface themeFont=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         int orientation = getResources().getConfiguration().orientation;
@@ -824,6 +823,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 			loadThemeResource(themeResources,themePackage,"home_arrows_right",mNextView,THEME_ITEM_FOREGROUND);
 			//Dockbar
 			loadThemeResource(themeResources,themePackage,"dockbar_bg",mMiniLauncher,THEME_ITEM_BACKGROUND);
+			themeFont=Typeface.createFromAsset(themeResources.getAssets(), "themefont.ttf");
 		}
 	        mHandleIcon = (TransitionDrawable) mHandleView.getDrawable();
 	        mHandleIcon.setCrossFadeEnabled(true);
@@ -867,6 +867,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         if(!uiHideLabels)favorite.setText(info.title);
         favorite.setTag(info);
         favorite.setOnClickListener(this);
+		//ADW: Custom font
+		if(themeFont!=null) favorite.setTypeface(themeFont);
 
         return favorite;
     }
@@ -1534,6 +1536,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         // Create the view
         FolderIcon newFolder = FolderIcon.fromXml(R.layout.folder_icon, this,
                 (ViewGroup) mWorkspace.getChildAt(mWorkspace.getCurrentScreen()), folderInfo);
+        if(themeFont!=null)((TextView)newFolder).setTypeface(themeFont);
         mWorkspace.addInCurrentScreen(newFolder,
                 cellInfo.cellX, cellInfo.cellY, 1, 1, insertAtFirst);
     }
@@ -1550,6 +1553,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
             final View view = LiveFolderIcon.fromXml(R.layout.live_folder_icon, this,
                 (ViewGroup) mWorkspace.getChildAt(mWorkspace.getCurrentScreen()), info);
+            if(themeFont!=null)((TextView)view).setTypeface(themeFont);
             mWorkspace.addInCurrentScreen(view, cellInfo.cellX, cellInfo.cellY, 1, 1, insertAtFirst);
         } else if (sModel.isDesktopLoaded()) {
             sModel.addDesktopItem(info);
@@ -1849,6 +1853,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		                    final FolderIcon newFolder = FolderIcon.fromXml(R.layout.folder_icon, this,
 		                            (ViewGroup) workspace.getChildAt(workspace.getCurrentScreen()),
 		                            (UserFolderInfo) item);
+		                    if(themeFont!=null)((TextView)newFolder).setTypeface(themeFont);
 		                    workspace.addInScreen(newFolder, item.screen, item.cellX, item.cellY, 1, 1,
 		                            !desktopLocked);
 		                    break;
@@ -1857,6 +1862,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 		                            R.layout.live_folder_icon, this,
 		                            (ViewGroup) workspace.getChildAt(workspace.getCurrentScreen()),
 		                            (LiveFolderInfo) item);
+		                    if(themeFont!=null)((TextView)newLiveFolder).setTypeface(themeFont);
 		                    workspace.addInScreen(newLiveFolder, item.screen, item.cellX, item.cellY, 1, 1,
 		                            !desktopLocked);
 		                    break;
@@ -3463,5 +3469,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 			}
 		}
 	}
-	
+	public Typeface getThemeFont(){
+		return themeFont;
+	}
 }

@@ -19,6 +19,7 @@ package org.adw.launcher_donut;
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.view.LayoutInflater;
@@ -38,6 +39,7 @@ public class ApplicationsAdapter extends ArrayAdapter<ApplicationInfo> {
     private Drawable mBackground;
     private int mTextColor=0;
     private boolean useThemeTextColor=false;
+    private Typeface themeFont=null;
     public ApplicationsAdapter(Context context, ArrayList<ApplicationInfo> apps) {
         super(context, 0, apps);
         mInflater = LayoutInflater.from(context);
@@ -57,6 +59,7 @@ public class ApplicationsAdapter extends ArrayAdapter<ApplicationInfo> {
     				useThemeTextColor=true;
     			}
     			mBackground=IconHighlights.getDrawable(getContext(), IconHighlights.TYPE_DRAWER);
+    			themeFont=Typeface.createFromAsset(themeResources.getAssets(), "themefont.ttf");
     		}
         }
     }
@@ -80,6 +83,8 @@ public class ApplicationsAdapter extends ArrayAdapter<ApplicationInfo> {
 		if(useThemeTextColor){
 			textView.setTextColor(mTextColor);
 		}
+		//ADW: Custom font
+		if(themeFont!=null) textView.setTypeface(themeFont);
         //TODO:ADW Loading the background drawable for the app drawer hogs the ram and cpu
         //so i'd better not use it, sorry themers
 		if(mBackground!=null)
