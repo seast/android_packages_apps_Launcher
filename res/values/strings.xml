@@ -375,4 +375,21 @@
 	<string name="pref_summary_theme_icons">Deselect this to use standard OS icons</string>
 	<string name="pref_themes_apply_theme">Apply theme!</string>
 	<string name="pref_themes_get_themes">Get themes!</string>
-</resources>
+
+
+	<string name="buttonOk">"OK"</string>
+	<string name="buttonCancel">"Cancel"</string>
+	<string name="selectAll">All</string>
+	<string name="AppGroup0">"MultiMedia"</string>
+	<string name="AppGroup1">"Tools"</string>
+	<string name="AppGroup2">"Life"</string>
+	<string name="AppGroup3">"Business"</string>
+	<string name="AppGroup4">"eLive"</string>
+	<string name="AppGroup5">"Custom"</string>
+	<string name="AppGroupAll">"ALL"</string>
+	<string name="AppGroupChoose">"Choose Group"</string>
+	<string name="AppGroupConfig">"Setup Group"</string>
+	<string name="AppGroupRename">"Rename Group"</string>
+	<string name="AppGroupConfigError">"You can not setup this group"</string>
+	<string name="rename_group_title">Rename Group</string>
+	<string name="rename_group_label">Group Name</string> </resources>

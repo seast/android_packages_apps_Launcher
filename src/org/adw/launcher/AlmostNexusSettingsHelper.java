@@ -329,5 +329,15 @@ public final class AlmostNexusSettingsHelper {
 		int newD = Integer.valueOf(sp.getString("homeOrientation", context.getResources().getString(R.string.config_orientation_default)));
 		return newD;
 	}
-	
+	public static int getCurrentAppCatalog(Context context) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, Context.MODE_PRIVATE);
+		int newD = sp.getInt("currentAppCatalog", -1);
+		return newD;
+	}
+	public static void setCurrentAppCatalog(Context context, int group) {
+		SharedPreferences sp = context.getSharedPreferences(ALMOSTNEXUS_PREFERENCES, Context.MODE_PRIVATE);
+	    SharedPreferences.Editor editor = sp.edit();
+		editor.putInt("currentAppCatalog", group);
+	    editor.commit();
+	}
 }
